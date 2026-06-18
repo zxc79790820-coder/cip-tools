@@ -791,6 +791,34 @@ body {
 @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 .fade-up { animation: fadeUp .3s ease both; }
 
+/* ══ TOOL D: 天成快遞對帳 ══ */
+.tc-upload-row { display:flex; align-items:stretch; gap:16px; margin-top:8px; flex-wrap:wrap; }
+.tc-upload-card {
+  flex:1; min-width:240px; background:#fff; border:2px dashed var(--cip-border2);
+  border-radius:10px; padding:22px 20px; text-align:center; transition:border-color .2s;
+}
+.tc-upload-card.loaded { border-style:solid; border-color:var(--cip-orange); }
+.tc-upload-icon { font-size:28px; margin-bottom:6px; }
+.tc-upload-label { font-size:13px; font-weight:700; color:var(--cip-text); margin-bottom:3px; }
+.tc-upload-hint { font-size:11px; color:var(--cip-text3); }
+.tc-upload-btn { cursor:pointer; }
+.tc-file-name { font-size:11px; color:var(--cip-orange); margin-top:6px; min-height:16px; word-break:break-all; }
+.tc-upload-sep { font-size:28px; color:var(--cip-border2); display:flex; align-items:center; padding:0 4px; }
+.tc-stats-row { display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; }
+.tc-stat-card { flex:1; min-width:110px; background:#fff; border:1px solid var(--cip-border); border-radius:8px; padding:14px 16px; text-align:center; }
+.tc-stat-num { font-size:24px; font-weight:800; color:var(--cip-text); line-height:1.1; }
+.tc-stat-label { font-size:11px; color:var(--cip-text3); margin-top:4px; }
+.tc-green { color:#4caf50; }
+.tc-red { color:#e53935; }
+.tc-orange { color:var(--cip-orange); }
+.tc-table-wrap { overflow-x:auto; border:1px solid var(--cip-border); border-radius:6px; }
+.tc-table { width:100%; border-collapse:collapse; font-size:12px; }
+.tc-table thead th { background:var(--cip-dark); color:#fff; font-weight:700; padding:8px 12px; white-space:nowrap; text-align:left; }
+.tc-table tbody tr:nth-child(even) { background:var(--cip-offwhite); }
+.tc-table tbody tr:hover { background:var(--cip-orange-bg); }
+.tc-table tbody td { padding:7px 12px; color:var(--cip-text); vertical-align:middle; border-bottom:1px solid var(--cip-border); white-space:nowrap; }
+.tc-table tbody td.tc-amt-diff { color:#e53935; font-weight:700; }
+
 </style>
 </head>
 <body>
@@ -824,13 +852,18 @@ body {
       <span class="nav-label">POSM 包裝清單</span>
       <span class="nav-tag">C</span>
     </div>
+    <div class="nav-item" id="nav-tc" onclick="switchTool('tc')">
+      <span class="nav-icon">🚚</span>
+      <span class="nav-label">天成快遞對帳</span>
+      <span class="nav-tag">D</span>
+    </div>
     <!-- 新工具在此新增 nav-item -->
   </div>
 
   <div class="sidebar-footer">
     <div class="sidebar-footer-name">李安峻</div>
     <div class="sidebar-footer-role">西北影像股份有限公司</div>
-    <div class="sidebar-footer-ver">v1.1 · 2026-05-26</div>
+    <div class="sidebar-footer-ver">v1.2 · 2026-06-18</div>
   </div>
 </aside>
 
@@ -873,6 +906,12 @@ body {
             <div class="welcome-card-label">Tool C</div>
             <div class="welcome-card-title">POSM 包裝清單</div>
             <div class="welcome-card-desc">下載標準範本填寫門市、項次、數量，上傳後自動產出包裝人員專用清單 Excel。</div>
+          </div>
+          <div class="welcome-card" onclick="switchTool('tc')">
+            <span class="welcome-card-icon">🚚</span>
+            <div class="welcome-card-label">Tool D</div>
+            <div class="welcome-card-title">天成快遞對帳</div>
+            <div class="welcome-card-desc">上傳天成對帳明細與 ERP 貨運單，自動比對單號金額，產出落差分析表供查詢使用。</div>
           </div>
         </div>
       </div>
@@ -1121,6 +1160,107 @@ body {
       </div>
     </div><!-- /panel-posm -->
 
+    <!-- ══════════════════════════════
+         TOOL D: 天成快遞對帳
+    ══════════════════════════════ -->
+    <div class="tool-panel" id="panel-tc">
+      <div class="page-head">
+        <div class="page-head-icon">🚚</div>
+        <div>
+          <div class="page-head-title">天成快遞對帳</div>
+          <div class="page-head-sub">天成對帳明細 × ERP 貨運單 → 金額落差分析</div>
+        </div>
+      </div>
+
+      <!-- 上傳區 -->
+      <div class="tc-upload-row">
+        <div class="tc-upload-card" id="tc-card-a">
+          <div class="tc-upload-icon">📄</div>
+          <div class="tc-upload-label">天成快遞對帳明細</div>
+          <div class="tc-upload-hint">簽單號碼 ＋ 應收金額</div>
+          <label class="btn btn-primary tc-upload-btn" style="margin-top:10px;font-size:12px">
+            📤 選擇檔案
+            <input type="file" id="tc-file-a" accept=".xls,.xlsx" style="display:none">
+          </label>
+          <div class="tc-file-name" id="tc-name-a">尚未選擇</div>
+        </div>
+        <div class="tc-upload-sep">×</div>
+        <div class="tc-upload-card" id="tc-card-b">
+          <div class="tc-upload-icon">🗂️</div>
+          <div class="tc-upload-label">ERP 貨運單</div>
+          <div class="tc-upload-hint">貨運單號 ＋ 運費（收件人備註欄）</div>
+          <label class="btn btn-primary tc-upload-btn" style="margin-top:10px;font-size:12px">
+            📤 選擇檔案
+            <input type="file" id="tc-file-b" accept=".xls,.xlsx" style="display:none">
+          </label>
+          <div class="tc-file-name" id="tc-name-b">尚未選擇</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;margin:14px 0 4px">
+        <button class="btn btn-primary" id="tc-run-btn" onclick="TC.run()" disabled style="padding:7px 22px;font-size:13px">▶ 開始比對</button>
+        <span id="tc-status" style="font-size:12px;color:var(--cip-text2)"></span>
+      </div>
+
+      <div class="error-box" id="tc-error" style="display:none"></div>
+
+      <!-- 結果區 -->
+      <div id="tc-result" style="display:none">
+
+        <!-- 統計列 -->
+        <div class="tc-stats-row">
+          <div class="tc-stat-card">
+            <div class="tc-stat-num" id="tc-stat-total">—</div>
+            <div class="tc-stat-label">天成總筆數</div>
+          </div>
+          <div class="tc-stat-card">
+            <div class="tc-stat-num tc-green" id="tc-stat-match">—</div>
+            <div class="tc-stat-label">金額吻合</div>
+          </div>
+          <div class="tc-stat-card">
+            <div class="tc-stat-num tc-red" id="tc-stat-diff">—</div>
+            <div class="tc-stat-label">金額落差</div>
+          </div>
+          <div class="tc-stat-card">
+            <div class="tc-stat-num tc-orange" id="tc-stat-gap">—</div>
+            <div class="tc-stat-label">差額合計 (元)</div>
+          </div>
+        </div>
+
+        <!-- 落差表格 -->
+        <div id="tc-diff-wrap" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px">
+            <div style="font-size:13px;font-weight:700;color:var(--cip-text)">落差明細</div>
+            <button class="btn btn-primary" onclick="TC.exportExcel()" style="font-size:12px;padding:5px 16px">⬇ 匯出分析表 Excel</button>
+          </div>
+          <div class="tc-table-wrap">
+            <table class="tc-table" id="tc-diff-table">
+              <thead>
+                <tr>
+                  <th>貨運單號</th>
+                  <th>託運日期</th>
+                  <th>收件人</th>
+                  <th>到站</th>
+                  <th>天成應收(元)</th>
+                  <th>ERP登錄(元)</th>
+                  <th>差額(元)</th>
+                  <th>部門</th>
+                  <th>ERP備註</th>
+                  <th>查詢備註</th>
+                </tr>
+              </thead>
+              <tbody id="tc-diff-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 全部吻合提示 -->
+        <div id="tc-all-ok" style="display:none;margin-top:20px;padding:18px 24px;background:var(--cip-offwhite);border:1px solid var(--cip-border);border-radius:8px;color:var(--cip-green,#4caf50);font-size:14px;font-weight:600">
+          ✅ 全部吻合，無金額落差
+        </div>
+      </div>
+    </div><!-- /panel-tc -->
+
 
   </div><!-- /content -->
 </div><!-- /main-area -->
@@ -1147,6 +1287,7 @@ const TOOL_META = {
   lamp: { title: '主燈彙整', sub: '上傳 XLS/XLSX → 篩選關鍵字 → 下載報表' },
   wo:   { title: '工單分析', sub: '上傳工單 → 分類確認 → 分析匯出' },
   posm: { title: 'POSM 包裝清單', sub: '下載範本填表 → 上傳 → 產出包裝清單 Excel' },
+  tc:   { title: '天成快遞對帳', sub: '上傳天成明細 + ERP 貨運單 → 比對金額落差 → 匯出分析表' },
 };
 
 function switchTool(id) {
@@ -2063,6 +2204,199 @@ const XlsxBuilder = (() => {
     ]);
   }
   return{build};
+})();
+
+
+/* ════════════════════════════════════════════════
+   TOOL D — 天成快遞對帳  (namespace: TC)
+════════════════════════════════════════════════ */
+const TC = (() => {
+  let dataA = null; // 天成明細 { no -> {date,dest,recv,addr,amt,remark} }
+  let dataB = null; // ERP      { no -> {note,dept,rmk} }
+  let diffRows = [];
+
+  /* ── 讀檔 ── */
+  function toStrNo(val) {
+    if (typeof val === 'number') return String(Math.round(val));
+    return String(val).trim();
+  }
+  function readFileA(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+        // 找 header 列：含「簽單號碼」的列
+        let hIdx = rows.findIndex(r => r.some(c => String(c).includes('簽單號碼')));
+        if (hIdx < 0) { showErr('天成明細：找不到「簽單號碼」欄位，請確認檔案格式'); return; }
+        const hRow = rows[hIdx];
+        const ci = k => hRow.findIndex(c => String(c).includes(k));
+        const iNo=ci('簽單號碼'), iDate=ci('託運日期'), iDest=ci('到站'),
+              iRecv=ci('收件人'), iAddr=ci('收件地址'), iAmt=ci('應收金額'), iRmk=ci('備註');
+        if (iNo<0||iAmt<0) { showErr('天成明細：缺少必要欄位（簽單號碼/應收金額）'); return; }
+        dataA = {};
+        for (let r = hIdx+1; r < rows.length; r++) {
+          const row = rows[r];
+          const no = toStrNo(row[iNo]);
+          if (!no || no === '0') continue;
+          const amt = parseFloat(row[iAmt]);
+          if (isNaN(amt)) continue;
+          dataA[no] = {
+            date: String(row[iDate]||'').trim(),
+            dest: String(row[iDest]||'').trim(),
+            recv: String(row[iRecv]||'').trim(),
+            addr: String(row[iAddr]||'').trim(),
+            amt,
+            remark: String(row[iRmk]||'').trim(),
+          };
+        }
+        document.getElementById('tc-name-a').textContent = `✓ ${file.name}（${Object.keys(dataA).length} 筆）`;
+        document.getElementById('tc-card-a').classList.add('loaded');
+        checkReady();
+      } catch(err) { showErr('讀取天成明細失敗：' + err.message); }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function readFileB(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+        let hIdx = rows.findIndex(r => r.some(c => String(c).includes('貨運單號')));
+        if (hIdx < 0) { showErr('ERP貨運單：找不到「貨運單號」欄位，請確認檔案格式'); return; }
+        const hRow = rows[hIdx];
+        const ci = k => hRow.findIndex(c => String(c).includes(k));
+        const iNo=ci('貨運單號'), iNote=ci('收件人備註'), iDept=ci('部門名稱'), iRmk=ci('備註');
+        if (iNo<0||iNote<0) { showErr('ERP貨運單：缺少必要欄位（貨運單號/收件人備註）'); return; }
+        dataB = {};
+        for (let r = hIdx+1; r < rows.length; r++) {
+          const row = rows[r];
+          const no = toStrNo(row[iNo]);
+          if (!no || no === '0') continue;
+          dataB[no] = {
+            note: String(row[iNote]||'').trim(),
+            dept: String(row[iDept]||'').trim(),
+            rmk:  String(row[iRmk]||'').trim(),
+          };
+        }
+        document.getElementById('tc-name-b').textContent = `✓ ${file.name}（${Object.keys(dataB).length} 筆）`;
+        document.getElementById('tc-card-b').classList.add('loaded');
+        checkReady();
+      } catch(err) { showErr('讀取ERP貨運單失敗：' + err.message); }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function checkReady() {
+    document.getElementById('tc-run-btn').disabled = !(dataA && dataB);
+  }
+
+  /* ── 比對 ── */
+  function run() {
+    hideErr();
+    diffRows = [];
+    let match = 0;
+    let totalGap = 0;
+
+    for (const [no, t] of Object.entries(dataA)) {
+      if (!dataB[no]) {
+        diffRows.push({ type:'ERP無此單號', no, ...t, erpAmt:'—', gap:'—', dept:'', erpRmk:'' });
+        continue;
+      }
+      const erpAmt = parseFloat(dataB[no].note);
+      if (isNaN(erpAmt)) {
+        diffRows.push({ type:'ERP金額非數字', no, ...t, erpAmt: dataB[no].note, gap:'—', dept: dataB[no].dept, erpRmk: dataB[no].rmk });
+        continue;
+      }
+      if (t.amt !== erpAmt) {
+        const gap = t.amt - erpAmt;
+        totalGap += gap;
+        diffRows.push({ type:'金額落差', no, ...t, erpAmt, gap, dept: dataB[no].dept, erpRmk: dataB[no].rmk });
+      } else {
+        match++;
+      }
+    }
+
+    // 統計
+    document.getElementById('tc-stat-total').textContent = Object.keys(dataA).length;
+    document.getElementById('tc-stat-match').textContent = match;
+    document.getElementById('tc-stat-diff').textContent  = diffRows.length;
+    document.getElementById('tc-stat-gap').textContent   = diffRows.length > 0 ? totalGap.toFixed(0) : '0';
+    document.getElementById('tc-result').style.display = '';
+
+    if (diffRows.length === 0) {
+      document.getElementById('tc-diff-wrap').style.display = 'none';
+      document.getElementById('tc-all-ok').style.display = '';
+    } else {
+      document.getElementById('tc-all-ok').style.display = 'none';
+      document.getElementById('tc-diff-wrap').style.display = '';
+      renderTable();
+    }
+    document.getElementById('tc-status').textContent =
+      diffRows.length > 0 ? `發現 ${diffRows.length} 筆落差` : '比對完成，全部吻合';
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('tc-diff-tbody');
+    tbody.innerHTML = diffRows.map(d => `
+      <tr>
+        <td>${d.no}</td>
+        <td>${d.date}</td>
+        <td>${d.recv}</td>
+        <td>${d.dest}</td>
+        <td style="text-align:right">${typeof d.amt==='number'?d.amt.toFixed(0):d.amt}</td>
+        <td style="text-align:right">${typeof d.erpAmt==='number'?d.erpAmt.toFixed(0):d.erpAmt}</td>
+        <td class="tc-amt-diff" style="text-align:right">${typeof d.gap==='number'?(d.gap>0?'+':'')+d.gap.toFixed(0):d.gap}</td>
+        <td>${d.dept}</td>
+        <td style="max-width:200px;white-space:normal;word-break:break-all;font-size:11px">${d.erpRmk}</td>
+        <td></td>
+      </tr>`).join('');
+  }
+
+  /* ── 匯出 Excel ── */
+  function exportExcel() {
+    const wb = XLSX.utils.book_new();
+    const header = ['貨運單號','託運日期','收件人','到站','天成應收(元)','ERP登錄(元)','差額(元)','部門','ERP備註','查詢備註','異常類型'];
+    const sheetData = [header, ...diffRows.map(d => [
+      d.no, d.date, d.recv, d.dest,
+      typeof d.amt==='number'?d.amt:d.amt,
+      typeof d.erpAmt==='number'?d.erpAmt:d.erpAmt,
+      typeof d.gap==='number'?d.gap:d.gap,
+      d.dept, d.erpRmk, '', d.type
+    ])];
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    ws['!cols'] = [14,12,10,10,12,12,10,14,28,20,12].map(w=>({wch:w}));
+    ws['!freeze'] = {xSplit:0, ySplit:1};
+    XLSX.utils.book_append_sheet(wb, ws, '落差分析');
+    const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    XLSX.writeFile(wb, `天成快遞對帳落差_${today}.xlsx`);
+  }
+
+  /* ── helpers ── */
+  function showErr(msg) {
+    const el = document.getElementById('tc-error');
+    el.textContent = msg; el.style.display = '';
+  }
+  function hideErr() {
+    const el = document.getElementById('tc-error');
+    el.style.display = 'none';
+  }
+
+  /* ── init ── */
+  function initEvents() {
+    document.getElementById('tc-file-a').addEventListener('change', e => {
+      const f = e.target.files[0]; if (f) { dataA = null; readFileA(f); }
+    });
+    document.getElementById('tc-file-b').addEventListener('change', e => {
+      const f = e.target.files[0]; if (f) { dataB = null; readFileB(f); }
+    });
+  }
+  initEvents();
+  return { run, exportExcel };
 })();
 
 
