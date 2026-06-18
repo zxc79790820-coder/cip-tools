@@ -1229,7 +1229,7 @@ body {
           </div>
           <div class="tc-stat-card">
             <div class="tc-stat-num tc-red" id="tc-stat-diff">—</div>
-            <div class="tc-stat-label">金額落差</div>
+            <div class="tc-stat-label">異常筆數</div>
           </div>
           <div class="tc-stat-card">
             <div class="tc-stat-num tc-orange" id="tc-stat-gap">—</div>
@@ -2280,7 +2280,8 @@ const TC = (() => {
         if (hIdx < 0) { showErr('ERP貨運單：找不到「貨運單號」欄位，請確認檔案格式'); return; }
         const hRow = rows[hIdx];
         const ci = k => hRow.findIndex(c => String(c).includes(k));
-        const iNo=ci('貨運單號'), iNote=ci('收件人備註'), iDept=ci('部門名稱'), iRmk=ci('備註');
+        const iNo=ci('貨運單號'), iNote=ci('收件人備註'), iDept=ci('部門名稱'), iRmk=ci('備註'),
+              iRecv=ci('收件人資訊'), iDate=ci('預計送達日');
         if (iNo<0||iNote<0) { showErr('ERP貨運單：缺少必要欄位（貨運單號/收件人備註）'); return; }
         dataB = {};
         for (let r = hIdx+1; r < rows.length; r++) {
@@ -2291,6 +2292,8 @@ const TC = (() => {
             note: String(row[iNote]||'').trim(),
             dept: String(row[iDept]||'').trim(),
             rmk:  String(row[iRmk]||'').trim(),
+            recv: iRecv>=0 ? String(row[iRecv]||'').trim() : '',
+            date: iDate>=0 ? String(row[iDate]||'').trim() : '',
           };
         }
         document.getElementById('tc-name-b').textContent = `✓ ${file.name}（${Object.keys(dataB).length} 筆）`;
@@ -2329,6 +2332,22 @@ const TC = (() => {
       } else {
         match++;
       }
+    }
+
+    // 反向檢查：ERP 有、天成明細沒有的天成單（天成漏列帳）
+    // 動態學習天成單號前綴（取天成明細各單號前 4 碼），只比對格式相符者，
+    // 自動排除 Costco 等非天成物流單（單號格式不同）
+    const tcPrefixes = new Set(Object.keys(dataA).map(k => k.slice(0,4)));
+    for (const [no, b] of Object.entries(dataB)) {
+      if (dataA[no]) continue;                       // 兩邊都有 → 已在上面比過
+      if (!tcPrefixes.has(no.slice(0,4))) continue;  // 非天成格式 → 略過（其他物流）
+      const erpAmt = parseFloat(b.note);
+      diffRows.push({
+        type:'天成漏列帳', no,
+        date: b.date, dest:'', recv: b.recv, addr:'',
+        amt:'—', erpAmt: isNaN(erpAmt) ? b.note : erpAmt,
+        gap:'—', dept: b.dept, erpRmk: b.rmk,
+      });
     }
 
     // 統計
