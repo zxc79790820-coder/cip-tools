@@ -795,14 +795,26 @@ body {
 .tc-upload-row { display:flex; align-items:stretch; gap:16px; margin-top:8px; flex-wrap:wrap; }
 .tc-upload-card {
   flex:1; min-width:240px; background:#fff; border:2px dashed var(--cip-border2);
-  border-radius:10px; padding:22px 20px; text-align:center; transition:border-color .2s;
+  border-radius:10px; padding:22px 20px; text-align:center; cursor:pointer;
+  display:block; transition:border-color .2s, background .2s, transform .1s;
 }
+.tc-upload-card:hover { border-color:var(--cip-orange); background:var(--cip-orange-bg); }
+.tc-upload-card.dragover { border-style:solid; border-color:var(--cip-orange); background:var(--cip-orange-bg); transform:scale(1.01); }
 .tc-upload-card.loaded { border-style:solid; border-color:var(--cip-orange); }
-.tc-upload-icon { font-size:28px; margin-bottom:6px; }
-.tc-upload-label { font-size:13px; font-weight:700; color:var(--cip-text); margin-bottom:3px; }
-.tc-upload-hint { font-size:11px; color:var(--cip-text3); }
-.tc-upload-btn { cursor:pointer; }
-.tc-file-name { font-size:11px; color:var(--cip-orange); margin-top:6px; min-height:16px; word-break:break-all; }
+.tc-upload-icon { font-size:28px; margin-bottom:6px; pointer-events:none; }
+.tc-upload-label { font-size:13px; font-weight:700; color:var(--cip-text); margin-bottom:3px; pointer-events:none; }
+.tc-upload-hint { font-size:11px; color:var(--cip-text3); pointer-events:none; }
+.tc-upload-cta {
+  display:inline-block; margin-top:12px; padding:6px 16px; border-radius:5px;
+  background:var(--cip-orange); color:#fff; font-size:12px; font-weight:600;
+  pointer-events:none;
+}
+.tc-upload-note {
+  margin-top:12px; padding:7px 10px; background:var(--cip-offwhite);
+  border:1px solid var(--cip-border); border-radius:5px;
+  font-size:10.5px; color:var(--cip-text2); line-height:1.5; pointer-events:none;
+}
+.tc-file-name { font-size:11px; color:var(--cip-orange); margin-top:8px; min-height:16px; word-break:break-all; pointer-events:none; }
 .tc-upload-sep { font-size:28px; color:var(--cip-border2); display:flex; align-items:center; padding:0 4px; }
 .tc-stats-row { display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; }
 .tc-stat-card { flex:1; min-width:110px; background:#fff; border:1px solid var(--cip-border); border-radius:8px; padding:14px 16px; text-align:center; }
@@ -817,6 +829,7 @@ body {
 .tc-table tbody tr:nth-child(even) { background:var(--cip-offwhite); }
 .tc-table tbody tr:hover { background:var(--cip-orange-bg); }
 .tc-table tbody td { padding:7px 12px; color:var(--cip-text); vertical-align:middle; border-bottom:1px solid var(--cip-border); white-space:nowrap; }
+.tc-table th.tc-num, .tc-table td.tc-num { text-align:right; font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
 .tc-table tbody td.tc-amt-diff { color:#e53935; font-weight:700; }
 
 </style>
@@ -1174,27 +1187,24 @@ body {
 
       <!-- 上傳區 -->
       <div class="tc-upload-row">
-        <div class="tc-upload-card" id="tc-card-a">
+        <label class="tc-upload-card" id="tc-card-a">
+          <input type="file" id="tc-file-a" accept=".xls,.xlsx" style="display:none">
           <div class="tc-upload-icon">📄</div>
           <div class="tc-upload-label">天成快遞對帳明細</div>
           <div class="tc-upload-hint">簽單號碼 ＋ 應收金額</div>
-          <label class="btn btn-primary tc-upload-btn" style="margin-top:10px;font-size:12px">
-            📤 選擇檔案
-            <input type="file" id="tc-file-a" accept=".xls,.xlsx" style="display:none">
-          </label>
+          <div class="tc-upload-cta">📤 點擊或拖曳檔案到此</div>
           <div class="tc-file-name" id="tc-name-a">尚未選擇</div>
-        </div>
+        </label>
         <div class="tc-upload-sep">×</div>
-        <div class="tc-upload-card" id="tc-card-b">
+        <label class="tc-upload-card" id="tc-card-b">
+          <input type="file" id="tc-file-b" accept=".xls,.xlsx" style="display:none">
           <div class="tc-upload-icon">🗂️</div>
           <div class="tc-upload-label">ERP 貨運單</div>
           <div class="tc-upload-hint">貨運單號 ＋ 運費（收件人備註欄）</div>
-          <label class="btn btn-primary tc-upload-btn" style="margin-top:10px;font-size:12px">
-            📤 選擇檔案
-            <input type="file" id="tc-file-b" accept=".xls,.xlsx" style="display:none">
-          </label>
+          <div class="tc-upload-cta">📤 點擊或拖曳檔案到此</div>
           <div class="tc-file-name" id="tc-name-b">尚未選擇</div>
-        </div>
+          <div class="tc-upload-note">ERP 提供資料：貨運管理 ▸ 貨運單管理 ▸ 輸入貨運日期 ▸ 匯出新版 Excel</div>
+        </label>
       </div>
 
       <div style="display:flex;align-items:center;gap:10px;margin:14px 0 4px">
@@ -1241,9 +1251,9 @@ body {
                   <th>託運日期</th>
                   <th>收件人</th>
                   <th>到站</th>
-                  <th>天成應收(元)</th>
-                  <th>ERP登錄(元)</th>
-                  <th>差額(元)</th>
+                  <th class="tc-num">天成應收(元)</th>
+                  <th class="tc-num">ERP登錄(元)</th>
+                  <th class="tc-num">差額(元)</th>
                   <th>部門</th>
                   <th>ERP備註</th>
                   <th>查詢備註</th>
@@ -2348,9 +2358,9 @@ const TC = (() => {
         <td>${d.date}</td>
         <td>${d.recv}</td>
         <td>${d.dest}</td>
-        <td style="text-align:right">${typeof d.amt==='number'?d.amt.toFixed(0):d.amt}</td>
-        <td style="text-align:right">${typeof d.erpAmt==='number'?d.erpAmt.toFixed(0):d.erpAmt}</td>
-        <td class="tc-amt-diff" style="text-align:right">${typeof d.gap==='number'?(d.gap>0?'+':'')+d.gap.toFixed(0):d.gap}</td>
+        <td class="tc-num">${typeof d.amt==='number'?d.amt.toFixed(0):d.amt}</td>
+        <td class="tc-num">${typeof d.erpAmt==='number'?d.erpAmt.toFixed(0):d.erpAmt}</td>
+        <td class="tc-num tc-amt-diff">${typeof d.gap==='number'?(d.gap>0?'+':'')+d.gap.toFixed(0):d.gap}</td>
         <td>${d.dept}</td>
         <td style="max-width:200px;white-space:normal;word-break:break-all;font-size:11px">${d.erpRmk}</td>
         <td></td>
@@ -2387,6 +2397,21 @@ const TC = (() => {
   }
 
   /* ── init ── */
+  function isExcel(f) { return f && /\.(xls|xlsx)$/i.test(f.name); }
+
+  function bindDrop(cardId, onFile) {
+    const card = document.getElementById(cardId);
+    card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('dragover'); });
+    card.addEventListener('dragleave', e => { e.preventDefault(); card.classList.remove('dragover'); });
+    card.addEventListener('drop', e => {
+      e.preventDefault(); card.classList.remove('dragover');
+      const f = e.dataTransfer.files[0];
+      if (!f) return;
+      if (!isExcel(f)) { showErr(`「${f.name}」不是 Excel 檔，請上傳 .xls 或 .xlsx`); return; }
+      hideErr(); onFile(f);
+    });
+  }
+
   function initEvents() {
     document.getElementById('tc-file-a').addEventListener('change', e => {
       const f = e.target.files[0]; if (f) { dataA = null; readFileA(f); }
@@ -2394,6 +2419,8 @@ const TC = (() => {
     document.getElementById('tc-file-b').addEventListener('change', e => {
       const f = e.target.files[0]; if (f) { dataB = null; readFileB(f); }
     });
+    bindDrop('tc-card-a', f => { dataA = null; readFileA(f); });
+    bindDrop('tc-card-b', f => { dataB = null; readFileB(f); });
   }
   initEvents();
   return { run, exportExcel };
