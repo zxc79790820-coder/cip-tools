@@ -1593,7 +1593,12 @@ const WO = (() => {
   const gc = i => PALETTE[i % PALETTE.length];
 
   function padColNo(v){ const n=parseInt(v); if(isNaN(n))return v; return n>=1&&n<=9?String(n).padStart(2,'0'):String(n); }
-  function isNonMaterial(s){ if(!s)return true; return /費|車資/.test(String(s)); }
+  // 非材料項判斷：改用「四個尺寸欄皆為 0/空」→ 運費、萊雅基本費、未滿十天差額等無尺寸費用列
+  // （不再用「含費字」判斷，避免誤殺「UV噴繪+裁型費」這類含加工費的真材料）
+  function isNonMaterial(vw,vh,rw,rh){
+    const z = v => { const n = parseFloat(v); return isNaN(n) || n === 0; };
+    return z(vw) && z(vh) && z(rw) && z(rh);
+  }
   function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
 
@@ -1630,7 +1635,7 @@ const WO = (() => {
       const dataRows = rows.slice(hr+1).filter(r=>r.some(c=>c!==''));
       const ci = n => headers.findIndex(h=>h.includes(n));
       const idx = {id:ci('單據號碼'),no:ci('欄號'),vw:ci('可見寬'),vh:ci('可見高'),rw:ci('實際寬'),rh:ci('實際高'),ratio:ci('比例'),qty:ci('張數'),desc:ci('細項描述'),spec:ci('品名規格'),remark:ci('分錄備註')};
-      rawData = dataRows.filter(r=>!isNonMaterial(r[idx.spec])).map(r=>({
+      rawData = dataRows.filter(r=>!isNonMaterial(r[idx.vw],r[idx.vh],r[idx.rw],r[idx.rh])).map(r=>({
         單據號碼:r[idx.id], 欄號:padColNo(r[idx.no]),
         可見寬:r[idx.vw], 可見高:r[idx.vh], 實際寬:r[idx.rw], 實際高:r[idx.rh],
         比例:r[idx.ratio], 張數:r[idx.qty], 細項描述:r[idx.desc], 品名規格:r[idx.spec], 分錄備註:r[idx.remark],
