@@ -885,7 +885,8 @@ body {
   background:var(--cip-dark); color:#fff; font-weight:700; padding:8px 12px; white-space:nowrap; text-align:right;
   position:sticky; top:0;
 }
-.pc-table thead th:first-child { text-align:left; }
+/* 只有第一列的「單位／客戶」欄靠左；第二列的才數/數量表頭需靠右對齊數字 */
+.pc-table thead tr:first-child th:first-child { text-align:left; }
 .pc-table thead th.pc-grp { background:#4a443c; font-size:11px; text-align:center; }
 .pc-table tbody td { padding:7px 12px; border-bottom:1px solid var(--cip-border); white-space:nowrap; text-align:right; font-variant-numeric:tabular-nums; }
 .pc-table tbody td:first-child { text-align:left; font-weight:600; color:var(--cip-text); }
