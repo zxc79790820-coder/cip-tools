@@ -830,6 +830,70 @@ body {
 .tc-table tbody tr:hover { background:var(--cip-orange-bg); }
 .tc-table tbody td { padding:7px 12px; color:var(--cip-text); vertical-align:middle; border-bottom:1px solid var(--cip-border); white-space:nowrap; }
 .tc-table th.tc-num, .tc-table td.tc-num { text-align:right; font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
+
+/* ══ TOOL E: 產能統計 ══ */
+.pc-step-label { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--cip-text); margin:8px 0 10px; }
+.pc-step-no {
+  width:20px; height:20px; border-radius:50%; background:var(--cip-orange); color:#fff;
+  font-size:11px; font-weight:700; display:inline-flex; align-items:center; justify-content:center;
+}
+.pc-drop {
+  display:block; background:#fff; border:2px dashed var(--cip-border2); border-radius:10px;
+  padding:26px 20px; text-align:center; cursor:pointer; transition:border-color .2s, background .2s;
+}
+.pc-drop:hover { border-color:var(--cip-orange); background:var(--cip-orange-bg); }
+.pc-drop.dragover { border-style:solid; border-color:var(--cip-orange); background:var(--cip-orange-bg); }
+.pc-drop.loaded { border-style:solid; border-color:var(--cip-orange); }
+.pc-drop-icon { font-size:28px; margin-bottom:6px; pointer-events:none; }
+.pc-drop-title { font-size:13px; font-weight:700; color:var(--cip-text); pointer-events:none; }
+.pc-drop-hint { font-size:11px; color:var(--cip-text3); margin-top:3px; pointer-events:none; }
+.pc-file-name { font-size:11px; color:var(--cip-orange); margin-top:8px; min-height:14px; pointer-events:none; }
+
+.pc-filter-grid { display:flex; gap:16px; flex-wrap:wrap; }
+.pc-filter-box { flex:1; min-width:250px; background:#fff; border:1px solid var(--cip-border); border-radius:8px; padding:12px 14px; }
+.pc-filter-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.pc-filter-title { font-size:12px; font-weight:700; color:var(--cip-text); }
+.pc-filter-acts a { font-size:11px; color:var(--cip-orange); cursor:pointer; margin-left:10px; text-decoration:none; }
+.pc-filter-acts a:hover { text-decoration:underline; }
+.pc-search {
+  width:100%; padding:5px 9px; font-size:12px; border:1px solid var(--cip-border);
+  border-radius:5px; margin-bottom:8px; font-family:inherit; color:var(--cip-text);
+}
+.pc-search:focus { outline:none; border-color:var(--cip-orange); }
+.pc-list { max-height:180px; overflow-y:auto; }
+.pc-opt { display:flex; align-items:center; gap:7px; padding:4px 2px; font-size:12px; cursor:pointer; border-radius:4px; }
+.pc-opt:hover { background:var(--cip-offwhite); }
+.pc-opt input { cursor:pointer; accent-color:var(--cip-orange); }
+.pc-opt-cnt { margin-left:auto; font-size:10.5px; color:var(--cip-text3); }
+
+.pc-dim-row { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:14px; padding:10px 14px; background:var(--cip-offwhite); border:1px solid var(--cip-border); border-radius:7px; }
+.pc-dim-label { font-size:12px; font-weight:700; color:var(--cip-text); }
+.pc-radio { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--cip-text2); cursor:pointer; }
+.pc-radio input { accent-color:var(--cip-orange); cursor:pointer; }
+.pc-dim-hint { font-size:10.5px; color:var(--cip-text3); margin-left:auto; }
+
+.pc-stats-row { display:flex; gap:12px; margin-top:20px; flex-wrap:wrap; }
+.pc-stat-card { flex:1; min-width:110px; background:#fff; border:1px solid var(--cip-border); border-radius:8px; padding:14px 16px; text-align:center; }
+.pc-stat-num { font-size:23px; font-weight:800; color:var(--cip-text); line-height:1.1; font-variant-numeric:tabular-nums; }
+.pc-stat-label { font-size:11px; color:var(--cip-text3); margin-top:4px; }
+.pc-orange { color:var(--cip-orange); }
+.pc-green { color:#4caf50; }
+
+.pc-table-wrap { overflow-x:auto; border:1px solid var(--cip-border); border-radius:6px; background:#fff; }
+.pc-table { width:100%; border-collapse:collapse; font-size:12px; }
+.pc-table thead th {
+  background:var(--cip-dark); color:#fff; font-weight:700; padding:8px 12px; white-space:nowrap; text-align:right;
+  position:sticky; top:0;
+}
+.pc-table thead th:first-child { text-align:left; }
+.pc-table thead th.pc-grp { background:#4a443c; font-size:11px; text-align:center; }
+.pc-table tbody td { padding:7px 12px; border-bottom:1px solid var(--cip-border); white-space:nowrap; text-align:right; font-variant-numeric:tabular-nums; }
+.pc-table tbody td:first-child { text-align:left; font-weight:600; color:var(--cip-text); }
+.pc-table tbody tr:nth-child(even) { background:var(--cip-offwhite); }
+.pc-table tbody tr:hover { background:var(--cip-orange-bg); }
+.pc-table tbody tr.pc-total-row { background:var(--cip-orange-bg) !important; font-weight:700; }
+.pc-table tbody tr.pc-total-row td { border-top:2px solid var(--cip-orange); color:var(--cip-text); }
+.pc-table .pc-zero { color:var(--cip-text3); }
 .tc-table tbody td.tc-amt-diff { color:#e53935; font-weight:700; }
 
 
@@ -925,6 +989,11 @@ body { background: #f4f1ec; }
       <span class="nav-label">天成快遞對帳</span>
       <span class="nav-tag">D</span>
     </div>
+    <div class="nav-item" id="nav-pc" onclick="switchTool('pc')">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">產能統計</span>
+      <span class="nav-tag">E</span>
+    </div>
     <!-- 新工具在此新增 nav-item -->
   </div>
 
@@ -980,6 +1049,12 @@ body { background: #f4f1ec; }
             <div class="welcome-card-label">Tool D</div>
             <div class="welcome-card-title">天成快遞對帳</div>
             <div class="welcome-card-desc">上傳天成對帳明細與 ERP 貨運單，自動比對單號金額，產出落差分析表供查詢使用。</div>
+          </div>
+          <div class="welcome-card" onclick="switchTool('pc')">
+            <span class="welcome-card-icon">📊</span>
+            <div class="welcome-card-label">Tool E</div>
+            <div class="welcome-card-title">產能統計</div>
+            <div class="welcome-card-desc">上傳人員產能報表，篩選客戶與出件日期，統計各單位在各日期完成的才數與數量。</div>
           </div>
         </div>
       </div>
@@ -1326,6 +1401,107 @@ body { background: #f4f1ec; }
       </div>
     </div><!-- /panel-tc -->
 
+    <!-- ══════════════════════════════
+         TOOL E: 產能統計
+    ══════════════════════════════ -->
+    <div class="tool-panel" id="panel-pc">
+      <div class="page-head">
+        <div class="page-head-icon">📊</div>
+        <div>
+          <div class="page-head-title">產能統計</div>
+          <div class="page-head-sub">人員產能報表 → 篩選客戶／出件日期 → 各單位才數・數量統計</div>
+        </div>
+      </div>
+
+      <!-- ① 上傳 -->
+      <div class="pc-step-label"><span class="pc-step-no">1</span> 上傳人員產能報表</div>
+      <label class="pc-drop" id="pc-drop">
+        <input type="file" id="pc-file" accept=".xls,.xlsx" style="display:none">
+        <div class="pc-drop-icon">📄</div>
+        <div class="pc-drop-title">點擊或拖曳 XLS / XLSX 檔案到此</div>
+        <div class="pc-drop-hint">需含欄位：單位・客戶・才數・總數・出件日期</div>
+        <div class="pc-file-name" id="pc-name"></div>
+      </label>
+
+      <div class="error-box" id="pc-error" style="display:none"></div>
+
+      <!-- ② 篩選 -->
+      <div id="pc-filter" style="display:none">
+        <div class="pc-step-label" style="margin-top:22px"><span class="pc-step-no">2</span> 篩選條件</div>
+        <div class="pc-filter-grid">
+          <div class="pc-filter-box">
+            <div class="pc-filter-head">
+              <span class="pc-filter-title">客戶名稱</span>
+              <span class="pc-filter-acts">
+                <a onclick="PC.selAll('cust',true)">全選</a>
+                <a onclick="PC.selAll('cust',false)">全不選</a>
+              </span>
+            </div>
+            <input class="pc-search" id="pc-cust-search" placeholder="搜尋客戶…" oninput="PC.filterList('cust')">
+            <div class="pc-list" id="pc-cust-list"></div>
+          </div>
+          <div class="pc-filter-box">
+            <div class="pc-filter-head">
+              <span class="pc-filter-title">出件日期</span>
+              <span class="pc-filter-acts">
+                <a onclick="PC.selAll('date',true)">全選</a>
+                <a onclick="PC.selAll('date',false)">全不選</a>
+              </span>
+            </div>
+            <input class="pc-search" id="pc-date-search" placeholder="搜尋日期…" oninput="PC.filterList('date')">
+            <div class="pc-list" id="pc-date-list"></div>
+          </div>
+        </div>
+
+        <div class="pc-dim-row">
+          <span class="pc-dim-label">日期欄位依據</span>
+          <label class="pc-radio"><input type="radio" name="pc-dim" value="ship" checked onchange="PC.run()"> 出件日期</label>
+          <label class="pc-radio"><input type="radio" name="pc-dim" value="done" onchange="PC.run()"> 完成時間</label>
+          <span class="pc-dim-hint">「完成時間」為人員實際完工時刻（單日報表僅一天）</span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
+          <button class="btn btn-primary" onclick="PC.run()" style="padding:7px 22px;font-size:13px">▶ 產生統計</button>
+          <span id="pc-status" style="font-size:12px;color:var(--cip-text2)"></span>
+        </div>
+      </div>
+
+      <!-- ③ 結果 -->
+      <div id="pc-result" style="display:none">
+        <div class="pc-stats-row">
+          <div class="pc-stat-card">
+            <div class="pc-stat-num" id="pc-stat-rows">—</div>
+            <div class="pc-stat-label">符合筆數</div>
+          </div>
+          <div class="pc-stat-card">
+            <div class="pc-stat-num pc-orange" id="pc-stat-area">—</div>
+            <div class="pc-stat-label">才數合計</div>
+          </div>
+          <div class="pc-stat-card">
+            <div class="pc-stat-num pc-green" id="pc-stat-qty">—</div>
+            <div class="pc-stat-label">數量合計</div>
+          </div>
+          <div class="pc-stat-card">
+            <div class="pc-stat-num" id="pc-stat-units">—</div>
+            <div class="pc-stat-label">涉及單位數</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:20px 0 8px">
+          <div style="font-size:13px;font-weight:700;color:var(--cip-text)">各單位 × 日期 統計表</div>
+          <button class="btn btn-primary" onclick="PC.exportExcel()" style="font-size:12px;padding:5px 16px">⬇ 匯出統計表 Excel</button>
+        </div>
+        <div class="pc-table-wrap">
+          <table class="pc-table" id="pc-table"></table>
+        </div>
+
+        <div style="font-size:13px;font-weight:700;color:var(--cip-text);margin:24px 0 8px">客戶明細（各客戶 × 單位）</div>
+        <div class="pc-table-wrap">
+          <table class="pc-table" id="pc-cust-table"></table>
+        </div>
+      </div>
+    </div><!-- /panel-pc -->
+
 
   </div><!-- /content -->
 </div><!-- /main-area -->
@@ -1353,6 +1529,7 @@ const TOOL_META = {
   wo:   { title: '工單分析', sub: '上傳工單 → 分類確認 → 分析匯出' },
   posm: { title: 'POSM 包裝清單', sub: '下載範本填表 → 上傳 → 產出包裝清單 Excel' },
   tc:   { title: '天成快遞對帳', sub: '上傳天成明細 + ERP 貨運單 → 比對金額落差 → 匯出分析表' },
+  pc:   { title: '產能統計', sub: '上傳人員產能報表 → 篩選客戶／出件日期 → 各單位才數數量統計' },
 };
 
 function switchTool(id) {
@@ -2503,6 +2680,237 @@ const TC = (() => {
   }
   initEvents();
   return { run, exportExcel };
+})();
+
+
+/* ════════════════════════════════════════════════
+   TOOL E — 產能統計  (namespace: PC)
+════════════════════════════════════════════════ */
+const PC = (() => {
+  let rows = [];          // {unit,cust,ship,done,area,qty}
+  let custs = [], dates = [];
+  let lastMatrix = null;  // 供匯出
+
+  const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+  const dstr = v => {
+    if (v == null) return '';
+    if (typeof v === 'number') {          // Excel 序列日期
+      const d = XLSX.SSF.parse_date_code(v);
+      if (d) return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+    }
+    return String(v).trim().slice(0,10);
+  };
+  const fmt = n => n.toLocaleString('en-US', {maximumFractionDigits:1});
+
+  /* ── 讀檔 ── */
+  function readFile(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const aoa = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+        const hIdx = aoa.findIndex(r => r.some(c => String(c).includes('單位')) && r.some(c => String(c).includes('才數')));
+        if (hIdx < 0) { showErr('找不到表頭（需含「單位」與「才數」欄位），請確認是人員產能報表'); return; }
+        const H = aoa[hIdx].map(c => String(c).trim());
+        const ci = k => H.findIndex(h => h.includes(k));
+        const iU=ci('單位'), iC=ci('客戶'), iA=ci('才數'), iQ=ci('總數'), iS=ci('出件日期'), iT=ci('時間');
+        if (iU<0||iC<0||iA<0) { showErr('缺少必要欄位（單位／客戶／才數）'); return; }
+
+        rows = [];
+        for (let r = hIdx+1; r < aoa.length; r++) {
+          const row = aoa[r];
+          const unit = String(row[iU]||'').trim();
+          if (!unit) continue;
+          rows.push({
+            unit,
+            cust: String(row[iC]||'').trim() || '（空白）',
+            ship: iS>=0 ? dstr(row[iS]) : '',
+            done: iT>=0 ? dstr(row[iT]) : '',
+            area: num(row[iA]),
+            qty:  iQ>=0 ? num(row[iQ]) : 0,
+          });
+        }
+        if (!rows.length) { showErr('讀取不到資料列'); return; }
+
+        hideErr();
+        document.getElementById('pc-name').textContent = `✓ ${file.name}（${rows.length} 筆）`;
+        document.getElementById('pc-drop').classList.add('loaded');
+        buildFilters();
+        document.getElementById('pc-filter').style.display = '';
+        run();
+      } catch(err) { showErr('讀取失敗：' + err.message); }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  /* ── 建立篩選清單 ── */
+  function buildFilters() {
+    const cc = {}, dc = {};
+    rows.forEach(r => { cc[r.cust] = (cc[r.cust]||0)+1; const d = r.ship||'（無）'; dc[d] = (dc[d]||0)+1; });
+    custs = Object.keys(cc).sort((a,b)=>cc[b]-cc[a]);
+    dates = Object.keys(dc).sort();
+    document.getElementById('pc-cust-list').innerHTML = custs.map((c,i)=>
+      `<label class="pc-opt" data-txt="${esc2(c)}"><input type="checkbox" class="pc-cust" value="${esc2(c)}" checked onchange="PC.run()"><span>${esc2(c)}</span><span class="pc-opt-cnt">${cc[c]}</span></label>`).join('');
+    document.getElementById('pc-date-list').innerHTML = dates.map(d=>
+      `<label class="pc-opt" data-txt="${esc2(d)}"><input type="checkbox" class="pc-date" value="${esc2(d)}" checked onchange="PC.run()"><span>${esc2(d)}</span><span class="pc-opt-cnt">${dc[d]}</span></label>`).join('');
+  }
+
+  function selAll(kind, on) {
+    document.querySelectorAll(kind==='cust' ? '.pc-cust' : '.pc-date').forEach(cb => {
+      if (cb.closest('.pc-opt').style.display !== 'none') cb.checked = on;
+    });
+    run();
+  }
+  function filterList(kind) {
+    const q = document.getElementById(kind==='cust'?'pc-cust-search':'pc-date-search').value.trim().toLowerCase();
+    document.querySelectorAll(`#pc-${kind}-list .pc-opt`).forEach(el => {
+      el.style.display = el.dataset.txt.toLowerCase().includes(q) ? '' : 'none';
+    });
+  }
+
+  /* ── 統計 ── */
+  function run() {
+    if (!rows.length) return;
+    const selC = new Set([...document.querySelectorAll('.pc-cust:checked')].map(e=>e.value));
+    const selD = new Set([...document.querySelectorAll('.pc-date:checked')].map(e=>e.value));
+    const dim  = document.querySelector('input[name="pc-dim"]:checked').value; // ship | done
+
+    const hit = rows.filter(r => selC.has(r.cust) && selD.has(r.ship||'（無）'));
+    const dkey = r => (dim==='ship' ? (r.ship||'（無）') : (r.done||'（無）'));
+
+    // 單位 × 日期
+    const units = [...new Set(hit.map(r=>r.unit))];
+    const cols  = [...new Set(hit.map(dkey))].sort();
+    const cell = {}, uTot = {}, dTot = {};
+    let tA=0, tQ=0;
+    hit.forEach(r => {
+      const u=r.unit, d=dkey(r), k=u+' '+d;
+      (cell[k] = cell[k] || [0,0]);   cell[k][0]+=r.area; cell[k][1]+=r.qty;
+      (uTot[u] = uTot[u] || [0,0]);   uTot[u][0]+=r.area; uTot[u][1]+=r.qty;
+      (dTot[d] = dTot[d] || [0,0]);   dTot[d][0]+=r.area; dTot[d][1]+=r.qty;
+      tA+=r.area; tQ+=r.qty;
+    });
+
+    // 統計卡
+    document.getElementById('pc-stat-rows').textContent  = fmt(hit.length);
+    document.getElementById('pc-stat-area').textContent  = fmt(tA);
+    document.getElementById('pc-stat-qty').textContent   = fmt(tQ);
+    document.getElementById('pc-stat-units').textContent = units.length;
+    document.getElementById('pc-result').style.display = hit.length ? '' : 'none';
+    document.getElementById('pc-status').textContent =
+      hit.length ? `符合 ${fmt(hit.length)} 筆` : '無符合資料，請放寬篩選條件';
+    if (!hit.length) return;
+
+    // 主表
+    let h = '<thead><tr><th rowspan="2">單位</th>' +
+      cols.map(c=>`<th colspan="2" class="pc-grp">${esc2(c)}</th>`).join('') +
+      '<th colspan="2" class="pc-grp">小計</th></tr><tr>' +
+      cols.map(()=>'<th>才數</th><th>數量</th>').join('') +
+      '<th>才數</th><th>數量</th></tr></thead>';
+    const order = ['印前','輸出','裁切','後製','包裝','出件'];
+    const sortedU = units.slice().sort((a,b)=>{
+      const ia=order.indexOf(a), ib=order.indexOf(b);
+      return (ia<0?99:ia)-(ib<0?99:ib) || a.localeCompare(b,'zh-TW');
+    });
+    h += '<tbody>' + sortedU.map(u => {
+      const tds = cols.map(c=>{
+        const v = cell[u+' '+c];
+        return v ? `<td>${fmt(v[0])}</td><td>${fmt(v[1])}</td>`
+                 : '<td class="pc-zero">—</td><td class="pc-zero">—</td>';
+      }).join('');
+      return `<tr><td>${esc2(u)}</td>${tds}<td>${fmt(uTot[u][0])}</td><td>${fmt(uTot[u][1])}</td></tr>`;
+    }).join('');
+    h += `<tr class="pc-total-row"><td>合計</td>` +
+      cols.map(c=>`<td>${fmt(dTot[c][0])}</td><td>${fmt(dTot[c][1])}</td>`).join('') +
+      `<td>${fmt(tA)}</td><td>${fmt(tQ)}</td></tr></tbody>`;
+    document.getElementById('pc-table').innerHTML = h;
+
+    // 客戶 × 單位
+    const cList = [...new Set(hit.map(r=>r.cust))];
+    const ccell = {}, cTot = {};
+    hit.forEach(r => {
+      const k=r.cust+' '+r.unit;
+      (ccell[k]=ccell[k]||[0,0]); ccell[k][0]+=r.area; ccell[k][1]+=r.qty;
+      (cTot[r.cust]=cTot[r.cust]||[0,0]); cTot[r.cust][0]+=r.area; cTot[r.cust][1]+=r.qty;
+    });
+    cList.sort((a,b)=>cTot[b][0]-cTot[a][0]);
+    let h2 = '<thead><tr><th rowspan="2">客戶</th>' +
+      sortedU.map(u=>`<th colspan="2" class="pc-grp">${esc2(u)}</th>`).join('') +
+      '<th colspan="2" class="pc-grp">小計</th></tr><tr>' +
+      sortedU.map(()=>'<th>才數</th><th>數量</th>').join('') +
+      '<th>才數</th><th>數量</th></tr></thead><tbody>';
+    h2 += cList.map(c => {
+      const tds = sortedU.map(u=>{
+        const v = ccell[c+' '+u];
+        return v ? `<td>${fmt(v[0])}</td><td>${fmt(v[1])}</td>`
+                 : '<td class="pc-zero">—</td><td class="pc-zero">—</td>';
+      }).join('');
+      return `<tr><td>${esc2(c)}</td>${tds}<td>${fmt(cTot[c][0])}</td><td>${fmt(cTot[c][1])}</td></tr>`;
+    }).join('');
+    h2 += `<tr class="pc-total-row"><td>合計</td>` +
+      sortedU.map(u=>`<td>${fmt(uTot[u][0])}</td><td>${fmt(uTot[u][1])}</td>`).join('') +
+      `<td>${fmt(tA)}</td><td>${fmt(tQ)}</td></tr></tbody>`;
+    document.getElementById('pc-cust-table').innerHTML = h2;
+
+    lastMatrix = { cols, sortedU, cell, uTot, dTot, tA, tQ, cList, ccell, cTot,
+                   dimLabel: dim==='ship' ? '出件日期' : '完成時間' };
+  }
+
+  /* ── 匯出 ── */
+  function exportExcel() {
+    if (!lastMatrix) return;
+    const M = lastMatrix, wb = XLSX.utils.book_new();
+
+    const a1 = [[`各單位 × ${M.dimLabel} 統計`], []];
+    a1.push(['單位', ...M.cols.flatMap(c=>[c+' 才數', c+' 數量']), '小計 才數', '小計 數量']);
+    M.sortedU.forEach(u=>{
+      a1.push([u, ...M.cols.flatMap(c=>{ const v=M.cell[u+' '+c]; return v?[v[0],v[1]]:[0,0]; }),
+               M.uTot[u][0], M.uTot[u][1]]);
+    });
+    a1.push(['合計', ...M.cols.flatMap(c=>[M.dTot[c][0], M.dTot[c][1]]), M.tA, M.tQ]);
+    const ws1 = XLSX.utils.aoa_to_sheet(a1);
+    ws1['!cols'] = [{wch:12}, ...M.cols.flatMap(()=>[{wch:11},{wch:10}]), {wch:12},{wch:11}];
+    XLSX.utils.book_append_sheet(wb, ws1, '單位統計');
+
+    const a2 = [['各客戶 × 單位 統計'], []];
+    a2.push(['客戶', ...M.sortedU.flatMap(u=>[u+' 才數', u+' 數量']), '小計 才數', '小計 數量']);
+    M.cList.forEach(c=>{
+      a2.push([c, ...M.sortedU.flatMap(u=>{ const v=M.ccell[c+' '+u]; return v?[v[0],v[1]]:[0,0]; }),
+               M.cTot[c][0], M.cTot[c][1]]);
+    });
+    a2.push(['合計', ...M.sortedU.flatMap(u=>[M.uTot[u][0], M.uTot[u][1]]), M.tA, M.tQ]);
+    const ws2 = XLSX.utils.aoa_to_sheet(a2);
+    ws2['!cols'] = [{wch:24}, ...M.sortedU.flatMap(()=>[{wch:11},{wch:10}]), {wch:12},{wch:11}];
+    XLSX.utils.book_append_sheet(wb, ws2, '客戶明細');
+
+    const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    XLSX.writeFile(wb, `產能統計_${today}.xlsx`);
+  }
+
+  /* ── helpers ── */
+  function esc2(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function showErr(m){ const el=document.getElementById('pc-error'); el.textContent=m; el.style.display=''; }
+  function hideErr(){ document.getElementById('pc-error').style.display='none'; }
+
+  /* ── init ── */
+  (function init(){
+    document.getElementById('pc-file').addEventListener('change', e => {
+      const f = e.target.files[0]; if (f) readFile(f);
+    });
+    const drop = document.getElementById('pc-drop');
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+    drop.addEventListener('dragleave', e => { e.preventDefault(); drop.classList.remove('dragover'); });
+    drop.addEventListener('drop', e => {
+      e.preventDefault(); drop.classList.remove('dragover');
+      const f = e.dataTransfer.files[0];
+      if (!f) return;
+      if (!/\.(xls|xlsx)$/i.test(f.name)) { showErr(`「${f.name}」不是 Excel 檔，請上傳 .xls 或 .xlsx`); return; }
+      readFile(f);
+    });
+  })();
+
+  return { run, selAll, filterList, exportExcel };
 })();
 
 
