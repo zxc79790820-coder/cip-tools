@@ -831,7 +831,7 @@ body {
 .tc-table tbody td { padding:7px 12px; color:var(--cip-text); vertical-align:middle; border-bottom:1px solid var(--cip-border); white-space:nowrap; }
 .tc-table th.tc-num, .tc-table td.tc-num { text-align:right; font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
 
-/* ══ TOOL E: 產能統計 ══ */
+/* ══ TOOL E: 插條產能統計 ══ */
 .pc-step-label { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--cip-text); margin:8px 0 10px; }
 .pc-step-no {
   width:20px; height:20px; border-radius:50%; background:var(--cip-orange); color:#fff;
@@ -992,7 +992,7 @@ body { background: #f4f1ec; }
     </div>
     <div class="nav-item" id="nav-pc" onclick="switchTool('pc')">
       <span class="nav-icon">📊</span>
-      <span class="nav-label">產能統計</span>
+      <span class="nav-label">插條產能統計</span>
       <span class="nav-tag">E</span>
     </div>
     <!-- 新工具在此新增 nav-item -->
@@ -1054,7 +1054,7 @@ body { background: #f4f1ec; }
           <div class="welcome-card" onclick="switchTool('pc')">
             <span class="welcome-card-icon">📊</span>
             <div class="welcome-card-label">Tool E</div>
-            <div class="welcome-card-title">產能統計</div>
+            <div class="welcome-card-title">插條產能統計</div>
             <div class="welcome-card-desc">上傳人員產能報表，篩選客戶與出件日期，統計各單位在各日期完成的才數與數量。</div>
           </div>
         </div>
@@ -1403,13 +1403,13 @@ body { background: #f4f1ec; }
     </div><!-- /panel-tc -->
 
     <!-- ══════════════════════════════
-         TOOL E: 產能統計
+         TOOL E: 插條產能統計
     ══════════════════════════════ -->
     <div class="tool-panel" id="panel-pc">
       <div class="page-head">
         <div class="page-head-icon">📊</div>
         <div>
-          <div class="page-head-title">產能統計</div>
+          <div class="page-head-title">插條產能統計</div>
           <div class="page-head-sub">人員產能報表 → 篩選客戶／出件日期 → 各單位才數・數量統計</div>
         </div>
       </div>
@@ -1530,7 +1530,7 @@ const TOOL_META = {
   wo:   { title: '工單分析', sub: '上傳工單 → 分類確認 → 分析匯出' },
   posm: { title: 'POSM 包裝清單', sub: '下載範本填表 → 上傳 → 產出包裝清單 Excel' },
   tc:   { title: '天成快遞對帳', sub: '上傳天成明細 + ERP 貨運單 → 比對金額落差 → 匯出分析表' },
-  pc:   { title: '產能統計', sub: '上傳人員產能報表 → 篩選客戶／出件日期 → 各單位才數數量統計' },
+  pc:   { title: '插條產能統計', sub: '上傳人員產能報表 → 篩選客戶／出件日期 → 各單位才數數量統計' },
 };
 
 function switchTool(id) {
@@ -2685,7 +2685,7 @@ const TC = (() => {
 
 
 /* ════════════════════════════════════════════════
-   TOOL E — 產能統計  (namespace: PC)
+   TOOL E — 插條產能統計  (namespace: PC)
 ════════════════════════════════════════════════ */
 const PC = (() => {
   let rows = [];          // {unit,cust,ship,done,area,qty}
@@ -2886,7 +2886,7 @@ const PC = (() => {
     XLSX.utils.book_append_sheet(wb, ws2, '客戶明細');
 
     const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
-    XLSX.writeFile(wb, `產能統計_${today}.xlsx`);
+    XLSX.writeFile(wb, `插條產能統計_${today}.xlsx`);
   }
 
   /* ── helpers ── */
