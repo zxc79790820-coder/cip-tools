@@ -1610,6 +1610,7 @@ body { background: #f4f1ec; }
         <div class="sc-drop-title">點擊或拖曳 XLS / XLSX 檔案到此</div>
         <div class="sc-drop-hint">
           <b>原始統單貼紙檔</b>（含 寄送・業務・櫃點）→ 幫你產生條碼後匯出，拿去印貼紙<br>
+          分箱規則：業務欄為「數字.名稱」→ 寄該業務；其餘一律依「寄送」分區<br>
           <b>已含條碼的檔</b>（含 條碼內容・分箱組）→ 直接開始掃碼清點
         </div>
         <div class="sc-file-name" id="sc-name"></div>
@@ -3202,18 +3203,20 @@ const SCAN = (() => {
     fr.readAsArrayBuffer(f);
   }
 
-  /* ── 分箱規則：有業務名用業務名，否則依寄送分區 ── */
-  const isBlankSales = v => v === undefined || v === null ||
-        ['', '0', '#N/A', '#N/A!'].includes(String(v).trim());
+  /* ── 分箱規則 ──
+     業務欄只有「數字.名稱」（例 01.Amanda、47.潘小民）才算指定業務，寄給該業務；
+     其餘一律（空白／0／#N/A／不需人員／經銷商…）依「寄送」分區出貨。            */
+  const SALES_PAT = /^\d+\.\s*\S/;
+  const isSalesName = v => v !== undefined && v !== null && SALES_PAT.test(String(v).trim());
 
   function computeItems() {
     const period = String($('sc-period').value).trim();
     const items = [], total = {}, seen = {};
     RAW.forEach((r, i) => {
       const ship = String(r['寄送'] ?? '').trim();
-      const grp = isBlankSales(r['業務'])
-        ? (ship ? '區-' + ship : '⚠無業務且無寄送')
-        : String(r['業務']).trim();
+      const grp = isSalesName(r['業務'])
+        ? String(r['業務']).trim()
+        : (ship ? '區-' + ship : '⚠無業務且無寄送');
       total[grp] = (total[grp] || 0) + 1;
       items.push({ raw: r, grp, idx: i,
         code: period + String(i + 1).padStart(5, '0'),
@@ -3253,6 +3256,15 @@ const SCAN = (() => {
 
     // 檢查
     const warns = [];
+
+    const odd = {};
+    RAW.forEach(r => {
+      const v = String(r['業務'] ?? '').trim();
+      if (!isSalesName(r['業務']) && !['', '0', '#N/A', '#N/A!'].includes(v)) odd[v] = (odd[v] || 0) + 1;
+    });
+    const oddKeys = Object.keys(odd);
+    if (oddKeys.length) warns.push(`業務欄有 <b>${oddKeys.length}</b> 種值不是「數字.名稱」格式（${oddKeys.map(k => esc(k) + '×' + odd[k]).join('、')}），依規則一律改<b>依寄送分區</b>出貨。`);
+
     if (noGrp) warns.push(`有 <b>${noGrp}</b> 筆「業務與寄送皆為空」，無法決定要寄給誰，已暫歸「⚠無業務且無寄送」組，請先補資料再印貼紙。`);
 
     const trimmed = RAW.filter(r => {
