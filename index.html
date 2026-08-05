@@ -965,6 +965,13 @@ body { background: #f4f1ec; }
 .sc-file-name  { font-size:12px; color:var(--cip-gold); margin-top:6px; font-weight:600; }
 
 .sc-red { color:#c0392b !important; }
+.sc-map-row { display:flex; gap:14px; flex-wrap:wrap; margin:10px 0 14px; padding:10px 14px;
+  background:var(--cip-offwhite); border:1px solid var(--cip-border); border-radius:8px; }
+.sc-map-f { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--cip-text2); }
+.sc-map-f select { font-size:12px; padding:4px 6px; border:1px solid var(--cip-border2);
+  border-radius:5px; background:#fff; color:var(--cip-text); max-width:160px; }
+.sc-map-f.req select { border-color:var(--cip-orange); }
+.sc-map-f.req.miss select { border-color:#c0392b; background:#fdf4f3; }
 .sc-gen-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:6px; }
 .sc-gen-hint { font-size:11px; color:var(--cip-text3); }
 .sc-gen-hint b { color:var(--cip-gold); font-family:ui-monospace,Menlo,Consolas,monospace; }
@@ -1609,8 +1616,8 @@ body { background: #f4f1ec; }
         <div class="sc-drop-icon">🏷️</div>
         <div class="sc-drop-title">點擊或拖曳 XLS / XLSX 檔案到此</div>
         <div class="sc-drop-hint">
-          <b>原始統單貼紙檔</b>（含 寄送・業務・櫃點）→ 幫你產生條碼後匯出，拿去印貼紙<br>
-          分箱規則：業務欄為「數字.名稱」→ 寄該業務；其餘一律依「寄送」分區<br>
+          <b>原始統單貼紙檔</b>（各品牌欄位名稱不同都可以，會自動對應）→ 產生條碼後匯出，拿去印貼紙<br>
+          分箱規則：業務可組成「數字.名稱」→ 寄該業務；其餘一律依「寄送／區域」分區<br>
           <b>已含條碼的檔</b>（含 條碼內容・分箱組）→ 直接開始掃碼清點
         </div>
         <div class="sc-file-name" id="sc-name"></div>
@@ -1620,7 +1627,10 @@ body { background: #f4f1ec; }
 
       <!-- ②-A 產生條碼（上傳原始檔時） -->
       <div id="sc-gen" style="display:none">
-        <div class="pc-step-label" style="margin-top:22px"><span class="pc-step-no">2</span> 產生條碼欄位</div>
+        <div class="pc-step-label" style="margin-top:22px"><span class="pc-step-no">2</span> 欄位對應（認錯了可以自己改）</div>
+        <div class="sc-map-row" id="sc-map-row"></div>
+
+        <div class="pc-step-label"><span class="pc-step-no">3</span> 產生條碼欄位</div>
         <div class="sc-gen-row">
           <span class="sc-fld" style="margin:0">檔期代號</span>
           <input id="sc-period" class="pc-search" style="width:80px;margin:0" maxlength="4" placeholder="211">
@@ -3108,6 +3118,7 @@ const SCAN = (() => {
   let GROUPS = [];      // [{name, items:[]}]
   let RAW = null;       // 原始檔資料列（未含條碼時）
   let RAW_HEADERS = []; // 原始檔欄位順序
+  let MAP = {};         // 欄位對應：{store, area, sales, sno, type, ord} → 實際欄名
   let SRC_NAME = '';    // 來源檔名
   let cur = null;       // 目前分箱組
   let ST = { scanned:{}, sealed:{}, who:'' };
@@ -3158,17 +3169,20 @@ const SCAN = (() => {
       for (const nm of wb.SheetNames) {
         const r = XLSX.utils.sheet_to_json(wb.Sheets[nm], { defval:'' });
         if (!r.length) continue;
-        const h = r[0];
-        if ('條碼內容' in h && '分箱組' in h)          { rows = r; used = nm; kind = 'coded'; break; }
-        if ('業務' in h && '寄送' in h && '櫃點' in h) { rows = r; used = nm; kind = 'raw';   break; }
+        const hs = Object.keys(r[0]);
+        if (hs.includes('條碼內容') && hs.includes('分箱組')) { rows = r; used = nm; kind = 'coded'; break; }
+        const m = autoMap(hs);
+        if (m.store && m.area) { rows = r; used = nm; kind = 'raw'; break; }
       }
       if (!rows) {
-        showErr('認不出這個檔案的格式。原始檔需含「寄送・業務・櫃點」欄位；已加工檔需含「條碼內容・分箱組」欄位。');
+        showErr('認不出這個檔案的格式。原始檔需要有「櫃點／店家」與「寄送／區域」這兩類欄位；已加工檔需含「條碼內容・分箱組」欄位。');
         return;
       }
 
       $('sc-drop').classList.add('loaded');
       $('topbar-tag').textContent = f.name;
+      RAW_HEADERS = Object.keys(rows[0]).filter(k => k && !/^__EMPTY/.test(k));
+      MAP = autoMap(RAW_HEADERS);
 
       if (kind === 'coded') {
         RAW = null;
@@ -3181,47 +3195,83 @@ const SCAN = (() => {
             code, idx: i,
             grp:    String(r['分箱組']).trim(),
             serial: String(r['流水號'] || '').trim(),
-            店:  r['櫃點'] || '', 櫃型: r['櫃型'] || '', 訂單: r['訂單'] || '',
-            米數: r['米數'] || '', 寄送: r['寄送'] || ''
+            店:  MAP.store ? (r[MAP.store] || '') : '',
+            櫃型: MAP.type  ? (r[MAP.type]  || '') : '',
+            訂單: MAP.ord   ? (r[MAP.ord]   || '') : '',
+            寄送: MAP.area  ? (r[MAP.area]  || '') : ''
           });
         });
         if (!items.length) { showErr('檔案裡沒有任何條碼資料。'); return; }
         $('sc-name').textContent = `✓ ${f.name}　分頁「${used}」・${items.length} 張・已含條碼，可直接清點`;
         initData(items);
       } else {
-        RAW_HEADERS = Object.keys(rows[0]).filter(k => k && !/^__EMPTY/.test(k));
-        RAW = rows.filter(r => String(r['櫃點'] ?? '').trim() !== '');
-        if (!RAW.length) { showErr('檔案裡沒有有效資料列（櫃點欄皆為空）。'); return; }
+        RAW = rows;
         $('sc-work').style.display = 'none';
         $('sc-gen').style.display = 'block';
-        const m = f.name.match(/(\d{2,4})\s*檔期/) || f.name.match(/^(\d{2,4})/);
+        const m = f.name.match(/(\d{2,4})\s*檔/) || f.name.match(/^(\d{2,4})/);
         $('sc-period').value = m ? m[1] : '';
-        $('sc-name').textContent = `✓ ${f.name}　分頁「${used}」・${RAW.length} 筆原始資料（尚未含條碼）`;
+        $('sc-name').textContent = `✓ ${f.name}　分頁「${used}」・${rows.length} 列（尚未含條碼）`;
+        renderMap();
         renderGen();
       }
     };
     fr.readAsArrayBuffer(f);
   }
 
+  /* ── 欄位對應（各品牌欄位名稱不同，先自動猜，猜錯可手改） ── */
+  const NORM  = h => String(h ?? '').replace(/[*＊\s]/g, '').normalize('NFKC').toLowerCase();
+  const CLEAN = v => String(v ?? '').normalize('NFKC').trim();   // 順手修掉全形字與前後空白
+  const FIELDS = [
+    { k:'store', label:'櫃點／店家', req:true,  alias:['櫃點','店家','門市','店名','店別'] },
+    { k:'area',  label:'寄送／區域', req:true,  alias:['寄送','區域','區'] },
+    { k:'sales', label:'業務',       req:false, alias:['業務','業務員','負責業務'] },
+    { k:'sno',   label:'業務編號',   req:false, alias:['業務no','業務編號','業務代號'] },
+    { k:'type',  label:'櫃型／通路', req:false, alias:['櫃型','通路'] },
+    { k:'ord',   label:'訂單／單號', req:false, alias:['訂單','單號','單據號碼'] },
+  ];
+  function autoMap(headers) {
+    const m = {};
+    FIELDS.forEach(f => { m[f.k] = headers.find(h => f.alias.some(a => NORM(a) === NORM(h))) || ''; });
+    return m;
+  }
+  function renderMap() {
+    $('sc-map-row').innerHTML = FIELDS.map(f => {
+      const miss = f.req && !MAP[f.k] ? ' miss' : '';
+      const opts = ['<option value="">（無）</option>',
+        ...RAW_HEADERS.map(h => `<option value="${esc(h)}"${MAP[f.k] === h ? ' selected' : ''}>${esc(h)}</option>`)].join('');
+      return `<span class="sc-map-f${f.req ? ' req' : ''}${miss}">${f.label}${f.req ? ' *' : ''}
+        <select data-k="${f.k}">${opts}</select></span>`;
+    }).join('');
+  }
+  // 只取「櫃點／店家」有值的列（空白分隔列自動略過）
+  const validRows = () => (RAW && MAP.store)
+    ? RAW.filter(r => String(r[MAP.store] ?? '').trim() !== '') : [];
+
   /* ── 分箱規則 ──
-     業務欄只有「數字.名稱」（例 01.Amanda、47.潘小民）才算指定業務，寄給該業務；
-     其餘一律（空白／0／#N/A／不需人員／經銷商…）依「寄送」分區出貨。            */
+     業務要能組成「數字.名稱」才算指定業務（例 47.潘小民；或 業務編號 No.18 ＋ 業務 Tommy → 18.Tommy），
+     其餘一律（空白／0／#N/A／廠商名／經銷商…）依「寄送／區域」分區出貨。            */
   const SALES_PAT = /^\d+\.\s*\S/;
-  const isSalesName = v => v !== undefined && v !== null && SALES_PAT.test(String(v).trim());
+  function salesKey(r) {
+    const nm = CLEAN(MAP.sales ? r[MAP.sales] : '');
+    const no = CLEAN(MAP.sno   ? r[MAP.sno]   : '');
+    if (no) { const d = (no.match(/\d+/) || [''])[0]; return (d && nm) ? d + '.' + nm : ''; }
+    return nm;
+  }
 
   function computeItems() {
     const period = String($('sc-period').value).trim();
     const items = [], total = {}, seen = {};
-    RAW.forEach((r, i) => {
-      const ship = String(r['寄送'] ?? '').trim();
-      const grp = isSalesName(r['業務'])
-        ? String(r['業務']).trim()
-        : (ship ? '區-' + ship : '⚠無業務且無寄送');
+    validRows().forEach((r, i) => {
+      const area = CLEAN(r[MAP.area]);
+      const key  = salesKey(r);
+      const grp  = SALES_PAT.test(key) ? key : (area ? '區-' + area : '⚠無業務且無寄送');
       total[grp] = (total[grp] || 0) + 1;
       items.push({ raw: r, grp, idx: i,
         code: period + String(i + 1).padStart(5, '0'),
-        店: r['櫃點'] || '', 櫃型: r['櫃型'] || '', 訂單: r['訂單'] || '',
-        米數: r['米數'] || '', 寄送: ship });
+        店:   r[MAP.store] || '',
+        櫃型: MAP.type ? (r[MAP.type] || '') : '',
+        訂單: MAP.ord  ? (r[MAP.ord]  || '') : '',
+        寄送: area });
     });
     items.forEach(o => {
       seen[o.grp] = (seen[o.grp] || 0) + 1;
@@ -3236,8 +3286,20 @@ const SCAN = (() => {
     if (!RAW) return;
     const period = String($('sc-period').value).trim();
     const okPeriod = /^\d{1,4}$/.test(period);
+    const okMap = !!(MAP.store && MAP.area);
     $('sc-code-eg').textContent = okPeriod ? period + '00001' : '？？？00001';
-    document.querySelectorAll('#sc-gen .btn').forEach(b => b.disabled = !okPeriod);
+    document.querySelectorAll('#sc-gen .btn').forEach(b => b.disabled = !(okPeriod && okMap));
+    FIELDS.forEach(f => {
+      const el = $('sc-map-row').querySelector(`[data-k="${f.k}"]`);
+      if (el) el.parentElement.classList.toggle('miss', f.req && !MAP[f.k]);
+    });
+    if (!okMap) {
+      $('sc-gen-stats').innerHTML = '';
+      const w = $('sc-gen-warn');
+      w.style.display = 'block';
+      w.innerHTML = '⚠ 請先在上面指定「櫃點／店家」與「寄送／區域」是哪兩欄，才能分箱。';
+      return;
+    }
 
     const { items, total } = computeItems();
     const grpNames = Object.keys(total);
@@ -3257,26 +3319,32 @@ const SCAN = (() => {
     // 檢查
     const warns = [];
 
+    const vr = validRows();
+
     const odd = {};
-    RAW.forEach(r => {
-      const v = String(r['業務'] ?? '').trim();
-      if (!isSalesName(r['業務']) && !['', '0', '#N/A', '#N/A!'].includes(v)) odd[v] = (odd[v] || 0) + 1;
+    vr.forEach(r => {
+      if (SALES_PAT.test(salesKey(r))) return;
+      const shown = [CLEAN(MAP.sno ? r[MAP.sno] : ''), CLEAN(MAP.sales ? r[MAP.sales] : '')]
+                      .filter(Boolean).join(' ');
+      if (shown && !['0', '#N/A', '#N/A!'].includes(shown)) odd[shown] = (odd[shown] || 0) + 1;
     });
     const oddKeys = Object.keys(odd);
-    if (oddKeys.length) warns.push(`業務欄有 <b>${oddKeys.length}</b> 種值不是「數字.名稱」格式（${oddKeys.map(k => esc(k) + '×' + odd[k]).join('、')}），依規則一律改<b>依寄送分區</b>出貨。`);
+    if (oddKeys.length) warns.push(`業務欄有 <b>${oddKeys.length}</b> 種值組不出「數字.名稱」（${oddKeys.map(k => esc(k) + '×' + odd[k]).join('、')}），依規則一律改<b>依區域分區</b>出貨。`);
 
-    if (noGrp) warns.push(`有 <b>${noGrp}</b> 筆「業務與寄送皆為空」，無法決定要寄給誰，已暫歸「⚠無業務且無寄送」組，請先補資料再印貼紙。`);
+    if (noGrp) warns.push(`有 <b>${noGrp}</b> 筆「業務與區域皆為空」，無法決定要寄給誰，已暫歸「⚠無業務且無寄送」組，請先補資料再印貼紙。`);
 
-    const trimmed = RAW.filter(r => {
-      const s = String(r['寄送'] ?? '');
-      return s !== s.trim() && s.trim() !== '';
-    }).length;
-    if (trimmed) warns.push(`有 <b>${trimmed}</b> 筆「寄送」欄含前後空白（例 <b>「 C」</b>），已自動修正併回正確分區，否則會多出一箱孤兒件。`);
+    const fixed = {};
+    vr.forEach(r => {
+      const raw = String(r[MAP.area] ?? ''), cl = CLEAN(raw);
+      if (cl && raw !== cl) fixed[raw] = (fixed[raw] || 0) + 1;
+    });
+    const fk = Object.keys(fixed);
+    if (fk.length) warns.push(`「${esc(MAP.area)}」欄有 <b>${fk.reduce((a,k)=>a+fixed[k],0)}</b> 筆含全形字或前後空白（${fk.map(k => '「' + esc(k) + '」×' + fixed[k]).join('、')}），已自動正規化併回正確分區，否則每一筆都會自成一箱。`);
 
     const seenKey = new Set(), dup = [];
-    RAW.forEach(r => {
-      const k = [r['訂單'], r['櫃型'], r['櫃點']].join('|');
-      if (seenKey.has(k)) dup.push(r['櫃點']); else seenKey.add(k);
+    vr.forEach(r => {
+      const k = [MAP.ord ? r[MAP.ord] : '', MAP.type ? r[MAP.type] : '', r[MAP.store]].join('|');
+      if (seenKey.has(k)) dup.push(r[MAP.store]); else seenKey.add(k);
     });
     if (dup.length) warns.push(`有 <b>${dup.length}</b> 筆「訂單＋櫃型＋櫃點」完全重複（${dup.slice(0,3).map(esc).join('、')}${dup.length>3?'…':''}）。若是同櫃點真的要出兩套就沒問題，是誤植請先修掉。`);
 
@@ -3467,9 +3535,9 @@ const SCAN = (() => {
   }
   function exportMissing() {
     if (!DATA) return;
-    const rows = [['分箱組','流水號','條碼內容','櫃點','櫃型','米數','訂單','寄送']];
+    const rows = [['分箱組','流水號','條碼內容','櫃點','櫃型／通路','訂單','區域']];
     GROUPS.forEach(g => g.items.filter(o => !ST.scanned[o.code]).forEach(o =>
-      rows.push([o.grp, o.serial, o.code, o.店, o.櫃型, o.米數, o.訂單, o.寄送])));
+      rows.push([o.grp, o.serial, o.code, o.店, o.櫃型, o.訂單, o.寄送])));
     if (rows.length === 1) { alert('目前沒有未掃項目。'); return; }
     csv('未掃清單-' + stamp() + '.csv', rows);
   }
@@ -3509,6 +3577,11 @@ const SCAN = (() => {
     });
     $('sc-who').addEventListener('change', () => { if (KEY) save(); });
     $('sc-period').addEventListener('input', renderGen);
+    $('sc-map-row').addEventListener('change', e => {
+      if (!e.target.dataset.k) return;
+      MAP[e.target.dataset.k] = e.target.value;
+      renderGen();
+    });
 
     input.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); clearTimeout(timer); const v = input.value; input.value = ''; handle(v); }
