@@ -964,6 +964,14 @@ body { background: #f4f1ec; }
 .sc-drop-hint  { font-size:11px; color:var(--cip-text3); margin-top:3px; pointer-events:none; }
 .sc-file-name  { font-size:12px; color:var(--cip-gold); margin-top:6px; font-weight:600; }
 
+.sc-red { color:#c0392b !important; }
+.sc-gen-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:6px; }
+.sc-gen-hint { font-size:11px; color:var(--cip-text3); }
+.sc-gen-hint b { color:var(--cip-gold); font-family:ui-monospace,Menlo,Consolas,monospace; }
+.sc-warn-box { border:1px solid #e8c98a; background:#fffaef; color:#8a6100; border-radius:8px;
+  padding:10px 14px; font-size:12px; margin-top:12px; line-height:1.7; }
+.sc-warn-box b { color:#7a4b00; }
+
 .sc-wrap { display:flex; gap:16px; margin-top:16px; align-items:flex-start; }
 .sc-side { width:242px; flex-shrink:0; border:1px solid var(--cip-border); border-radius:8px;
   background:#fff; max-height:560px; overflow-y:auto; }
@@ -1595,18 +1603,36 @@ body { background: #f4f1ec; }
       </div>
 
       <!-- ① 上傳 -->
-      <div class="pc-step-label"><span class="pc-step-no">1</span> 上傳貼紙檔（含條碼版）</div>
+      <div class="pc-step-label"><span class="pc-step-no">1</span> 上傳貼紙檔</div>
       <label class="sc-drop" id="sc-drop">
         <input type="file" id="sc-file" accept=".xls,.xlsx" style="display:none">
         <div class="sc-drop-icon">🏷️</div>
         <div class="sc-drop-title">點擊或拖曳 XLS / XLSX 檔案到此</div>
-        <div class="sc-drop-hint">需含欄位：條碼內容・分箱組・流水號・櫃點（＝加工過的「…-含條碼.xlsx」）</div>
+        <div class="sc-drop-hint">
+          <b>原始統單貼紙檔</b>（含 寄送・業務・櫃點）→ 幫你產生條碼後匯出，拿去印貼紙<br>
+          <b>已含條碼的檔</b>（含 條碼內容・分箱組）→ 直接開始掃碼清點
+        </div>
         <div class="sc-file-name" id="sc-name"></div>
       </label>
 
       <div class="error-box" id="sc-error" style="display:none"></div>
 
-      <!-- ② 清點 -->
+      <!-- ②-A 產生條碼（上傳原始檔時） -->
+      <div id="sc-gen" style="display:none">
+        <div class="pc-step-label" style="margin-top:22px"><span class="pc-step-no">2</span> 產生條碼欄位</div>
+        <div class="sc-gen-row">
+          <span class="sc-fld" style="margin:0">檔期代號</span>
+          <input id="sc-period" class="pc-search" style="width:80px;margin:0" maxlength="4" placeholder="211">
+          <span class="sc-gen-hint">條碼＝檔期代號＋5 位流水號（例 <b id="sc-code-eg">21100001</b>），全域唯一不重複</span>
+          <span style="flex:1"></span>
+          <button class="btn btn-primary" onclick="SCAN.exportCoded()">⬇ 下載含條碼檔（拿去印貼紙）</button>
+          <button class="btn btn-dark" onclick="SCAN.startCount()">▶ 直接開始清點</button>
+        </div>
+        <div class="pc-stats-row" id="sc-gen-stats"></div>
+        <div class="sc-warn-box" id="sc-gen-warn" style="display:none"></div>
+      </div>
+
+      <!-- ②-B 清點 -->
       <div id="sc-work" style="display:none">
         <div class="pc-step-label" style="margin-top:22px">
           <span class="pc-step-no">2</span> 掃描清點
@@ -3079,6 +3105,9 @@ const SCAN = (() => {
   const $ = id => document.getElementById(id);
   let DATA = null;      // {條碼: item}
   let GROUPS = [];      // [{name, items:[]}]
+  let RAW = null;       // 原始檔資料列（未含條碼時）
+  let RAW_HEADERS = []; // 原始檔欄位順序
+  let SRC_NAME = '';    // 來源檔名
   let cur = null;       // 目前分箱組
   let ST = { scanned:{}, sealed:{}, who:'' };
   let KEY = null;       // localStorage key
@@ -3114,62 +3143,198 @@ const SCAN = (() => {
     e.textContent = msg;
   }
 
-  /* ── 讀檔 ── */
+  /* ── 讀檔（自動判斷：原始檔 or 已含條碼檔） ── */
   function readFile(f) {
     $('sc-error').style.display = 'none';
+    SRC_NAME = f.name;
     const fr = new FileReader();
     fr.onload = ev => {
       let wb;
       try { wb = XLSX.read(new Uint8Array(ev.target.result), { type:'array' }); }
       catch (err) { showErr('檔案讀取失敗：' + err.message); return; }
 
-      let rows = null, used = '';
+      let rows = null, used = '', kind = '';
       for (const nm of wb.SheetNames) {
         const r = XLSX.utils.sheet_to_json(wb.Sheets[nm], { defval:'' });
-        if (r.length && '條碼內容' in r[0] && '分箱組' in r[0]) { rows = r; used = nm; break; }
+        if (!r.length) continue;
+        const h = r[0];
+        if ('條碼內容' in h && '分箱組' in h)          { rows = r; used = nm; kind = 'coded'; break; }
+        if ('業務' in h && '寄送' in h && '櫃點' in h) { rows = r; used = nm; kind = 'raw';   break; }
       }
       if (!rows) {
-        showErr('這個檔案找不到「條碼內容」與「分箱組」欄位。請上傳加工過的「…-含條碼.xlsx」。');
+        showErr('認不出這個檔案的格式。原始檔需含「寄送・業務・櫃點」欄位；已加工檔需含「條碼內容・分箱組」欄位。');
         return;
       }
 
-      DATA = {};
-      const gm = new Map();
-      rows.forEach((r, i) => {
-        const code = String(r['條碼內容']).trim();
-        if (!code) return;
-        const o = {
-          code, idx: i,
-          grp:    String(r['分箱組']).trim(),
-          serial: String(r['流水號'] || '').trim(),
-          店:  r['櫃點'] || '', 櫃型: r['櫃型'] || '', 訂單: r['訂單'] || '',
-          米數: r['米數'] || '', 寄送: r['寄送'] || ''
-        };
-        DATA[code] = o;
-        if (!gm.has(o.grp)) gm.set(o.grp, []);
-        gm.get(o.grp).push(o);
-      });
-
-      const total = Object.keys(DATA).length;
-      if (!total) { showErr('檔案裡沒有任何條碼資料。'); return; }
-
-      GROUPS = [...gm.entries()].map(([name, items]) => ({ name, items }))
-                 .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'));
-
-      KEY = 'cipScan:' + Object.keys(DATA)[0].slice(0,3) + '-' + total;
-      ST = JSON.parse(localStorage.getItem(KEY) || 'null') || { scanned:{}, sealed:{}, who:'' };
-      if (ST.who) $('sc-who').value = ST.who;
-
       $('sc-drop').classList.add('loaded');
-      $('sc-name').textContent = `✓ ${f.name}　分頁「${used}」・${total} 張・${GROUPS.length} 個分箱組`;
-      $('sc-side-head').textContent = `分箱組（${GROUPS.length}）`;
-      $('sc-work').style.display = 'block';
       $('topbar-tag').textContent = f.name;
-      cur = null;
-      renderGroups(); renderWork();
-      $('sc-input').focus();
+
+      if (kind === 'coded') {
+        RAW = null;
+        $('sc-gen').style.display = 'none';
+        const items = [];
+        rows.forEach((r, i) => {
+          const code = String(r['條碼內容']).trim();
+          if (!code) return;
+          items.push({
+            code, idx: i,
+            grp:    String(r['分箱組']).trim(),
+            serial: String(r['流水號'] || '').trim(),
+            店:  r['櫃點'] || '', 櫃型: r['櫃型'] || '', 訂單: r['訂單'] || '',
+            米數: r['米數'] || '', 寄送: r['寄送'] || ''
+          });
+        });
+        if (!items.length) { showErr('檔案裡沒有任何條碼資料。'); return; }
+        $('sc-name').textContent = `✓ ${f.name}　分頁「${used}」・${items.length} 張・已含條碼，可直接清點`;
+        initData(items);
+      } else {
+        RAW_HEADERS = Object.keys(rows[0]).filter(k => k && !/^__EMPTY/.test(k));
+        RAW = rows.filter(r => String(r['櫃點'] ?? '').trim() !== '');
+        if (!RAW.length) { showErr('檔案裡沒有有效資料列（櫃點欄皆為空）。'); return; }
+        $('sc-work').style.display = 'none';
+        $('sc-gen').style.display = 'block';
+        const m = f.name.match(/(\d{2,4})\s*檔期/) || f.name.match(/^(\d{2,4})/);
+        $('sc-period').value = m ? m[1] : '';
+        $('sc-name').textContent = `✓ ${f.name}　分頁「${used}」・${RAW.length} 筆原始資料（尚未含條碼）`;
+        renderGen();
+      }
     };
     fr.readAsArrayBuffer(f);
+  }
+
+  /* ── 分箱規則：有業務名用業務名，否則依寄送分區 ── */
+  const isBlankSales = v => v === undefined || v === null ||
+        ['', '0', '#N/A', '#N/A!'].includes(String(v).trim());
+
+  function computeItems() {
+    const period = String($('sc-period').value).trim();
+    const items = [], total = {}, seen = {};
+    RAW.forEach((r, i) => {
+      const ship = String(r['寄送'] ?? '').trim();
+      const grp = isBlankSales(r['業務'])
+        ? (ship ? '區-' + ship : '⚠無業務且無寄送')
+        : String(r['業務']).trim();
+      total[grp] = (total[grp] || 0) + 1;
+      items.push({ raw: r, grp, idx: i,
+        code: period + String(i + 1).padStart(5, '0'),
+        店: r['櫃點'] || '', 櫃型: r['櫃型'] || '', 訂單: r['訂單'] || '',
+        米數: r['米數'] || '', 寄送: ship });
+    });
+    items.forEach(o => {
+      seen[o.grp] = (seen[o.grp] || 0) + 1;
+      o.n = seen[o.grp];
+      o.serial = `${o.grp} ${String(o.n).padStart(3,'0')}/${String(total[o.grp]).padStart(3,'0')}`;
+    });
+    return { items, total };
+  }
+
+  /* ── 產生條碼區的統計與檢查 ── */
+  function renderGen() {
+    if (!RAW) return;
+    const period = String($('sc-period').value).trim();
+    const okPeriod = /^\d{1,4}$/.test(period);
+    $('sc-code-eg').textContent = okPeriod ? period + '00001' : '？？？00001';
+    document.querySelectorAll('#sc-gen .btn').forEach(b => b.disabled = !okPeriod);
+
+    const { items, total } = computeItems();
+    const grpNames = Object.keys(total);
+    const bySales = grpNames.filter(g => !g.startsWith('區-') && !g.startsWith('⚠')).length;
+    const byArea  = grpNames.filter(g => g.startsWith('區-')).length;
+
+    const card = (n, l, cls) =>
+      `<div class="pc-stat-card"><div class="pc-stat-num ${cls||''}">${n}</div><div class="pc-stat-label">${l}</div></div>`;
+    const noGrp = items.filter(o => o.grp.startsWith('⚠')).length;
+    $('sc-gen-stats').innerHTML =
+      card(items.length, '貼紙張數') +
+      card(grpNames.length, '分箱組數', 'pc-orange') +
+      card(bySales, '依業務出貨') +
+      card(byArea,  '依區出貨') +
+      (noGrp ? card(noGrp, '⚠ 無法分箱', 'sc-red') : '');
+
+    // 檢查
+    const warns = [];
+    if (noGrp) warns.push(`有 <b>${noGrp}</b> 筆「業務與寄送皆為空」，無法決定要寄給誰，已暫歸「⚠無業務且無寄送」組，請先補資料再印貼紙。`);
+
+    const trimmed = RAW.filter(r => {
+      const s = String(r['寄送'] ?? '');
+      return s !== s.trim() && s.trim() !== '';
+    }).length;
+    if (trimmed) warns.push(`有 <b>${trimmed}</b> 筆「寄送」欄含前後空白（例 <b>「 C」</b>），已自動修正併回正確分區，否則會多出一箱孤兒件。`);
+
+    const seenKey = new Set(), dup = [];
+    RAW.forEach(r => {
+      const k = [r['訂單'], r['櫃型'], r['櫃點']].join('|');
+      if (seenKey.has(k)) dup.push(r['櫃點']); else seenKey.add(k);
+    });
+    if (dup.length) warns.push(`有 <b>${dup.length}</b> 筆「訂單＋櫃型＋櫃點」完全重複（${dup.slice(0,3).map(esc).join('、')}${dup.length>3?'…':''}）。若是同櫃點真的要出兩套就沒問題，是誤植請先修掉。`);
+
+    const w = $('sc-gen-warn');
+    if (warns.length) { w.style.display = 'block'; w.innerHTML = '⚠ ' + warns.join('<br>⚠ '); }
+    else { w.style.display = 'none'; }
+  }
+
+  /* ── 匯出含條碼檔（給標籤機） ── */
+  function exportCoded() {
+    if (!RAW) return;
+    const period = String($('sc-period').value).trim();
+    if (!/^\d{1,4}$/.test(period)) { alert('請先填檔期代號（1～4 位數字）。'); return; }
+
+    const { items, total } = computeItems();
+    const head = [...RAW_HEADERS, '分箱組', '流水號', '條碼內容', 'Code39字型用'];
+    const line = o => [...RAW_HEADERS.map(h => o.raw[h] ?? ''), o.grp, o.serial, o.code, `*${o.code}*`];
+    const wb = XLSX.utils.book_new();
+
+    const mkSheet = data => {
+      const ws = XLSX.utils.aoa_to_sheet([head, ...data.map(line)]);
+      ws['!cols'] = head.map(h => ({ wch: /櫃型|櫃點|流水號/.test(h) ? 26 : /Code39|條碼|分箱組|業務/.test(h) ? 16 : 11 }));
+      ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+      return ws;
+    };
+    XLSX.utils.book_append_sheet(wb, mkSheet(items), '貼紙-原順序');
+    XLSX.utils.book_append_sheet(wb, mkSheet(
+      [...items].sort((a, b) => a.grp.localeCompare(b.grp, 'zh-Hant') || a.n - b.n)), '貼紙-依分箱組');
+
+    const box = [['分箱組', '件數', '流水號起', '流水號迄']];
+    Object.keys(total).sort((a, b) => a.localeCompare(b, 'zh-Hant'))
+      .forEach(g => box.push([g, total[g], '001', String(total[g]).padStart(3, '0')]));
+    box.push(['合計', items.length, '', '']);
+    const ws3 = XLSX.utils.aoa_to_sheet(box);
+    ws3['!cols'] = [{ wch: 22 }, { wch: 10 }, { wch: 12 }, { wch: 12 }];
+    ws3['!freeze'] = { xSplit: 0, ySplit: 1 };
+    XLSX.utils.book_append_sheet(wb, ws3, '封箱清單');
+
+    XLSX.writeFile(wb, SRC_NAME.replace(/\.(xlsx|xls)$/i, '') + '-含條碼.xlsx');
+  }
+
+  function startCount() {
+    if (!RAW) return;
+    const period = String($('sc-period').value).trim();
+    if (!/^\d{1,4}$/.test(period)) { alert('請先填檔期代號（1～4 位數字）。'); return; }
+    initData(computeItems().items);
+  }
+
+  /* ── 進入清點模式 ── */
+  function initData(items) {
+    DATA = {};
+    const gm = new Map();
+    items.forEach(o => {
+      DATA[o.code] = o;
+      if (!gm.has(o.grp)) gm.set(o.grp, []);
+      gm.get(o.grp).push(o);
+    });
+    GROUPS = [...gm.entries()].map(([name, list]) => ({ name, items: list }))
+               .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'));
+
+    KEY = 'cipScan:' + items[0].code.slice(0, 3) + '-' + items.length;
+    ST = JSON.parse(localStorage.getItem(KEY) || 'null') || { scanned:{}, sealed:{}, who:'' };
+    if (ST.who) $('sc-who').value = ST.who;
+
+    $('sc-side-head').textContent = `分箱組（${GROUPS.length}）`;
+    $('sc-work').style.display = 'block';
+    cur = null;
+    renderGroups(); renderWork();
+    banner('', '請選左側分箱組', '或直接掃第一張，系統自動判斷是哪一組');
+    $('sc-input').focus();
   }
 
   const save = () => { ST.who = $('sc-who').value.trim(); localStorage.setItem(KEY, JSON.stringify(ST)); };
@@ -3331,6 +3496,7 @@ const SCAN = (() => {
       if (el) jump(el.dataset.g);
     });
     $('sc-who').addEventListener('change', () => { if (KEY) save(); });
+    $('sc-period').addEventListener('input', renderGen);
 
     input.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); clearTimeout(timer); const v = input.value; input.value = ''; handle(v); }
@@ -3348,7 +3514,7 @@ const SCAN = (() => {
     });
   })();
 
-  return { seal, exportSeal, exportMissing, reset, jump };
+  return { seal, exportSeal, exportMissing, reset, jump, exportCoded, startCount };
 })();
 
 </script>
