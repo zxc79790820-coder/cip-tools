@@ -952,6 +952,73 @@ body { background: #f4f1ec; }
 .welcome-card { box-shadow: 0 1px 3px rgba(0,0,0,.04); }
 .welcome-card:hover { box-shadow: 0 4px 14px rgba(223,146,0,.12); }
 
+/* ═══════════════════════════════════════════════
+   TOOL F — 貼紙掃碼清點 (sc-)
+═══════════════════════════════════════════════ */
+.sc-drop { display:block; border:2px dashed var(--cip-border2); border-radius:10px; padding:22px;
+  text-align:center; cursor:pointer; background:#fff; transition:.15s; }
+.sc-drop:hover, .sc-drop.dragover { border-color:var(--cip-orange); background:var(--cip-orange-bg); }
+.sc-drop.loaded { border-style:solid; border-color:var(--cip-orange); }
+.sc-drop-icon  { font-size:28px; margin-bottom:6px; pointer-events:none; }
+.sc-drop-title { font-size:13px; font-weight:700; color:var(--cip-text); pointer-events:none; }
+.sc-drop-hint  { font-size:11px; color:var(--cip-text3); margin-top:3px; pointer-events:none; }
+.sc-file-name  { font-size:12px; color:var(--cip-gold); margin-top:6px; font-weight:600; }
+
+.sc-wrap { display:flex; gap:16px; margin-top:16px; align-items:flex-start; }
+.sc-side { width:242px; flex-shrink:0; border:1px solid var(--cip-border); border-radius:8px;
+  background:#fff; max-height:560px; overflow-y:auto; }
+.sc-side-head { position:sticky; top:0; background:var(--cip-offwhite); font-size:11px; font-weight:700;
+  color:var(--cip-text2); padding:8px 12px; border-bottom:1px solid var(--cip-border); }
+.sc-grp { display:flex; justify-content:space-between; align-items:center; gap:8px; cursor:pointer;
+  padding:8px 12px; border-bottom:1px solid var(--cip-warm); font-size:12px; border-left:3px solid transparent; }
+.sc-grp:hover  { background:var(--cip-orange-bg); }
+.sc-grp.active { background:var(--cip-orange-bg); border-left-color:var(--cip-orange); }
+.sc-grp-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--cip-text); }
+.sc-grp-n { font-variant-numeric:tabular-nums; color:var(--cip-text2); flex-shrink:0; }
+.sc-grp.done .sc-grp-n { color:#1a7f45; font-weight:700; }
+.sc-grp.sealed .sc-grp-name::after { content:' ✓已封箱'; font-size:10px; color:#1a7f45; }
+
+.sc-main { flex:1; min-width:0; }
+.sc-banner { border:1px solid var(--cip-border); border-left:5px solid var(--cip-border2);
+  border-radius:8px; background:#fff; padding:14px 18px; min-height:88px;
+  display:flex; flex-direction:column; justify-content:center; gap:4px; }
+.sc-banner.ok   { border-left-color:#1a7f45; background:#f3fbf6; }
+.sc-banner.warn { border-left-color:#d68a00; background:#fffaef; }
+.sc-banner.err  { border-left-color:#c0392b; background:#fdf4f3; }
+.sc-b-title { font-size:24px; font-weight:800; color:var(--cip-text); line-height:1.2; }
+.sc-b-sub   { font-size:13px; color:var(--cip-text2); }
+.sc-b-sub b { color:var(--cip-text); }
+
+.sc-row { display:flex; gap:14px; align-items:flex-end; margin-top:14px; flex-wrap:wrap; }
+.sc-input { width:100%; padding:12px 14px; border:2px solid var(--cip-orange); border-radius:8px;
+  font-size:22px; letter-spacing:2px; background:#fff; color:var(--cip-text);
+  font-family:ui-monospace,Menlo,Consolas,monospace; }
+.sc-input:disabled { border-color:var(--cip-border); background:var(--cip-offwhite); }
+.sc-fld { font-size:11px; color:var(--cip-text3); display:block; margin-bottom:5px; }
+.sc-prog { font-size:13px; color:var(--cip-text2); margin-bottom:5px; }
+.sc-prog b { font-size:20px; color:var(--cip-text); font-variant-numeric:tabular-nums; }
+.sc-bar { height:10px; background:var(--cip-warm); border:1px solid var(--cip-border);
+  border-radius:5px; overflow:hidden; }
+.sc-bar > div { height:100%; background:#1a7f45; width:0; transition:width .2s; }
+
+.sc-lists { display:flex; gap:14px; margin-top:16px; }
+.sc-panel { flex:1; min-width:0; border:1px solid var(--cip-border); border-radius:8px;
+  background:#fff; overflow:hidden; }
+.sc-panel h4 { font-size:12px; font-weight:700; color:var(--cip-text2); padding:8px 12px;
+  background:var(--cip-offwhite); border-bottom:1px solid var(--cip-border); }
+.sc-body { max-height:250px; overflow-y:auto; }
+.sc-item { display:flex; gap:10px; padding:5px 12px; border-bottom:1px solid var(--cip-warm); font-size:12px; }
+.sc-item .sc-sn { color:var(--cip-text3); width:32px; flex-shrink:0; font-variant-numeric:tabular-nums; }
+.sc-item .sc-t  { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--cip-text); }
+.sc-item .sc-t span { color:var(--cip-text3); }
+.sc-empty { padding:10px 12px; font-size:12px; color:var(--cip-text3); }
+
+@media (max-width: 1100px) {
+  .sc-wrap  { flex-direction:column; }
+  .sc-side  { width:100%; max-height:240px; }
+  .sc-lists { flex-direction:column; }
+}
+
 </style>
 </head>
 <body>
@@ -995,13 +1062,18 @@ body { background: #f4f1ec; }
       <span class="nav-label">插條產能統計</span>
       <span class="nav-tag">E</span>
     </div>
+    <div class="nav-item" id="nav-scan" onclick="switchTool('scan')">
+      <span class="nav-icon">🏷️</span>
+      <span class="nav-label">貼紙掃碼清點</span>
+      <span class="nav-tag">F</span>
+    </div>
     <!-- 新工具在此新增 nav-item -->
   </div>
 
   <div class="sidebar-footer">
     <div class="sidebar-footer-name">by 李安峻</div>
     <div class="sidebar-footer-role">西北影像股份有限公司</div>
-    <div class="sidebar-footer-ver">v1.2 · 2026-06-18</div>
+    <div class="sidebar-footer-ver">v1.3 · 2026-08-05</div>
   </div>
 </aside>
 
@@ -1056,6 +1128,12 @@ body { background: #f4f1ec; }
             <div class="welcome-card-label">Tool E</div>
             <div class="welcome-card-title">插條產能統計</div>
             <div class="welcome-card-desc">上傳人員產能報表，篩選客戶與出件日期，統計各單位在各日期完成的才數與數量。</div>
+          </div>
+          <div class="welcome-card" onclick="switchTool('scan')">
+            <span class="welcome-card-icon">🏷️</span>
+            <div class="welcome-card-label">Tool F</div>
+            <div class="welcome-card-title">貼紙掃碼清點</div>
+            <div class="welcome-card-desc">上傳含條碼的統單貼紙檔，用條碼機逐張掃描核對，缺件即時顯示，掃滿才可封箱。</div>
           </div>
         </div>
       </div>
@@ -1504,6 +1582,84 @@ body { background: #f4f1ec; }
     </div><!-- /panel-pc -->
 
 
+    <!-- ══════════════════════════════
+         TOOL F: 貼紙掃碼清點
+    ══════════════════════════════ -->
+    <div class="tool-panel" id="panel-scan">
+      <div class="page-head">
+        <div class="page-head-icon">🏷️</div>
+        <div>
+          <div class="page-head-title">貼紙掃碼清點</div>
+          <div class="page-head-sub">上傳含條碼的貼紙檔 → 條碼機逐張掃描 → 缺件即時顯示 → 掃滿才可封箱</div>
+        </div>
+      </div>
+
+      <!-- ① 上傳 -->
+      <div class="pc-step-label"><span class="pc-step-no">1</span> 上傳貼紙檔（含條碼版）</div>
+      <label class="sc-drop" id="sc-drop">
+        <input type="file" id="sc-file" accept=".xls,.xlsx" style="display:none">
+        <div class="sc-drop-icon">🏷️</div>
+        <div class="sc-drop-title">點擊或拖曳 XLS / XLSX 檔案到此</div>
+        <div class="sc-drop-hint">需含欄位：條碼內容・分箱組・流水號・櫃點（＝加工過的「…-含條碼.xlsx」）</div>
+        <div class="sc-file-name" id="sc-name"></div>
+      </label>
+
+      <div class="error-box" id="sc-error" style="display:none"></div>
+
+      <!-- ② 清點 -->
+      <div id="sc-work" style="display:none">
+        <div class="pc-step-label" style="margin-top:22px">
+          <span class="pc-step-no">2</span> 掃描清點
+          <span style="flex:1"></span>
+          <span style="font-size:11px;font-weight:400;color:var(--cip-text3);white-space:nowrap">包裝人員</span>
+          <input id="sc-who" class="pc-search" placeholder="姓名" autocomplete="off"
+                 style="width:110px;margin:0">
+          <button class="btn btn-ghost" onclick="SCAN.exportSeal()" style="font-size:12px;padding:5px 12px">⬇ 封箱紀錄</button>
+          <button class="btn btn-ghost" onclick="SCAN.exportMissing()" style="font-size:12px;padding:5px 12px">⬇ 未掃清單</button>
+          <button class="btn btn-warn" onclick="SCAN.reset()" style="font-size:12px;padding:5px 12px">清除進度</button>
+        </div>
+
+        <div class="sc-wrap">
+          <div class="sc-side">
+            <div class="sc-side-head" id="sc-side-head">分箱組</div>
+            <div id="sc-grp-list"></div>
+          </div>
+
+          <div class="sc-main">
+            <div class="sc-banner" id="sc-banner">
+              <div class="sc-b-title" id="sc-b-title">請選左側分箱組</div>
+              <div class="sc-b-sub" id="sc-b-sub">或直接掃第一張，系統自動判斷是哪一組</div>
+            </div>
+
+            <div class="sc-row">
+              <div style="flex:1 1 300px;min-width:0">
+                <label class="sc-fld">掃描區（游標保持在這裡；手鍵可只打末 3 碼再按 Enter）</label>
+                <input type="text" id="sc-input" class="sc-input" autocomplete="off" spellcheck="false" placeholder="掃描條碼…">
+              </div>
+              <div style="flex:0 0 210px">
+                <div class="sc-prog" id="sc-prog">— / —</div>
+                <div class="sc-bar"><div id="sc-bar-in"></div></div>
+              </div>
+              <button class="btn btn-success" id="sc-seal" onclick="SCAN.seal()" disabled
+                      style="padding:9px 22px;font-size:13px">封箱</button>
+            </div>
+
+            <div class="sc-lists">
+              <div class="sc-panel">
+                <h4>未掃（缺這些）</h4>
+                <div class="sc-body" id="sc-miss"></div>
+              </div>
+              <div class="sc-panel">
+                <h4>已掃</h4>
+                <div class="sc-body" id="sc-done"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-scan -->
+
+
   </div><!-- /content -->
 </div><!-- /main-area -->
 
@@ -1531,6 +1687,7 @@ const TOOL_META = {
   posm: { title: 'POSM 包裝清單', sub: '下載範本填表 → 上傳 → 產出包裝清單 Excel' },
   tc:   { title: '天成快遞對帳', sub: '上傳天成明細 + ERP 貨運單 → 比對金額落差 → 匯出分析表' },
   pc:   { title: '插條產能統計', sub: '上傳人員產能報表 → 篩選客戶／出件日期 → 各單位才數數量統計' },
+  scan: { title: '貼紙掃碼清點', sub: '上傳含條碼貼紙檔 → 逐張掃描核對 → 缺件即時顯示 → 掃滿封箱' },
 };
 
 function switchTool(id) {
@@ -2914,6 +3071,285 @@ const PC = (() => {
   return { run, selAll, filterList, exportExcel };
 })();
 
+
+/* ════════════════════════════════════════════════
+   TOOL F — 貼紙掃碼清點  (namespace: SCAN)
+════════════════════════════════════════════════ */
+const SCAN = (() => {
+  const $ = id => document.getElementById(id);
+  let DATA = null;      // {條碼: item}
+  let GROUPS = [];      // [{name, items:[]}]
+  let cur = null;       // 目前分箱組
+  let ST = { scanned:{}, sealed:{}, who:'' };
+  let KEY = null;       // localStorage key
+  let ac = null, timer = null;
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  /* ── 提示音 ── */
+  function beep(kind) {
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      const seq = kind === 'ok'   ? [[880,.07]]
+                : kind === 'warn' ? [[560,.09],[0,.04],[560,.09]]
+                :                   [[200,.28]];
+      let t = ac.currentTime;
+      seq.forEach(([f,d]) => {
+        if (f) {
+          const o = ac.createOscillator(), g = ac.createGain();
+          o.type = kind === 'err' ? 'square' : 'sine';
+          o.frequency.value = f;
+          g.gain.setValueAtTime(.18, t);
+          g.gain.exponentialRampToValueAtTime(.001, t + d);
+          o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d);
+        }
+        t += d;
+      });
+    } catch (e) {}
+  }
+
+  function showErr(msg) {
+    const e = $('sc-error');
+    e.style.display = 'block';
+    e.textContent = msg;
+  }
+
+  /* ── 讀檔 ── */
+  function readFile(f) {
+    $('sc-error').style.display = 'none';
+    const fr = new FileReader();
+    fr.onload = ev => {
+      let wb;
+      try { wb = XLSX.read(new Uint8Array(ev.target.result), { type:'array' }); }
+      catch (err) { showErr('檔案讀取失敗：' + err.message); return; }
+
+      let rows = null, used = '';
+      for (const nm of wb.SheetNames) {
+        const r = XLSX.utils.sheet_to_json(wb.Sheets[nm], { defval:'' });
+        if (r.length && '條碼內容' in r[0] && '分箱組' in r[0]) { rows = r; used = nm; break; }
+      }
+      if (!rows) {
+        showErr('這個檔案找不到「條碼內容」與「分箱組」欄位。請上傳加工過的「…-含條碼.xlsx」。');
+        return;
+      }
+
+      DATA = {};
+      const gm = new Map();
+      rows.forEach((r, i) => {
+        const code = String(r['條碼內容']).trim();
+        if (!code) return;
+        const o = {
+          code, idx: i,
+          grp:    String(r['分箱組']).trim(),
+          serial: String(r['流水號'] || '').trim(),
+          店:  r['櫃點'] || '', 櫃型: r['櫃型'] || '', 訂單: r['訂單'] || '',
+          米數: r['米數'] || '', 寄送: r['寄送'] || ''
+        };
+        DATA[code] = o;
+        if (!gm.has(o.grp)) gm.set(o.grp, []);
+        gm.get(o.grp).push(o);
+      });
+
+      const total = Object.keys(DATA).length;
+      if (!total) { showErr('檔案裡沒有任何條碼資料。'); return; }
+
+      GROUPS = [...gm.entries()].map(([name, items]) => ({ name, items }))
+                 .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'));
+
+      KEY = 'cipScan:' + Object.keys(DATA)[0].slice(0,3) + '-' + total;
+      ST = JSON.parse(localStorage.getItem(KEY) || 'null') || { scanned:{}, sealed:{}, who:'' };
+      if (ST.who) $('sc-who').value = ST.who;
+
+      $('sc-drop').classList.add('loaded');
+      $('sc-name').textContent = `✓ ${f.name}　分頁「${used}」・${total} 張・${GROUPS.length} 個分箱組`;
+      $('sc-side-head').textContent = `分箱組（${GROUPS.length}）`;
+      $('sc-work').style.display = 'block';
+      $('topbar-tag').textContent = f.name;
+      cur = null;
+      renderGroups(); renderWork();
+      $('sc-input').focus();
+    };
+    fr.readAsArrayBuffer(f);
+  }
+
+  const save = () => { ST.who = $('sc-who').value.trim(); localStorage.setItem(KEY, JSON.stringify(ST)); };
+  const cntOf = g => g.items.filter(o => ST.scanned[o.code]).length;
+
+  function renderGroups() {
+    $('sc-grp-list').innerHTML = GROUPS.map(g => {
+      const n = cntOf(g), t = g.items.length;
+      const cls = ['sc-grp', g.name === cur ? 'active' : '', n === t ? 'done' : '',
+                   ST.sealed[g.name] ? 'sealed' : ''].join(' ');
+      return `<div class="${cls}" data-g="${encodeURIComponent(g.name)}">
+        <span class="sc-grp-name">${esc(g.name)}</span><span class="sc-grp-n">${n}/${t}</span></div>`;
+    }).join('');
+  }
+
+  function renderWork() {
+    const g = GROUPS.find(x => x.name === cur);
+    if (!g) {
+      $('sc-prog').textContent = '— / —';
+      $('sc-bar-in').style.width = '0';
+      $('sc-miss').innerHTML = ''; $('sc-done').innerHTML = '';
+      $('sc-seal').disabled = true;
+      return;
+    }
+    const done = g.items.filter(o => ST.scanned[o.code]);
+    const miss = g.items.filter(o => !ST.scanned[o.code]);
+    $('sc-prog').innerHTML = `<b>${done.length}</b> / ${g.items.length}　` +
+      (miss.length ? `<span style="color:#b8700a;font-weight:700">還缺 ${miss.length}</span>`
+                   : `<span style="color:#1a7f45;font-weight:700">全數到齊</span>`);
+    $('sc-bar-in').style.width = (done.length / g.items.length * 100) + '%';
+
+    const li = o => `<div class="sc-item"><span class="sc-sn">${(o.serial.split(' ').pop() || '').split('/')[0]}</span>
+      <span class="sc-t">${esc(o.店)}　<span>${esc(o.櫃型)}</span></span></div>`;
+    $('sc-miss').innerHTML = miss.map(li).join('') || '<div class="sc-empty">— 沒有缺件 —</div>';
+    $('sc-done').innerHTML = done.map(li).join('') || '<div class="sc-empty">— 尚未掃描 —</div>';
+
+    $('sc-seal').disabled = miss.length > 0 || !!ST.sealed[g.name];
+    $('sc-seal').textContent = ST.sealed[g.name] ? '已封箱' : '封箱';
+  }
+
+  function banner(kind, title, sub) {
+    $('sc-banner').className = 'sc-banner ' + (kind || '');
+    $('sc-b-title').textContent = title;
+    $('sc-b-sub').innerHTML = sub || '';
+  }
+
+  /* ── 核心：處理一次掃描 ── */
+  function handle(raw) {
+    const v = String(raw).trim();
+    if (!v || !DATA) return;
+    let o = DATA[v];
+
+    if (!o && cur && /^\d{1,7}$/.test(v)) {          // 手鍵末幾碼 → 只在目前組內找
+      const hit = GROUPS.find(g => g.name === cur).items.filter(x => x.code.endsWith(v));
+      if (hit.length === 1) o = hit[0];
+      else if (hit.length > 1) {
+        beep('err');
+        return banner('err', '末碼重複', `本組有 ${hit.length} 張以 ${esc(v)} 結尾，請改掃完整條碼`);
+      }
+    }
+    if (!o) {
+      beep('err');
+      return banner('err', '查無此條碼', `<b>${esc(v)}</b> 不在這份檔案裡 — 可能是別檔期的貼紙`);
+    }
+
+    if (!cur) { cur = o.grp; renderGroups(); }        // 第一張自動定組
+
+    if (o.grp !== cur) {
+      beep('warn');
+      return banner('warn', '不是這一箱的',
+        `${esc(o.店)}<br>應歸 <b>${esc(o.grp)}</b>（${esc(o.serial)}）
+         <a onclick="SCAN.jump('${encodeURIComponent(o.grp)}')"
+            style="color:var(--cip-gold);cursor:pointer;font-weight:700;text-decoration:underline">切到該組</a>`);
+    }
+    if (ST.scanned[o.code]) {
+      beep('warn');
+      return banner('warn', '重複掃描', `${esc(o.店)}　${esc(o.serial)} 這張剛才掃過了`);
+    }
+
+    ST.scanned[o.code] = { t: new Date().toISOString(), by: $('sc-who').value.trim() };
+    save(); renderGroups(); renderWork();
+
+    const g = GROUPS.find(x => x.name === cur);
+    const left = g.items.length - cntOf(g);
+    beep('ok');
+    banner('ok', left === 0 ? '全數到齊，可封箱' : 'OK　還缺 ' + left,
+      `${esc(o.店)}　<span style="color:var(--cip-text3)">${esc(o.櫃型)}　${esc(o.serial)}</span>`);
+  }
+
+  function jump(enc) {
+    cur = decodeURIComponent(enc);
+    renderGroups(); renderWork();
+    banner('', '已切到 ' + cur, '掃描本組貼紙');
+    $('sc-input').focus();
+  }
+
+  /* ── 匯出 ── */
+  function csv(name, rows) {
+    const s = '﻿' + rows.map(r => r.map(c => `"${String(c ?? '').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([s], { type:'text/csv;charset=utf-8' }));
+    a.download = name; a.click();
+  }
+  function stamp() {
+    const d = new Date(), p = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
+  }
+  function exportSeal() {
+    if (!DATA) return;
+    const rows = [['分箱組','應到件數','已掃件數','狀態','封箱時間','包裝人員']];
+    GROUPS.forEach(g => {
+      const s = ST.sealed[g.name], n = cntOf(g);
+      rows.push([g.name, g.items.length, n,
+                 s ? '已封箱' : (n === g.items.length ? '到齊未封' : '缺件'),
+                 s ? new Date(s.t).toLocaleString('zh-TW') : '', s ? s.by : '']);
+    });
+    csv('封箱紀錄-' + stamp() + '.csv', rows);
+  }
+  function exportMissing() {
+    if (!DATA) return;
+    const rows = [['分箱組','流水號','條碼內容','櫃點','櫃型','米數','訂單','寄送']];
+    GROUPS.forEach(g => g.items.filter(o => !ST.scanned[o.code]).forEach(o =>
+      rows.push([o.grp, o.serial, o.code, o.店, o.櫃型, o.米數, o.訂單, o.寄送])));
+    if (rows.length === 1) { alert('目前沒有未掃項目。'); return; }
+    csv('未掃清單-' + stamp() + '.csv', rows);
+  }
+  function seal() {
+    const g = GROUPS.find(x => x.name === cur);
+    if (!g) return;
+    ST.sealed[g.name] = { t: new Date().toISOString(), by: $('sc-who').value.trim() || '(未填)', n: g.items.length };
+    save(); renderGroups(); renderWork(); beep('ok');
+    banner('ok', '已封箱：' + g.name, `${g.items.length} 件　${new Date().toLocaleString('zh-TW')}`);
+  }
+  function reset() {
+    if (!DATA) return;
+    if (!confirm('確定清除本檔期所有掃描與封箱進度？此動作無法復原。')) return;
+    ST = { scanned:{}, sealed:{}, who: $('sc-who').value.trim() };
+    save(); cur = null; renderGroups(); renderWork();
+    banner('', '進度已清除', '可重新開始清點');
+  }
+
+  /* ── 事件綁定 ── */
+  (function init() {
+    const drop = $('sc-drop'), input = $('sc-input');
+
+    $('sc-file').addEventListener('change', e => { if (e.target.files[0]) readFile(e.target.files[0]); });
+    drop.addEventListener('dragover',  e => { e.preventDefault(); drop.classList.add('dragover'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+    drop.addEventListener('drop', e => {
+      e.preventDefault(); drop.classList.remove('dragover');
+      const f = e.dataTransfer.files[0];
+      if (!f) return;
+      if (!/\.(xls|xlsx)$/i.test(f.name)) { showErr(`「${f.name}」不是 Excel 檔，請上傳 .xls 或 .xlsx`); return; }
+      readFile(f);
+    });
+
+    $('sc-grp-list').addEventListener('click', e => {
+      const el = e.target.closest('.sc-grp');
+      if (el) jump(el.dataset.g);
+    });
+    $('sc-who').addEventListener('change', () => { if (KEY) save(); });
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); clearTimeout(timer); const v = input.value; input.value = ''; handle(v); }
+    });
+    input.addEventListener('input', () => {         // 掃描槍未設定送 Enter 也能用
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const v = input.value;
+        if (v.trim().length >= 8) { input.value = ''; handle(v); }
+      }, 160);
+    });
+    // 在本工具面板內點任何地方，游標自動回到掃描框
+    $('panel-scan').addEventListener('click', e => {
+      if (DATA && !/^(INPUT|BUTTON|A|LABEL)$/.test(e.target.tagName)) input.focus();
+    });
+  })();
+
+  return { seal, exportSeal, exportMissing, reset, jump };
+})();
 
 </script>
 </body>
