@@ -972,6 +972,7 @@ body { background: #f4f1ec; }
   border-radius:5px; background:#fff; color:var(--cip-text); max-width:160px; }
 .sc-map-f.req select { border-color:var(--cip-orange); }
 .sc-map-f.req.miss select { border-color:#c0392b; background:#fdf4f3; }
+#sc-period.sc-need { border-color:#c0392b; background:#fdf4f3; }
 .sc-gen-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:6px; }
 .sc-gen-hint { font-size:11px; color:var(--cip-text3); }
 .sc-gen-hint b { color:var(--cip-gold); font-family:ui-monospace,Menlo,Consolas,monospace; }
@@ -1638,7 +1639,7 @@ body { background: #f4f1ec; }
         <div class="pc-step-label"><span class="pc-step-no">3</span> 產生條碼欄位</div>
         <div class="sc-gen-row">
           <span class="sc-fld" style="margin:0">檔期代號</span>
-          <input id="sc-period" class="pc-search" style="width:80px;margin:0" maxlength="4" placeholder="211">
+          <input id="sc-period" class="pc-search" style="width:92px;margin:0" maxlength="4" placeholder="必填">
           <span class="sc-gen-hint">條碼＝檔期代號＋5 位流水號（例 <b id="sc-code-eg">21100001</b>），全域唯一不重複</span>
           <span style="flex:1"></span>
           <button class="btn btn-primary" onclick="SCAN.exportCoded()">⬇ 下載含條碼檔（拿去印貼紙）</button>
@@ -3175,11 +3176,13 @@ const SCAN = (() => {
       for (const nm of wb.SheetNames) {
         const r = XLSX.utils.sheet_to_json(wb.Sheets[nm], { defval:'' });
         if (!r.length) continue;
+        // 表頭原始順序：Object.keys 會把「1」這種純數字欄名排到最前面，不能拿來當欄序
+        const hdr = (XLSX.utils.sheet_to_json(wb.Sheets[nm], { header:1, defval:'' })[0] || []).map(String);
         const hs = Object.keys(r[0]);
-        if (hs.includes('條碼內容') && hs.includes('分箱組')) { SHEETS.push({ nm, r, kind:'coded' }); continue; }
+        if (hs.includes('條碼內容') && hs.includes('分箱組')) { SHEETS.push({ nm, r, hdr, kind:'coded' }); continue; }
         const m = autoMap(hs);
         // 分箱要嘛靠業務、要嘛靠區域，兩者至少要有一個
-        if (m.store && (m.area || m.sales || m.sno)) SHEETS.push({ nm, r, kind:'raw' });
+        if (m.store && (m.area || m.sales || m.sno)) SHEETS.push({ nm, r, hdr, kind:'raw' });
       }
       if (!SHEETS.length) {
         showErr('認不出這個檔案的格式。原始檔需要有「櫃點／店家」欄，再加上「寄送／區域」或「業務」其中之一；已加工檔需含「條碼內容・分箱組」欄位。');
@@ -3202,7 +3205,12 @@ const SCAN = (() => {
     if (!sh) return;
     const rows = sh.r, used = sh.nm;
     $('sc-error').style.display = 'none';
-    RAW_HEADERS = Object.keys(rows[0]).filter(k => k !== '' && k != null && !/^__EMPTY/.test(k));
+    // 依原檔表頭順序排欄位（Object.keys 會把數字欄名排前面，匯出時欄序會跑掉）
+    const keys = Object.keys(rows[0]).filter(k => k !== '' && k != null && !/^__EMPTY/.test(k));
+    const seen = new Set();
+    RAW_HEADERS = [];
+    (sh.hdr || []).forEach(h => { if (keys.includes(h) && !seen.has(h)) { seen.add(h); RAW_HEADERS.push(h); } });
+    keys.forEach(k => { if (!seen.has(k)) { seen.add(k); RAW_HEADERS.push(k); } });
     MAP = autoMap(RAW_HEADERS);
 
     if (sh.kind === 'coded') {
@@ -3309,6 +3317,7 @@ const SCAN = (() => {
     const okMap = !!(MAP.store && (MAP.area || MAP.sales || MAP.sno));
     $('sc-code-eg').textContent = okPeriod ? period + '00001' : '？？？00001';
     document.querySelectorAll('#sc-gen .btn').forEach(b => b.disabled = !(okPeriod && okMap));
+    $('sc-period').classList.toggle('sc-need', !okPeriod);
     FIELDS.forEach(f => {
       const el = $('sc-map-row').querySelector(`[data-k="${f.k}"]`);
       if (el) el.parentElement.classList.toggle('miss', f.req && !MAP[f.k]);
@@ -3338,6 +3347,8 @@ const SCAN = (() => {
 
     // 檢查
     const warns = [];
+
+    if (!okPeriod) warns.push(`<b>請先填「檔期代號」</b>（1～4 位數字），填好才能下載或開始清點。檔名裡有數字時會自動帶入（例 <b>211檔期-…</b>、<b>LS-208檔…</b>），這個檔名沒有數字就要自己填。`);
 
     const vr = validRows();
 
