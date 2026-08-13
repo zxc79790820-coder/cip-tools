@@ -3973,7 +3973,9 @@ const URGENT = (() => {
 
   function rowHTML(v) {
     const left = fmtLeft(v.hours_left, v.is_done, v.hours_raw);
-    const pct = Math.round(v.progress * 100);
+    // 100% 只給真正完成的單。未完成一律無條件捨去並封頂在 99%——
+    // 否則 99.72%（實際還差 6 才）會被四捨五入成 100%，看起來像系統算錯
+    const pct = v.is_done ? 100 : Math.min(99, Math.floor(v.progress * 100));
     const cls = v.is_done ? 'fin' : (v.overdue ? 'overdue' : (v.at_risk ? 'risk' : ''));
     const ship = v.ship_dt ? v.ship_dt.slice(5, 16).replace('T', ' ') : '?';
     const chips = [];
@@ -4017,9 +4019,9 @@ const URGENT = (() => {
     setCard('ug-c3', s.at_risk, s.at_risk > 0 ? 'warm' : '');
     setCard('ug-c4', s.big_active, '');
 
-    // 進行中排前面（逾期優先），已完成的淡化收在後面
-    const order = a => (a.is_done ? 2 : 0) + (a.overdue ? -1 : 0);
-    const us = DATA.urgent.slice().sort((a, b) => order(a) - order(b));
+    // 順序由後端 risk_sort_key 決定（逾期 → 高風險 → 剩餘工時少 → 已完成沉底），
+    // 前端不再自己排，避免兩邊各排一套、日後改了一邊卻忘了另一邊
+    const us = DATA.urgent;
     $('ug-urgent').innerHTML = us.length ? us.map(rowHTML).join('')
       : '<div class="ug-empty">目前沒有急件</div>';
     $('ug-u-n').textContent = `進行中 ${s.urgent_active} 張，含已完成共 ${s.urgent} 張`
