@@ -3862,13 +3862,18 @@ const URGENT = (() => {
     }
   }
 
-  function fmtLeft(h, done) {
+  // 剩餘時間一律顯示「工作時數」（後端已扣掉週末與國定假日）。
+  // 與純時鐘差 4 小時以上時附註原始時鐘值，才看得出中間卡了幾天假。
+  function fmtLeft(h, done, raw) {
     if (done) return { txt: '已完成', cls: 'grey' };
     if (h === null || h === undefined) return { txt: '', cls: 'grey' };
-    if (h < 0) return { txt: '逾期 ' + Math.abs(h).toFixed(1) + ' 小時', cls: 'red' };
-    if (h < 4) return { txt: '剩 ' + h.toFixed(1) + ' 小時', cls: 'amber' };
-    if (h < 48) return { txt: '剩 ' + h.toFixed(1) + ' 小時', cls: 'grey' };
-    return { txt: '剩 ' + (h / 24).toFixed(1) + ' 天', cls: 'grey' };
+    const gap = (raw !== null && raw !== undefined && Math.abs(raw - h) >= 4)
+      ? `（時鐘 ${Math.abs(raw) >= 48 ? (raw / 24).toFixed(1) + '天' : raw.toFixed(0) + 'h'}）` : '';
+    if (h < 0) return { txt: '逾期 ' + Math.abs(h).toFixed(1) + ' 工作小時' + gap, cls: 'red' };
+    if (h < 4) return { txt: '剩 ' + h.toFixed(1) + ' 工作小時' + gap, cls: 'amber' };
+    if (h < 24) return { txt: '剩 ' + h.toFixed(1) + ' 工作小時' + gap, cls: 'grey' };
+    // 除以 24 而非 8：扣掉的是整個假日，剩下的是落在工作日內的時鐘時間
+    return { txt: '剩 ' + (h / 24).toFixed(1) + ' 個工作天' + gap, cls: 'grey' };
   }
 
   function stationClass(s, cur) {
@@ -3880,7 +3885,7 @@ const URGENT = (() => {
   }
 
   function rowHTML(v) {
-    const left = fmtLeft(v.hours_left, v.is_done);
+    const left = fmtLeft(v.hours_left, v.is_done, v.hours_raw);
     const pct = Math.round(v.progress * 100);
     const cls = v.is_done ? 'fin' : (v.overdue ? 'overdue' : (v.at_risk ? 'risk' : ''));
     const ship = v.ship_dt ? v.ship_dt.slice(5, 16).replace('T', ' ') : '?';
