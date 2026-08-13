@@ -1035,6 +1035,105 @@ body { background: #f4f1ec; }
   .sc-lists { flex-direction:column; }
 }
 
+/* ═══════════════════════════════
+   TOOL G — 急件追蹤 (prefix: ug-)
+═══════════════════════════════ */
+.ug-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+.ug-btn { padding:7px 14px; border:1px solid var(--cip-border2); background:var(--cip-white);
+  border-radius:6px; cursor:pointer; font-family:inherit; font-size:13px; color:var(--cip-text); }
+.ug-btn:hover { border-color:var(--cip-orange); color:var(--cip-gold); }
+.ug-btn-main { background:var(--cip-orange); border-color:var(--cip-orange); color:#fff; font-weight:500; }
+.ug-btn-main:hover { background:var(--cip-gold); border-color:var(--cip-gold); color:#fff; }
+.ug-pw { padding:7px 10px; border:1px solid var(--cip-border2); border-radius:6px;
+  font-family:inherit; font-size:13px; width:150px; }
+.ug-stamp { margin-left:auto; font-size:12px; color:var(--cip-text3); }
+
+.ug-alert { padding:9px 13px; border-radius:6px; font-size:13px; margin-bottom:14px; display:none; }
+.ug-alert.warn { background:#fff4e0; border:1px solid #f0c070; color:#7a5210; display:block; }
+.ug-alert.err  { background:#fdecec; border:1px solid #e8a0a0; color:#8c2c2c; display:block; }
+
+.ug-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px; }
+.ug-card { background:var(--cip-white); border:1px solid var(--cip-border); border-radius:9px;
+  padding:14px 16px; }
+.ug-card-n { font-size:30px; font-weight:700; line-height:1.1; color:var(--cip-text); }
+.ug-card-l { font-size:12px; color:var(--cip-text2); margin-top:3px; }
+.ug-card.hot   { border-color:#e8a0a0; background:#fdf3f3; }
+.ug-card.hot .ug-card-n   { color:#c0392b; }
+.ug-card.warm  { border-color:#f0c070; background:var(--cip-orange-bg); }
+.ug-card.warm .ug-card-n  { color:var(--cip-gold); }
+
+.ug-sec { font-size:15px; font-weight:600; margin:22px 0 10px; padding-bottom:6px;
+  border-bottom:2px solid var(--cip-warm); display:flex; align-items:center; gap:8px; }
+.ug-sec-n { font-size:12px; font-weight:400; color:var(--cip-text3); }
+
+/* 單張急件 */
+.ug-row { background:var(--cip-white); border:1px solid var(--cip-border); border-radius:9px;
+  padding:13px 16px; margin-bottom:9px; }
+.ug-row.overdue { border-left:4px solid #c0392b; }
+.ug-row.risk    { border-left:4px solid var(--cip-orange); }
+.ug-row.fin     { opacity:.62; }
+.ug-head { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:9px; }
+.ug-no { font-weight:600; font-size:14px; letter-spacing:.2px; }
+.ug-client { font-size:13px; color:var(--cip-text2); }
+.ug-case { font-size:12px; color:var(--cip-text3); overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap; max-width:340px; }
+.ug-time { margin-left:auto; font-size:12px; font-weight:600; white-space:nowrap; }
+.ug-time.red { color:#c0392b; }
+.ug-time.amber { color:var(--cip-gold); }
+.ug-time.grey { color:var(--cip-text3); font-weight:400; }
+.ug-chip { font-size:11px; padding:2px 7px; border-radius:10px; background:var(--cip-warm);
+  color:var(--cip-text2); }
+.ug-chip.red { background:#fdecec; color:#c0392b; }
+
+/* 六站進度軌 */
+.ug-track { display:flex; align-items:stretch; gap:4px; margin:8px 0 7px; }
+.ug-st { flex:1; text-align:center; padding:6px 2px 5px; border-radius:5px; font-size:11px;
+  border:1px solid var(--cip-border); background:var(--cip-offwhite); color:var(--cip-text3);
+  position:relative; }
+.ug-st-n { font-weight:500; display:block; }
+.ug-st-v { font-size:10px; opacity:.85; }
+.ug-st.done { background:var(--cip-orange); border-color:var(--cip-orange); color:#fff; }
+.ug-st.part { background:var(--cip-orange-bg); border-color:var(--cip-orange-l); color:var(--cip-gold); }
+.ug-st.cur  { border:2px solid var(--cip-orange); background:#fff; color:var(--cip-gold);
+  font-weight:600; box-shadow:0 0 0 2px rgba(245,166,35,.18); }
+.ug-st.skip { background:var(--cip-white); border-style:dashed; color:var(--cip-text3); opacity:.5; }
+.ug-st.skip .ug-st-n { text-decoration:line-through; }
+
+.ug-prog { display:flex; align-items:center; gap:9px; }
+.ug-prog-bar { flex:1; height:7px; background:var(--cip-warm); border-radius:4px; overflow:hidden; }
+.ug-prog-fill { height:100%; background:var(--cip-orange); border-radius:4px; transition:width .3s; }
+.ug-prog-fill.full { background:#4a9c5c; }
+.ug-prog-t { font-size:12px; color:var(--cip-text2); min-width:132px; text-align:right; }
+
+/* 站別負載 */
+.ug-load { background:var(--cip-white); border:1px solid var(--cip-border); border-radius:9px; padding:14px 16px; }
+.ug-load-r { display:flex; align-items:center; gap:10px; margin-bottom:7px; font-size:12px; }
+.ug-load-n { width:38px; color:var(--cip-text2); }
+.ug-load-b { flex:1; height:15px; background:var(--cip-warm); border-radius:3px; overflow:hidden; }
+.ug-load-f { height:100%; background:var(--cip-charcoal); border-radius:3px; }
+.ug-load-v { width:92px; text-align:right; color:var(--cip-text2); }
+
+/* 事件時間軸 */
+.ug-ev { display:flex; gap:10px; padding:8px 12px; border-left:3px solid var(--cip-border);
+  margin-bottom:5px; font-size:12.5px; background:var(--cip-white); border-radius:0 6px 6px 0; }
+.ug-ev.new { border-left-color:var(--cip-orange); background:var(--cip-orange-bg); font-weight:500; }
+.ug-ev-t { color:var(--cip-text3); white-space:nowrap; font-size:11.5px; }
+.ug-ev-d { color:var(--cip-text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ug-empty { padding:22px; text-align:center; color:var(--cip-text3); font-size:13px;
+  background:var(--cip-white); border:1px dashed var(--cip-border2); border-radius:9px; }
+
+/* 側欄未讀徽章 */
+.nav-badge { margin-left:auto; min-width:18px; height:18px; padding:0 5px; border-radius:9px;
+  background:#c0392b; color:#fff; font-size:11px; font-weight:600; display:none;
+  align-items:center; justify-content:center; line-height:1; }
+.nav-badge.on { display:inline-flex; }
+
+@media (max-width: 1100px) {
+  .ug-cards { grid-template-columns:repeat(2,1fr); }
+  .ug-case { max-width:180px; }
+  .ug-st-v { display:none; }
+}
+
 </style>
 </head>
 <body>
@@ -1083,13 +1182,19 @@ body { background: #f4f1ec; }
       <span class="nav-label">貼紙掃碼清點</span>
       <span class="nav-tag">F</span>
     </div>
+    <div class="nav-item" id="nav-urgent" onclick="switchTool('urgent')">
+      <span class="nav-icon">🚨</span>
+      <span class="nav-label">急件追蹤</span>
+      <span class="nav-tag">G</span>
+      <span class="nav-badge" id="ug-badge"></span>
+    </div>
     <!-- 新工具在此新增 nav-item -->
   </div>
 
   <div class="sidebar-footer">
     <div class="sidebar-footer-name">by 李安峻</div>
     <div class="sidebar-footer-role">西北影像股份有限公司</div>
-    <div class="sidebar-footer-ver">v1.3 · 2026-08-05</div>
+    <div class="sidebar-footer-ver">v1.4 · 2026-08-13</div>
   </div>
 </aside>
 
@@ -1702,6 +1807,46 @@ body { background: #f4f1ec; }
       </div>
     </div><!-- /panel-scan -->
 
+    <div class="tool-panel" id="panel-urgent">
+      <div class="page-head">
+        <div class="page-head-icon">🚨</div>
+        <div>
+          <div class="page-head-title">急件追蹤</div>
+          <div class="page-head-sub">ERP 流程控管每 15 分鐘自動更新 → 急件開立、目前站別、完成百分比、站別負載</div>
+        </div>
+      </div>
+
+      <div class="ug-bar">
+        <input type="password" class="ug-pw" id="ug-pw" placeholder="檢視密碼" autocomplete="off">
+        <button class="ug-btn ug-btn-main" id="ug-load">載入資料</button>
+        <button class="ug-btn" id="ug-refresh" style="display:none">重新整理</button>
+        <span class="ug-stamp" id="ug-stamp"></span>
+      </div>
+
+      <div class="ug-alert" id="ug-msg"></div>
+
+      <div id="ug-body" style="display:none">
+        <div class="ug-cards">
+          <div class="ug-card" id="ug-c1"><div class="ug-card-n">-</div><div class="ug-card-l">進行中急件</div></div>
+          <div class="ug-card" id="ug-c2"><div class="ug-card-n">-</div><div class="ug-card-l">已逾期</div></div>
+          <div class="ug-card" id="ug-c3"><div class="ug-card-n">-</div><div class="ug-card-l">高風險（時間不夠）</div></div>
+          <div class="ug-card" id="ug-c4"><div class="ug-card-n">-</div><div class="ug-card-l">大量案件進行中</div></div>
+        </div>
+
+        <div class="ug-sec">🚨 急件 <span class="ug-sec-n" id="ug-u-n"></span></div>
+        <div id="ug-urgent"></div>
+
+        <div class="ug-sec">📦 大量案件 <span class="ug-sec-n" id="ug-b-n"></span></div>
+        <div id="ug-big"></div>
+
+        <div class="ug-sec">🏭 各站未完成才數</div>
+        <div class="ug-load" id="ug-load-box"></div>
+
+        <div class="ug-sec">🔔 近期事件 <span class="ug-sec-n" id="ug-e-n"></span></div>
+        <div id="ug-events"></div>
+      </div>
+    </div><!-- /panel-urgent -->
+
 
   </div><!-- /content -->
 </div><!-- /main-area -->
@@ -1731,6 +1876,7 @@ const TOOL_META = {
   tc:   { title: '天成快遞對帳', sub: '上傳天成明細 + ERP 貨運單 → 比對金額落差 → 匯出分析表' },
   pc:   { title: '插條產能統計', sub: '上傳人員產能報表 → 篩選客戶／出件日期 → 各單位才數數量統計' },
   scan: { title: '貼紙掃碼清點', sub: '上傳含條碼貼紙檔 → 逐張掃描核對 → 缺件即時顯示 → 掃滿封箱' },
+  urgent: { title: '急件追蹤', sub: 'ERP 每 15 分鐘自動更新 → 急件開立／進度／站別負載' },
 };
 
 function switchTool(id) {
@@ -3633,6 +3779,232 @@ const SCAN = (() => {
   })();
 
   return { seal, exportSeal, exportMissing, reset, jump, exportCoded, startCount };
+})();
+
+/* ════════════════════════════════════════════════
+   TOOL G — 急件追蹤  (namespace: URGENT)
+
+   資料由本機 ~/Scripts/erp_watch.py 每 15 分鐘產出，
+   推送到 private repo zxc79790820-coder/erp-watch-data。
+   本檔是 public repo，**只放程式碼、永遠不得內嵌任何 ERP 資料**；
+   唯讀 token 以檢視密碼 AES-GCM 加密後存放（格式同營業額報表外殼）。
+════════════════════════════════════════════════ */
+const URGENT = (() => {
+  const REPO = 'zxc79790820-coder/erp-watch-data';
+  const API  = f => `https://api.github.com/repos/${REPO}/contents/${f}`;
+  const READ_KEY = 'cip_urgent_read_ids';
+  const TOK_KEY  = 'erp_watch_token_ro';
+  const STALE_MIN = 40;           // 超過幾分鐘沒更新就示警
+
+  // 唯讀 token（只能讀 erp-watch-data 的 Contents）。以檢視密碼加密，密文公開無虞。
+  const ENC_TOKEN = {"salt": "5XR9EEeqBngqIEXF104XrQ==", "iv": "APQlvQWUFqi/6ONd", "ct": "0GTuqdlg2EZiHg9KghXv265tXxhXHBi9VSYBv9Nk6fM4ZH13K09Ct/encp3Oxj6PkyUaLoubCKy6jgTzskbWp6JdS9omtW9xkVEefMJ6VT/HgvJyymkHcT383LZOc2zikstPLHVHSD48ti+Rig==", "iter": 600000};   // 唯讀 token（只能讀 erp-watch-data）
+
+  let DATA = null, ALERTS = [];
+  const $ = id => document.getElementById(id);
+
+  function msg(text, kind) {
+    const el = $('ug-msg');
+    el.className = 'ug-alert' + (kind ? ' ' + kind : '');
+    el.textContent = text || '';
+    if (!text) el.style.display = 'none';
+  }
+
+  const b64ToBuf = b64 => { const s = atob(b64), a = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; };
+
+  async function decryptToken(password) {
+    if (!ENC_TOKEN) throw new Error('尚未設定唯讀 token（請先產生 fine-grained token 並嵌入）');
+    const salt = b64ToBuf(ENC_TOKEN.salt), iv = b64ToBuf(ENC_TOKEN.iv), ct = b64ToBuf(ENC_TOKEN.ct);
+    const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(password),
+      'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt, iterations: ENC_TOKEN.iter, hash: 'SHA-256' },
+      km, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    return new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct));
+  }
+
+  // 讀取一律走這裡：token 只從 sessionStorage 拿（外殼版曾誤用 localStorage → private repo 一律 404 且靜默失敗）
+  function headers() {
+    const t = sessionStorage.getItem(TOK_KEY) || '';
+    return { 'Authorization': 'Bearer ' + t, 'Accept': 'application/vnd.github.raw' };
+  }
+
+  async function getJSON(file) {
+    const r = await fetch(API(file) + '?t=' + Date.now(), { headers: headers() });
+    if (r.status === 404) throw new Error('讀不到 ' + file + '（token 權限不足或檔案還沒產生）');
+    if (r.status === 401) throw new Error('token 無效或已過期');
+    if (!r.ok) throw new Error(file + ' HTTP ' + r.status);
+    return r.json();
+  }
+
+  async function load(silent) {
+    if (!sessionStorage.getItem(TOK_KEY)) {
+      const pw = $('ug-pw').value.trim();
+      if (!pw) { msg('請輸入檢視密碼', 'warn'); return; }
+      try { sessionStorage.setItem(TOK_KEY, await decryptToken(pw)); }
+      catch (e) { msg('密碼錯誤或解密失敗：' + e.message, 'err'); return; }
+      $('ug-pw').value = '';
+    }
+    try {
+      msg('載入中…', 'warn');
+      const [u, a] = await Promise.all([getJSON('urgent.json'), getJSON('alerts.json')]);
+      DATA = u; ALERTS = a.alerts || [];
+      render();
+      msg('');
+      $('ug-pw').style.display = 'none';
+      $('ug-load').style.display = 'none';
+      $('ug-refresh').style.display = '';
+      $('ug-body').style.display = '';
+    } catch (e) {
+      sessionStorage.removeItem(TOK_KEY);
+      msg('載入失敗：' + e.message, 'err');
+      if (!silent) console.error(e);
+    }
+  }
+
+  function fmtLeft(h, done) {
+    if (done) return { txt: '已完成', cls: 'grey' };
+    if (h === null || h === undefined) return { txt: '', cls: 'grey' };
+    if (h < 0) return { txt: '逾期 ' + Math.abs(h).toFixed(1) + ' 小時', cls: 'red' };
+    if (h < 4) return { txt: '剩 ' + h.toFixed(1) + ' 小時', cls: 'amber' };
+    if (h < 48) return { txt: '剩 ' + h.toFixed(1) + ' 小時', cls: 'grey' };
+    return { txt: '剩 ' + (h / 24).toFixed(1) + ' 天', cls: 'grey' };
+  }
+
+  function stationClass(s, cur) {
+    if (s.skipped) return 'skip';
+    if (s.name === cur) return 'cur';
+    if (s.total_sqft > 0 && s.done_sqft >= s.total_sqft) return 'done';
+    if (s.done_sqft > 0) return 'part';
+    return '';
+  }
+
+  function rowHTML(v) {
+    const left = fmtLeft(v.hours_left, v.is_done);
+    const pct = Math.round(v.progress * 100);
+    const cls = v.is_done ? 'fin' : (v.overdue ? 'overdue' : (v.at_risk ? 'risk' : ''));
+    const ship = v.ship_dt ? v.ship_dt.slice(5, 16).replace('T', ' ') : '?';
+    const chips = [];
+    if (v.overdue) chips.push('<span class="ug-chip red">逾期</span>');
+    else if (v.at_risk) chips.push('<span class="ug-chip red">時間不夠</span>');
+    if (v.stuck_hours !== null && v.stuck_hours !== undefined && v.stuck_hours >= 4 && !v.is_done)
+      chips.push(`<span class="ug-chip">卡關 ${v.stuck_hours.toFixed(0)}h</span>`);
+
+    const track = v.stations.map(s => {
+      const c = stationClass(s, v.current_station);
+      const val = s.skipped ? '免' :
+        (s.total_sqft > 0 ? `${Math.round(s.done_sqft)}/${Math.round(s.total_sqft)}` : '—');
+      return `<div class="ug-st ${c}"><span class="ug-st-n">${s.name}</span><span class="ug-st-v">${val}</span></div>`;
+    }).join('');
+
+    return `<div class="ug-row ${cls}">
+      <div class="ug-head">
+        <span class="ug-no">${esc(v.quote_no)}</span>
+        <span class="ug-client">${esc(v.client)}</span>
+        <span class="ug-case">${esc(v.case_name)}</span>
+        ${chips.join('')}
+        <span class="ug-time ${left.cls}">${left.txt}</span>
+      </div>
+      <div class="ug-track">${track}</div>
+      <div class="ug-prog">
+        <div class="ug-prog-bar"><div class="ug-prog-fill ${pct >= 100 ? 'full' : ''}" style="width:${pct}%"></div></div>
+        <div class="ug-prog-t">${pct}%　${Math.round(v.total_sqft)} 才　出件 ${ship}</div>
+      </div>
+    </div>`;
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g,
+      c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  }
+
+  function render() {
+    const s = DATA.summary;
+    setCard('ug-c1', s.urgent_active, s.urgent_active > 0 ? 'warm' : '');
+    setCard('ug-c2', s.overdue, s.overdue > 0 ? 'hot' : '');
+    setCard('ug-c3', s.at_risk, s.at_risk > 0 ? 'warm' : '');
+    setCard('ug-c4', s.big_active, '');
+
+    // 進行中排前面（逾期優先），已完成的淡化收在後面
+    const order = a => (a.is_done ? 2 : 0) + (a.overdue ? -1 : 0);
+    const us = DATA.urgent.slice().sort((a, b) => order(a) - order(b));
+    $('ug-urgent').innerHTML = us.length ? us.map(rowHTML).join('')
+      : '<div class="ug-empty">目前沒有急件</div>';
+    $('ug-u-n').textContent = `進行中 ${s.urgent_active} 張，含已完成共 ${s.urgent} 張`
+      + (s.no_production ? `（另有 ${s.no_production} 張純費用單無生產工序，未列入）` : '');
+
+    const bs = DATA.big.filter(v => !v.is_done);
+    $('ug-big').innerHTML = bs.length ? bs.map(rowHTML).join('')
+      : '<div class="ug-empty">目前沒有進行中的大量案件</div>';
+    $('ug-b-n').textContent = `進行中 ${s.big_active} 張（門檻 300 才）`;
+
+    const load = DATA.station_load || {};
+    const max = Math.max(1, ...Object.values(load));
+    $('ug-load-box').innerHTML = Object.keys(load).map(k =>
+      `<div class="ug-load-r"><div class="ug-load-n">${k}</div>
+       <div class="ug-load-b"><div class="ug-load-f" style="width:${(load[k] / max * 100).toFixed(1)}%"></div></div>
+       <div class="ug-load-v">${load[k].toLocaleString()} 才</div></div>`).join('');
+
+    const read = new Set(JSON.parse(localStorage.getItem(READ_KEY) || '[]'));
+    const evs = ALERTS.slice(0, 25);
+    $('ug-events').innerHTML = evs.length ? evs.map(a => {
+      const isNew = a.is_new && !read.has(a.id);
+      return `<div class="ug-ev ${isNew ? 'new' : ''}">
+        <span class="ug-ev-t">${esc(a.ts.slice(5, 16).replace('T', ' '))}</span>
+        <span class="ug-ev-d">${esc(a.title)}｜${esc(a.detail)}</span></div>`;
+    }).join('') : '<div class="ug-empty">近 7 天沒有新事件</div>';
+    $('ug-e-n').textContent = `近 7 天共 ${ALERTS.length} 則`;
+
+    // 資料新鮮度：寧可明講「資料是舊的」，也不要把舊資料當新的顯示
+    const gen = DATA.generatedAt ? new Date(DATA.generatedAt) : null;
+    const mins = gen ? Math.round((Date.now() - gen.getTime()) / 60000) : null;
+    $('ug-stamp').textContent = gen
+      ? `資料時間 ${DATA.generatedAt.slice(5, 16).replace('T', ' ')}（${mins} 分鐘前）` : '';
+    if (mins !== null && mins > STALE_MIN)
+      msg(`⚠ 資料已 ${mins} 分鐘沒更新（正常每 15 分鐘一次）。可能是排程沒跑、ERP 連不上，或電腦睡眠中。`, 'warn');
+
+    markRead();
+  }
+
+  function setCard(id, n, kind) {
+    const el = $(id);
+    el.className = 'ug-card' + (kind ? ' ' + kind : '');
+    el.querySelector('.ug-card-n').textContent = n;
+  }
+
+  function markRead() {
+    localStorage.setItem(READ_KEY, JSON.stringify(ALERTS.map(a => a.id)));
+    updateBadge(0);
+  }
+
+  function updateBadge(n) {
+    const b = $('ug-badge');
+    if (!b) return;
+    b.textContent = n;
+    b.className = 'nav-badge' + (n > 0 ? ' on' : '');
+  }
+
+  // 開頁時若本分頁已解過密，背景抓一次算未讀數（不用先切進分頁）
+  async function peek() {
+    if (!sessionStorage.getItem(TOK_KEY)) return;
+    try {
+      const a = await getJSON('alerts.json');
+      const read = new Set(JSON.parse(localStorage.getItem(READ_KEY) || '[]'));
+      updateBadge((a.alerts || []).filter(x => x.is_new && !read.has(x.id)).length);
+    } catch (e) { /* 背景檢查失敗不吵使用者 */ }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    $('ug-load').addEventListener('click', () => load());
+    $('ug-refresh').addEventListener('click', () => load());
+    $('ug-pw').addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
+    peek();
+    setInterval(peek, 5 * 60 * 1000);
+  });
+
+  // _debug：不經 GitHub 直接餵資料進來渲染，供離線驗版／排查畫面問題用
+  return { load, peek, _debug: (u, a) => { DATA = u; ALERTS = a || []; render();
+    $('ug-body').style.display = ''; msg(''); } };
 })();
 
 </script>
