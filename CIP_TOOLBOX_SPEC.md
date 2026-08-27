@@ -18,10 +18,15 @@ cip_toolbox.html（單一檔案）
     ├── panel-home   首頁
     ├── panel-lamp   Tool A：主燈彙整
     ├── panel-wo     Tool B：工單分析
-    └── panel-posm   Tool C：POSM 包裝清單
+    ├── panel-posm   Tool C：POSM 包裝清單
+    ├── panel-tc     Tool D：天成快遞對帳
+    ├── panel-pc     Tool E：插條產能統計
+    ├── panel-scan   Tool F：貼紙掃碼清點
+    ├── panel-urgent Tool G：急件追蹤
+    └── panel-ship   Tool H：出件明細
 ```
 
-JS 命名空間：`LAMP`、`WO`、`POSM`，各自獨立 IIFE，互不干擾。
+JS 命名空間：`LAMP`、`WO`、`POSM`、`TC`、`PC`、`SCAN`、`URGENT`、`SHIP`，各自獨立 IIFE，互不干擾。
 新增工具只需：新增 `nav-item` + `panel-xxx div` + 對應 IIFE namespace。
 
 外部套件（CDN）：
@@ -145,6 +150,39 @@ JS 命名空間：`LAMP`、`WO`、`POSM`，各自獨立 IIFE，互不干擾。
 **匯出**：封箱紀錄 CSV（分箱組／應到／已掃／狀態／封箱時間／人員）、未掃清單 CSV。皆帶 UTF-8 BOM 供 Excel 開啟。
 
 **相依**：僅用已載入的 SheetJS 讀檔，無額外套件。CSS 前綴 `sc-`，<1100px 自動改為單欄。
+
+---
+
+## Tool H：出件明細（SHIP）
+
+**功能**：把包裝人員掃碼登錄的資料撈出來，依施工地點彙整給出件人員登打貨運系統。
+
+**上游**：包裝端用書籤小工具在 ERP 施工單頁登錄 → 寫進 Google Sheet。
+書籤小工具原始碼 `~/Scripts/pack_ship_bookmarklet.js`，
+Apps Script 端 `~/Scripts/pack_ship_appsscript.gs`，
+建置與安裝頁 `~/Scripts/pack_ship_build.py`。整套背景見記憶檔 `packing_ship_handoff.md`。
+
+**資料來源**：Google Sheet 的「發布到網路 → CSV」唯讀網址，存在 `localStorage.cipShip:csvUrl`。
+**本 repo 內不放任何 ERP 資料，也不放權杖**——資料一律經該網址讀取（同工具箱鐵則）。
+讀取時附 `t=` 時戳，否則 Google 的快取會讓現場剛登錄的資料延遲好幾分鐘才出現。
+
+**流程**：設定來源（一次）→ 選日期區間（預設今天）→ 載入 → 依施工地點分組檢視 → 複製／匯出。
+
+**顯示**：
+- 統計卡：登錄筆數／總件數／待出件／施工地點數
+- 依 **施工地點** 分組（出件人員是一個地點打一張貨運單，分組跟他的動作一致），
+  組抬頭顯示筆數與件數合計，下方一列顯示施工地址
+- 篩選：只看待出件、關鍵字搜尋（客戶／訂單／地點／地址／人員／登錄人）
+
+**匯出**：
+- 「複製為表格」→ TSV 進剪貼簿，可直接貼進 Excel 或多數網頁表格
+- 「匯出 CSV」→ 帶 UTF-8 BOM，Excel 開中文不亂碼
+
+**尚未做**：貨運商系統的專用匯入格式。目前只給通用 TSV／CSV，
+因為 ERP 貨運系統與各貨運商網頁的匯入欄位規格還沒拿到，硬做會是猜的。
+拿到規格後在 `COLS` 旁另加一個對應表即可。
+
+**相依**：無外部套件（自帶 CSV 解析，需處理引號內的逗號與換行）。CSS 前綴 `sh-`。
 
 ---
 

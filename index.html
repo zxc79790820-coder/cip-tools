@@ -1216,6 +1216,34 @@ body { background: #f4f1ec; }
   .ug-st-v { font-size: 8.5px; }
 }
 
+/* ── Tool H：出件明細 ── */
+.sh-bar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:14px}
+.sh-bar2{margin:16px 0 10px}
+.sh-date{border:1px solid #d5d5d5;border-radius:6px;padding:7px 9px;font-size:14px;font-family:inherit}
+.sh-tilde{color:#999}
+.sh-q{border:1px solid #d5d5d5;border-radius:6px;padding:7px 11px;font-size:14px;width:260px;font-family:inherit}
+.sh-chk{font-size:14px;color:#555;display:flex;align-items:center;gap:5px;cursor:pointer}
+.sh-stamp{color:#999;font-size:13px}
+.sh-msg{padding:10px 13px;border-radius:7px;font-size:14px;display:none;margin-bottom:12px}
+.sh-msg.err{display:block;background:#fdeaea;color:#a11;border:1px solid #e0a0a0}
+.sh-msg.ok{display:block;background:#e6f6e6;color:#1a7f1a;border:1px solid #9cd39c}
+.sh-msg.info{display:block;background:#eef2f7;color:#456;border:1px solid #bcc8d6}
+.sh-grp{border:1px solid #e3e3e3;border-radius:9px;margin-bottom:14px;overflow:hidden;background:#fff}
+.sh-grp-hd{background:#3D3D3D;color:#fff;padding:9px 14px;display:flex;align-items:center;gap:10px;font-size:15px}
+.sh-grp-hd b{flex:1}
+.sh-grp-n{background:#F5A623;border-radius:11px;padding:1px 11px;font-size:13px;font-weight:bold}
+.sh-addr{background:#faf7f0;padding:6px 14px;font-size:13px;color:#7a6a4a;border-bottom:1px solid #eee}
+.sh-tb{width:100%;border-collapse:collapse;font-size:14px}
+.sh-tb th{background:#f4f4f4;color:#555;font-weight:normal;font-size:13px;padding:7px 10px;text-align:left;border-bottom:1px solid #e3e3e3}
+.sh-tb td{padding:7px 10px;border-bottom:1px solid #f0f0f0}
+.sh-tb tr:last-child td{border-bottom:none}
+.sh-qty{text-align:right;font-weight:bold;font-size:16px;color:#F5A623;white-space:nowrap}
+.sh-tag{display:inline-block;border-radius:4px;padding:1px 8px;font-size:12px}
+.sh-tag.wait{background:#fff6e0;color:#8a6100;border:1px solid #e8c877}
+.sh-tag.done{background:#e6f6e6;color:#1a7f1a;border:1px solid #9cd39c}
+.sh-empty{padding:34px;text-align:center;color:#aaa;font-size:15px}
+@media(max-width:820px){.sh-q{width:100%}}
+
 </style>
 </head>
 <body>
@@ -1269,6 +1297,11 @@ body { background: #f4f1ec; }
       <span class="nav-label">急件追蹤</span>
       <span class="nav-tag">G</span>
       <span class="nav-badge" id="ug-badge"></span>
+    </div>
+    <div class="nav-item" id="nav-ship" onclick="switchTool('ship')">
+      <span class="nav-icon">📦</span>
+      <span class="nav-label">出件明細</span>
+      <span class="nav-tag">H</span>
     </div>
     <!-- 新工具在此新增 nav-item -->
   </div>
@@ -1929,6 +1962,47 @@ body { background: #f4f1ec; }
       </div>
     </div><!-- /panel-urgent -->
 
+    <div class="tool-panel" id="panel-ship">
+      <div class="page-head">
+        <div class="page-head-icon">📦</div>
+        <div>
+          <div class="page-head-title">出件明細</div>
+          <div class="page-head-sub">包裝人員掃碼登錄的資料 → 依施工地點彙整 → 供出件人員登打／匯出</div>
+        </div>
+      </div>
+
+      <div class="sh-bar">
+        <input type="date" class="sh-date" id="sh-d1">
+        <span class="sh-tilde">～</span>
+        <input type="date" class="sh-date" id="sh-d2">
+        <button class="btn btn-primary" id="sh-load">載入</button>
+        <button class="btn btn-ghost" id="sh-today">今天</button>
+        <button class="btn btn-ghost" id="sh-setup">設定來源</button>
+        <span class="sh-stamp" id="sh-stamp"></span>
+      </div>
+
+      <div class="sh-msg" id="sh-msg"></div>
+
+      <div id="sh-body" style="display:none">
+        <div class="stat-row">
+          <div class="stat-chip"><div class="stat-num" id="sh-n1">-</div><div class="stat-lbl">登錄筆數</div></div>
+          <div class="stat-chip"><div class="stat-num" id="sh-n2">-</div><div class="stat-lbl">總件數</div></div>
+          <div class="stat-chip"><div class="stat-num" id="sh-n3">-</div><div class="stat-lbl">待出件</div></div>
+          <div class="stat-chip"><div class="stat-num" id="sh-n4">-</div><div class="stat-lbl">施工地點數</div></div>
+        </div>
+
+        <div class="sh-bar sh-bar2">
+          <label class="sh-chk"><input type="checkbox" id="sh-only"> 只看待出件</label>
+          <input type="text" class="sh-q" id="sh-q" placeholder="搜尋客戶／訂單／地點／人員">
+          <span style="flex:1"></span>
+          <button class="btn btn-dark" id="sh-copy">複製為表格（可貼進網頁／Excel）</button>
+          <button class="btn btn-success" id="sh-csv">匯出 CSV</button>
+        </div>
+
+        <div id="sh-groups"></div>
+      </div>
+    </div><!-- /panel-ship -->
+
 
   </div><!-- /content -->
 </div><!-- /main-area -->
@@ -1959,6 +2033,7 @@ const TOOL_META = {
   pc:   { title: '插條產能統計', sub: '上傳人員產能報表 → 篩選客戶／出件日期 → 各單位才數數量統計' },
   scan: { title: '貼紙掃碼清點', sub: '上傳含條碼貼紙檔 → 逐張掃描核對 → 缺件即時顯示 → 掃滿封箱' },
   urgent: { title: '急件追蹤', sub: 'ERP 每 15 分鐘自動更新 → 急件開立／進度／站別負載' },
+  ship: { title: '出件明細', sub: '包裝掃碼登錄的資料 → 依施工地點彙整 → 供出件登打／匯出' },
 };
 
 function switchTool(id) {
@@ -4099,6 +4174,219 @@ const URGENT = (() => {
   // _debug：不經 GitHub 直接餵資料進來渲染，供離線驗版／排查畫面問題用
   return { load, peek, _debug: (u, a) => { DATA = u; ALERTS = a || []; render();
     $('ug-body').style.display = ''; msg(''); } };
+})();
+
+/* ════════════════════════════════════════════════
+   TOOL H — 出件明細  (namespace: SHIP)
+
+   資料源＝包裝人員用書籤小工具寫進 Google Sheet 的登錄資料，
+   以「發布到網路 → CSV」的唯讀網址讀取。
+   刻意不放任何權杖，也不把資料寫進本 repo（工具箱 repo 內不得出現 ERP 資料）。
+   書籤小工具原始碼：~/Scripts/pack_ship_bookmarklet.js
+════════════════════════════════════════════════ */
+const SHIP = (() => {
+  const LS_URL = 'cipShip:csvUrl';
+  let rows = [];
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  function msg(text, kind) {
+    const el = $('sh-msg');
+    el.className = 'sh-msg ' + (kind || 'info');
+    el.textContent = text;
+    if (!text) el.className = 'sh-msg';
+  }
+
+  /* ── CSV 解析：要處理引號內的逗號與換行，不能用 split(',') ── */
+  function parseCSV(text) {
+    const out = [];
+    let row = [], cell = '', q = false;
+    text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) {
+        if (c === '"') {
+          if (text[i + 1] === '"') { cell += '"'; i++; }
+          else q = false;
+        } else cell += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(cell); cell = ''; }
+      else if (c === '\n') { row.push(cell); out.push(row); row = []; cell = ''; }
+      else cell += c;
+    }
+    if (cell !== '' || row.length) { row.push(cell); out.push(row); }
+    return out.filter(r => r.some(c => String(c).trim() !== ''));
+  }
+
+  function csvUrl() { try { return localStorage.getItem(LS_URL) || ''; } catch (e) { return ''; } }
+
+  function setup() {
+    const cur = csvUrl();
+    const v = prompt(
+      'Google Sheet 的「發布到網路」CSV 網址：\n\n' +
+      '試算表 → 檔案 → 共用 → 發布到網路 → 選「登錄」分頁 → 格式選「逗號分隔值 (.csv)」→ 發布，\n' +
+      '把產生的網址貼在這裡。', cur);
+    if (v === null) return;
+    try { localStorage.setItem(LS_URL, v.trim()); } catch (e) {}
+    msg('來源已儲存（只存在這個瀏覽器）', 'ok');
+  }
+
+  function todayStr(d) {
+    d = d || new Date();
+    const p = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+
+  async function load() {
+    const url = csvUrl();
+    if (!url) { setup(); return; }
+
+    msg('讀取中…', 'info');
+    $('sh-body').style.display = 'none';
+    try {
+      /* 加時戳避開 Google 的快取，否則現場剛登錄的資料要等好幾分鐘才看得到 */
+      const sep = url.indexOf('?') >= 0 ? '&' : '?';
+      const res = await fetch(url + sep + 't=' + Date.now());
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const grid = parseCSV(await res.text());
+      if (grid.length < 2) { msg('來源沒有資料（只有標題列或空白）', 'err'); return; }
+
+      const head = grid[0].map(h => String(h).trim());
+      const ci = name => head.indexOf(name);
+      const need = ['登錄時間', '件數'];
+      const missing = need.filter(n => ci(n) < 0);
+      if (missing.length) {
+        msg('來源缺少欄位：' + missing.join('、') + '。請確認發布的是「登錄」分頁。', 'err');
+        return;
+      }
+
+      const idx = {};
+      ['登錄時間','施工單ID','客戶','訂單號','施工人員','施工時間','施工地點','施工地址','件數','登錄人','備註','出件狀態']
+        .forEach(k => idx[k] = ci(k));
+
+      rows = grid.slice(1).map(r => {
+        const o = {};
+        Object.keys(idx).forEach(k => o[k] = idx[k] >= 0 ? String(r[idx[k]] ?? '').trim() : '');
+        o.日 = (o.登錄時間 || '').slice(0, 10);
+        o.件數n = parseInt(o.件數, 10) || 0;
+        return o;
+      });
+
+      $('sh-stamp').textContent = '讀取於 ' + new Date().toLocaleTimeString('zh-TW');
+      msg('', '');
+      render();
+      $('sh-body').style.display = 'block';
+    } catch (err) {
+      msg('讀取失敗：' + err.message +
+          '　（多半是網址沒設成「發布到網路」的 CSV，或這台電腦連不上 Google）', 'err');
+    }
+  }
+
+  function filtered() {
+    const d1 = $('sh-d1').value, d2 = $('sh-d2').value;
+    const only = $('sh-only').checked;
+    const q = $('sh-q').value.trim().toLowerCase();
+    return rows.filter(r => {
+      if (d1 && r.日 < d1) return false;
+      if (d2 && r.日 > d2) return false;
+      if (only && r.出件狀態 === '已出件') return false;
+      if (q) {
+        const hay = [r.客戶, r.訂單號, r.施工地點, r.施工地址, r.施工人員, r.登錄人].join(' ').toLowerCase();
+        if (hay.indexOf(q) < 0) return false;
+      }
+      return true;
+    });
+  }
+
+  function render() {
+    const list = filtered();
+    const sites = {};
+    list.forEach(r => {
+      const k = r.施工地點 || '（未填施工地點）';
+      (sites[k] = sites[k] || []).push(r);
+    });
+
+    $('sh-n1').textContent = list.length;
+    $('sh-n2').textContent = list.reduce((a, r) => a + r.件數n, 0);
+    $('sh-n3').textContent = list.filter(r => r.出件狀態 !== '已出件').length;
+    $('sh-n4').textContent = Object.keys(sites).length;
+
+    if (!list.length) {
+      $('sh-groups').innerHTML = '<div class="sh-empty">這個條件下沒有資料</div>';
+      return;
+    }
+
+    /* 依施工地點分組：出件人員是一個地點一張貨運單在打，分組跟他的動作一致 */
+    const html = Object.keys(sites).sort().map(site => {
+      const g = sites[site];
+      const addr = (g.find(r => r.施工地址) || {}).施工地址 || '';
+      const qty = g.reduce((a, r) => a + r.件數n, 0);
+      return '<div class="sh-grp">' +
+        '<div class="sh-grp-hd"><b>' + esc(site) + '</b>' +
+          '<span class="sh-grp-n">' + g.length + ' 筆 / ' + qty + ' 件</span></div>' +
+        (addr ? '<div class="sh-addr">📍 ' + esc(addr) + '</div>' : '') +
+        '<table class="sh-tb"><thead><tr>' +
+          '<th>客戶</th><th>訂單號</th><th>施工人員</th><th>施工時間</th>' +
+          '<th style="text-align:right">件數</th><th>登錄</th><th>狀態</th><th>備註</th>' +
+        '</tr></thead><tbody>' +
+        g.map(r =>
+          '<tr><td>' + esc(r.客戶) + '</td><td>' + esc(r.訂單號) + '</td>' +
+          '<td>' + esc(r.施工人員) + '</td><td>' + esc(r.施工時間) + '</td>' +
+          '<td class="sh-qty">' + r.件數n + '</td>' +
+          '<td>' + esc((r.登錄時間 || '').slice(11, 16)) + ' ' + esc(r.登錄人) + '</td>' +
+          '<td><span class="sh-tag ' + (r.出件狀態 === '已出件' ? 'done' : 'wait') + '">' +
+            esc(r.出件狀態 || '待出件') + '</span></td>' +
+          '<td>' + esc(r.備註) + '</td></tr>').join('') +
+        '</tbody></table></div>';
+    }).join('');
+    $('sh-groups').innerHTML = html;
+  }
+
+  const COLS = ['施工地點','施工地址','客戶','訂單號','施工人員','施工時間','件數','登錄時間','登錄人','出件狀態','備註'];
+
+  function table() {
+    const list = filtered();
+    return [COLS].concat(list.map(r => COLS.map(c => c === '件數' ? String(r.件數n) : (r[c] || ''))));
+  }
+
+  function copyTSV() {
+    /* TSV 直接貼進 Excel 或多數網頁表格都會自動分欄，
+       比匯出檔再開起來複製少兩個步驟 */
+    const txt = table().map(r => r.map(c => String(c).replace(/[\t\n]/g, ' ')).join('\t')).join('\n');
+    navigator.clipboard.writeText(txt)
+      .then(() => msg('已複製 ' + (table().length - 1) + ' 列，可直接貼上', 'ok'))
+      .catch(() => msg('複製失敗，請改用「匯出 CSV」', 'err'));
+  }
+
+  function exportCSV() {
+    const csv = table().map(r => r.map(c => {
+      const s = String(c);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(',')).join('\r\n');
+    /* 加 BOM，否則 Excel 開中文會變亂碼 */
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '出件明細_' + ($('sh-d1').value || todayStr()) + '.csv';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  function init() {
+    $('sh-d1').value = todayStr();
+    $('sh-d2').value = todayStr();
+    $('sh-load').onclick = load;
+    $('sh-setup').onclick = setup;
+    $('sh-today').onclick = () => { $('sh-d1').value = todayStr(); $('sh-d2').value = todayStr(); load(); };
+    $('sh-only').onchange = render;
+    $('sh-q').oninput = render;
+    $('sh-copy').onclick = copyTSV;
+    $('sh-csv').onclick = exportCSV;
+  }
+
+  init();
+  return { init, load };
 })();
 
 </script>
