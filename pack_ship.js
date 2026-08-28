@@ -10,9 +10,12 @@
  *   腳本跑在使用者已登入的 ERP 頁面「本身」，同網域直接讀 DOM，
  *   不需要伺服器、不需要處理 ERP 登入、也沒有 CORS 問題。
  *
- * 連續掃描：面板內建「掃下一張」輸入框，掃描槍掃進去後用同源 fetch
- *   把下一張的頁面抓回來在記憶體裡解析，**不換頁**，所以整個班次
- *   只需要點一次書籤。
+ * 連續掃描：面板內建「掃下一張」輸入框，掃描槍掃進去後，用一個隱藏的
+ *   同源 iframe 把下一張真的載入，讀完就丟掉，**目前這頁不換頁**，
+ *   所以整個班次只需要點一次書籤。
+ *   用 iframe 而不是自己 fetch 解析，是因為登入轉址、字元編碼、CSS 與版面
+ *   都要交給瀏覽器處理才會對——自己拼版面踩過兩次坑（見下方 OFFSCREEN 註解）。
+ *   iframe 被 X-Frame-Options 擋掉時才退回 fetch 解析（loadViaFetch）。
  *
  * 建置：python3 ~/Scripts/pack_ship_build.py  → 產生書籤網址與安裝頁
  * ============================================================ */
@@ -50,7 +53,12 @@
   });
   ALL_ALIASES.sort(function (a, b) { return b.length - a.length; });
 
-  var state = { id: '', url: '', values: {}, methods: {}, busy: false };
+  /* 離屏容器樣式：只能移到畫面外，**不可以用 visibility:hidden 或 display:none**。
+   * innerText 對「看不見」的內容一律回空字串，那樣就等於退回黏成一坨的 textContent，
+   * 欄位會全部抓不到（實測踩過：點書籤讀當頁成功、掃下一張卻全空就是這個原因）。 */
+  var OFFSCREEN = 'position:absolute;left:-99999px;top:0;width:1200px;height:auto;overflow:hidden';
+
+  var state = { id: '', url: '', values: {}, methods: {}, busy: false, diag: null };
   var ac = null;
 
   /* ── 共用小工具 ─────────────────────────────────────── */
@@ -176,6 +184,11 @@
     var lines = null;
 
     function renderedText() {
+      /* 已經渲染過的文件（目前這頁或 iframe 載入的頁）：defaultView 不是 null，
+         innerText 直接就是照版面斷行的結果，不必自己拼 */
+      if (doc !== document && doc.defaultView && doc.body) {
+        return doc.body.innerText || doc.body.textContent || '';
+      }
       if (doc === document) {
         /* 現場這一頁：逐一讀 body 的子節點，跳過我們自己的面板，
            否則面板上的 <label>客戶</label> 那排會被當成頁面內容 */
@@ -188,7 +201,7 @@
       }
       /* fetch 回來的離線文件：掛到畫面外讓它有版面，innerText 才會斷行 */
       var box = document.createElement('div');
-      box.setAttribute('style', 'position:absolute;left:-99999px;top:0;width:1200px;visibility:hidden');
+      box.setAttribute('style', OFFSCREEN);
       var src = (doc.body || doc.documentElement).cloneNode(true);
       Array.prototype.forEach.call(
         src.querySelectorAll('script,style,link,iframe,frame,object,embed'),
@@ -261,40 +274,147 @@
   }
 
   /* ── 抓下一張：同源 fetch，不換頁 ─────────────────────── */
+
+  /* 解碼：不能直接用 res.text()。
+   * res.text() 只看 HTTP header 的 charset，不看 HTML 裡的 <meta charset>。
+   * 老 Java ERP 常常 header 不寫 charset，內容卻是 Big5；那樣整頁中文會變問號，
+   * 標籤比對當然全部落空——而且畫面上看不出來，只會「莫名其妙抓不到」。 */
+  function decodeSmart(buf, ct) {
+    function dec(cs) {
+      try { return new TextDecoder(cs, { fatal: false }).decode(buf); } catch (e) { return null; }
+    }
+    var m = /charset=["']?([\w-]+)/i.exec(ct || '');
+    if (m) { var t0 = dec(m[1].toLowerCase()); if (t0) return t0; }
+
+    var t = dec('utf-8') || '';
+    var mm = /<meta[^>]+charset=["']?([\w-]+)/i.exec(t.slice(0, 4000));
+    if (mm) {
+      var c2 = mm[1].toLowerCase();
+      if (c2 !== 'utf-8' && c2 !== 'utf8') { var t2 = dec(c2); if (t2) return t2; }
+      return t;
+    }
+    /* 沒有任何 charset 宣告：utf-8 解出一堆替換字元就改試 big5 */
+    /* \uFFFD 用跳脫寫法，不要直接把替換字元打進原始碼——
+       否則日後「檔案有沒有亂碼」的例行檢查會被自己誤報 */
+    if ((t.match(/\uFFFD/g) || []).length > 3) { var t3 = dec('big5'); if (t3) return t3; }
+    return t;
+  }
+
+  function fetchText(url) {
+    return fetch(url, { credentials: 'same-origin' }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      var ct = r.headers.get('content-type') || '';
+      return r.arrayBuffer().then(function (buf) {
+        return { text: decodeSmart(buf, ct), ct: ct, url: r.url || url };
+      });
+    });
+  }
+
+  /* 這頁如果只是個轉頁殼（frame／meta refresh／JS 導向），把真正的網址找出來 */
+  function nextHop(doc, html, baseUrl) {
+    var fr = doc.querySelector('frame[src],iframe[src]');
+    if (fr) return abs(fr.getAttribute('src'), baseUrl);
+
+    var mr = doc.querySelector('meta[http-equiv]');
+    if (mr && /refresh/i.test(mr.getAttribute('http-equiv') || '')) {
+      var c = /url=([^;'"\s]+)/i.exec(mr.getAttribute('content') || '');
+      if (c) return abs(c[1], baseUrl);
+    }
+    var js = /location(?:\.href|\.replace)?\s*[=(]\s*["']([^"']+)["']/i.exec(html || '');
+    if (js) return abs(js[1], baseUrl);
+    return null;
+  }
+  function abs(u, base) { try { return new URL(u, base).href; } catch (e) { return null; } }
+
+  /* 主要做法：用隱藏 iframe 真的把那頁載入。
+   * 好處是登入轉址、字元編碼、CSS 與版面全部交給瀏覽器處理，
+   * 我們不必自己模擬——先前自己拼版面才會踩到「拿掉 <style> 版面就沒了、
+   * innerText 退回黏成一行、空值欄位吃到下一欄」這種坑。
+   * sandbox 給 allow-scripts 讓 JS 轉址能動，但**不給 allow-top-navigation**，
+   * 這樣就算 ERP 頁面有防frame的 top.location 也帶不走現場正在用的分頁。 */
+  function loadViaIframe(url) {
+    return new Promise(function (resolve, reject) {
+      var ifr = document.createElement('iframe');
+      ifr.setAttribute('style', OFFSCREEN + ';width:1200px;height:900px;border:0');
+      ifr.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-forms');
+      var done = false, timer = null;
+
+      function cleanup() { try { document.body.removeChild(ifr); } catch (e) {} }
+      function fail(msg) { if (done) return; done = true; clearTimeout(timer); cleanup(); reject(new Error(msg)); }
+
+      ifr.onload = function () {
+        if (done) return;
+        /* 給 JS 轉址與延遲渲染一點時間再讀 */
+        setTimeout(function () {
+          if (done) return;
+          var d;
+          try { d = ifr.contentDocument; } catch (e) { return fail('iframe 被拒絕存取'); }
+          if (!d || !d.body) return fail('iframe 沒有內容');
+          var got = extract(d);
+          var txt = d.body.innerText || d.body.textContent || '';
+          var fin = url;
+          try { fin = d.location.href; } catch (e) {}
+          done = true; clearTimeout(timer); cleanup();
+          resolve({ got: got, text: txt, finalUrl: fin, how: 'iframe' });
+        }, 400);
+      };
+      ifr.onerror = function () { fail('iframe 載入失敗'); };
+      timer = setTimeout(function () { fail('iframe 載入逾時（9 秒）'); }, 9000);
+
+      ifr.src = url;
+      document.body.appendChild(ifr);
+    });
+  }
+
+  /* 後備做法：iframe 被擋（X-Frame-Options / CSP）時才走這條。
+   * 自己 fetch 回來解析，會失去版面，準確度較低，但總比完全不能用好。 */
+  function loadViaFetch(url) {
+    var seen = {}, hops = 0;
+    function attempt(u) {
+      hops++;
+      return fetchText(u).then(function (res) {
+        var doc = new DOMParser().parseFromString(res.text, 'text/html');
+        var got = extract(doc);
+        if (countHits(got.values) > 0 || hops >= 3) {
+          return { got: got, text: readableText(doc, res.text), finalUrl: res.url, ct: res.ct, how: 'fetch（iframe 不可用）' };
+        }
+        var nxt = nextHop(doc, res.text, res.url);
+        if (nxt && !seen[nxt]) { seen[nxt] = 1; return attempt(nxt); }
+        return { got: got, text: readableText(doc, res.text), finalUrl: res.url, ct: res.ct, how: 'fetch（iframe 不可用）' };
+      });
+    }
+    return attempt(url);
+  }
+
   function loadFromUrl(url) {
     setStatus('讀取中…', 'busy');
     state.busy = true;
-    return fetch(url, { credentials: 'same-origin' })
-      .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.text();
-      })
-      .then(function (html) {
-        var doc = new DOMParser().parseFromString(html, 'text/html');
-        var got = extract(doc);
-        var hit = Object.keys(got.values).filter(function (k) { return got.values[k]; }).length;
 
-        /* 頁面若是 frameset 包裝，往下再抓一層 */
-        if (hit === 0) {
-          var fr = doc.querySelector('frame[src],iframe[src]');
-          if (fr) {
-            var sub = new URL(fr.getAttribute('src'), url).href;
-            return fetch(sub, { credentials: 'same-origin' })
-              .then(function (r2) { return r2.text(); })
-              .then(function (h2) {
-                return extract(new DOMParser().parseFromString(h2, 'text/html'));
-              });
-          }
-        }
-        return got;
+    return loadViaIframe(url)
+      .then(function (res) {
+        /* iframe 成功載入但一個欄位都沒抓到，再讓 fetch 那條試一次：
+           它會做字元編碼嗅探，能救「伺服器沒宣告 charset」的頁面 */
+        if (countHits(res.got.values) > 0) return res;
+        return loadViaFetch(url).then(function (alt) {
+          return countHits(alt.got.values) > 0 ? alt : res;
+        }).catch(function () { return res; });
       })
-      .then(function (got) {
+      .catch(function (e) {
+        setStatus('改用備援方式讀取…（' + e.message + '）', 'busy');
+        return loadViaFetch(url);
+      })
+      .then(function (res) {
         state.id = idFromUrl(url);
         state.url = url;
-        state.values = got.values;
-        state.methods = got.methods;
+        state.values = res.got.values;
+        state.methods = res.got.methods;
+        state.diag = {
+          url: url, finalUrl: res.finalUrl, ct: res.ct || '', how: res.how,
+          bytes: (res.text || '').length, text: res.text || ''
+        };
         fillForm();
-        var hit = Object.keys(got.values).filter(function (k) { return got.values[k]; }).length;
+
+        var hit = countHits(res.got.values);
         if (hit === 0) { beep('err'); setStatus('這頁抓不到任何欄位，請按「診斷」把結果貼給管理者', 'err'); }
         else if (hit < 4) { beep('warn'); setStatus('只抓到 ' + hit + ' 個欄位，請確認後再送出', 'warn'); }
         else { setStatus('已帶出資料，請輸入件數', 'ok'); }
@@ -305,6 +425,27 @@
         setStatus('讀取失敗：' + err.message, 'err');
       })
       .then(function () { state.busy = false; });
+  }
+
+  function countHits(v) {
+    return Object.keys(v).filter(function (k) { return v[k]; }).length;
+  }
+
+  /* 把一份離線文件轉成「人眼看到的樣子」，供診斷顯示 */
+  function readableText(doc, raw) {
+    try {
+      var box = document.createElement('div');
+      box.setAttribute('style', OFFSCREEN);
+      var src = (doc.body || doc.documentElement).cloneNode(true);
+      Array.prototype.forEach.call(
+        src.querySelectorAll('script,style,link,iframe,frame,object,embed'),
+        function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
+      box.appendChild(src);
+      document.body.appendChild(box);
+      var t = box.innerText || box.textContent || '';
+      document.body.removeChild(box);
+      return t || String(raw || '').slice(0, 2000);
+    } catch (e) { return String(raw || '').slice(0, 2000); }
   }
 
   /* ── 送出 ────────────────────────────────────────────── */
@@ -521,9 +662,19 @@
     FIELDS.forEach(function (fd) {
       out.push(fd.label + '　[' + (state.methods[fd.key] || '-') + ']　' + (state.values[fd.key] || '(空)'));
     });
-    out.push('', '── 頁面純文字前 2000 字（抓不到欄位時請整段複製給管理者）──');
-    var body = document.body;
-    out.push(clean0(body.innerText || body.textContent || '').slice(0, 2000));
+    if (state.diag) {
+      out.push('', '── 掃描抓回來的那一頁 ──');
+      out.push('請求網址：' + state.diag.url);
+      out.push('實際網址：' + state.diag.finalUrl + '　（轉了 ' + state.diag.hops + ' 手）');
+      out.push('Content-Type：' + (state.diag.ct || '(伺服器沒給)'));
+      out.push('原始長度：' + state.diag.bytes + ' 字元');
+      out.push('', '── 那一頁的純文字前 2000 字 ──');
+      out.push(clean0(state.diag.text).slice(0, 2000));
+    } else {
+      out.push('', '── 目前這頁的純文字前 2000 字 ──');
+      var body = document.body;
+      out.push(clean0(body.innerText || body.textContent || '').slice(0, 2000));
+    }
     ta.value = out.join('\n');
     ta.select();
     function clean0(s) { return String(s).replace(/ /g, ' ').normalize('NFKC'); }
