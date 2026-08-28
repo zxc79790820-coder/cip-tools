@@ -116,6 +116,8 @@
     var all = doc.querySelectorAll('td,th,label,span,div,dt,b,strong,p,li');
     for (var i = 0; i < all.length; i++) {
       var el = all[i];
+      /* 跳過我們自己的面板：它上面那排 <label>客戶</label> 會被誤判成頁面標籤 */
+      if (el.closest && el.closest('#' + PANEL_ID)) continue;
       if (el.querySelector && el.querySelector('td,th,label,span,div,dt,b,strong,p,li')) continue;
       leaves.push(el);
     }
@@ -164,30 +166,66 @@
     }
 
     /* 3) 純文字逐行
-     * 不能用 innerText：DOMParser 產生的離線文件上 innerText 不會把 <br> 與區塊
-     * 元素當成換行，整頁會黏成一行，抓出來的值會把下一個欄位一起吃進去（已實測踩到）。
-     * 所以自己把 <br> 與區塊元素換成換行後再取 textContent。
+     *
+     * 一定要用 innerText，不能用 textContent：ERP 這頁的斷行是版面決定的，
+     * textContent 會把整頁黏成一坨，`客戶` 後面會直接接著下一個欄位。
+     * innerText 只在「已附加到畫面、有版面」的節點上才會照版面斷行，
+     * 所以 fetch 回來的離線文件要先掛到畫面外的容器裡再讀。
+     * （實測踩過：現場第一次實掃，七個欄位全部未命中就是這個原因）
      */
     var lines = null;
-    function docLines() {
-      var root = (doc.body || doc.documentElement);
-      var c = root.cloneNode(true);
+
+    function renderedText() {
+      if (doc === document) {
+        /* 現場這一頁：逐一讀 body 的子節點，跳過我們自己的面板，
+           否則面板上的 <label>客戶</label> 那排會被當成頁面內容 */
+        var out = '', kids = document.body.children;
+        for (var i = 0; i < kids.length; i++) {
+          if (kids[i].id === PANEL_ID) continue;
+          out += (kids[i].innerText || kids[i].textContent || '') + '\n';
+        }
+        return out;
+      }
+      /* fetch 回來的離線文件：掛到畫面外讓它有版面，innerText 才會斷行 */
+      var box = document.createElement('div');
+      box.setAttribute('style', 'position:absolute;left:-99999px;top:0;width:1200px;visibility:hidden');
+      var src = (doc.body || doc.documentElement).cloneNode(true);
+      Array.prototype.forEach.call(
+        src.querySelectorAll('script,style,link,iframe,frame,object,embed'),
+        function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
+      box.appendChild(src);
+      document.body.appendChild(box);
+      var t = box.innerText || box.textContent || '';
+      document.body.removeChild(box);
+      return t;
+    }
+
+    /* 後備：萬一 innerText 拿不到東西（極少數情況），改用自己插換行的土法 */
+    function fallbackText() {
+      var c = (doc.body || doc.documentElement).cloneNode(true);
       Array.prototype.forEach.call(c.querySelectorAll('script,style'), function (n) {
-        if (n.parentNode) n.parentNode.removeChild(n);
-      });
+        if (n.parentNode) n.parentNode.removeChild(n); });
       Array.prototype.forEach.call(c.querySelectorAll('br'), function (n) {
-        if (n.parentNode) n.parentNode.replaceChild(doc.createTextNode('\n'), n);
-      });
+        if (n.parentNode) n.parentNode.replaceChild(doc.createTextNode('\n'), n); });
       Array.prototype.forEach.call(
         c.querySelectorAll('p,div,tr,td,th,li,h1,h2,h3,h4,h5,h6,section,article,label,dt,dd,option'),
-        function (n) { n.appendChild(doc.createTextNode('\n')); }
-      );
-      return String(c.textContent || '')
+        function (n) { n.appendChild(doc.createTextNode('\n')); });
+      return String(c.textContent || '');
+    }
+
+    function toLines(t) {
+      return String(t || '')
         .replace(/ /g, ' ').normalize('NFKC')
         .replace(/[ \t]+/g, ' ')
         .split('\n')
         .map(function (s) { return s.trim(); })
         .filter(function (s) { return s; });
+    }
+
+    function docLines() {
+      var L = toLines(renderedText());
+      if (!L.length) L = toLines(fallbackText());
+      return L;
     }
 
     /* 捕捉到「下一個已知標籤」為止，避免同一行有多個欄位時吃過頭 */
