@@ -58,7 +58,7 @@
    * 欄位會全部抓不到（實測踩過：點書籤讀當頁成功、掃下一張卻全空就是這個原因）。 */
   var OFFSCREEN = 'position:absolute;left:-99999px;top:0;width:1200px;height:auto;overflow:hidden';
 
-  var state = { id: '', url: '', values: {}, methods: {}, busy: false, diag: null };
+  var state = { id: '', url: '', values: {}, methods: {}, busy: false, diag: null, zeroOkFor: '' };
   var ac = null;
 
   /* ── 共用小工具 ─────────────────────────────────────── */
@@ -406,6 +406,7 @@
       .then(function (res) {
         state.id = idFromUrl(url);
         state.url = url;
+        state.zeroOkFor = '';
         state.values = res.got.values;
         state.methods = res.got.methods;
         state.diag = {
@@ -464,8 +465,25 @@
     if (!cfg || !cfg.endpoint || !cfg.secret) { openSettings(); return; }
     if (state.busy) return;
 
-    var qty = parseInt($('cipps-qty').value, 10);
-    if (!(qty > 0)) { beep('err'); setStatus('件數必須是大於 0 的整數', 'err'); $('cipps-qty').focus(); return; }
+    var raw = String($('cipps-qty').value).trim();
+    var qty = parseInt(raw, 10);
+    if (raw === '' || isNaN(qty) || qty < 0) {
+      beep('err'); setStatus('件數必須是 0 或正整數', 'err'); $('cipps-qty').focus(); return;
+    }
+    /* 件數 0 是合法的（流程上有這種情況），但太容易誤按，所以跳一次確認。
+       同一張單確認過就不再問，免得「重複→覆蓋」時被問兩次 */
+    if (qty === 0) {
+      var key = state.id + ':0';
+      if (state.zeroOkFor !== key) {
+        if (!window.confirm('件數要登錄為 0 嗎？\n\n' +
+              '客戶：' + (clean($('cipps-f-customer').value) || '(空)') + '\n' +
+              '訂單：' + (clean($('cipps-f-orders').value) || '(空)') + '\n\n' +
+              '確定請按「確定」，按錯請按「取消」。')) {
+          setStatus('已取消，請重新輸入件數', 'warn'); $('cipps-qty').focus(); return;
+        }
+        state.zeroOkFor = key;
+      }
+    }
     if (!state.id) { beep('err'); setStatus('沒有施工單ID，請先掃一張貼紙', 'err'); return; }
 
     var operator = clean($('cipps-operator').value);
@@ -637,6 +655,7 @@
   }
 
   function resetForNext() {
+    state.zeroOkFor = '';
     $('cipps-qty').value = '';
     $('cipps-note').value = '';
     var s = $('cipps-scan');
