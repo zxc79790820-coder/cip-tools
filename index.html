@@ -4185,7 +4185,7 @@ const URGENT = (() => {
    書籤小工具原始碼：~/Scripts/pack_ship_bookmarklet.js
 ════════════════════════════════════════════════ */
 const SHIP = (() => {
-  const LS_URL = 'cipShip:csvUrl';
+  const LS_CFG = 'cipShip:cfg';   // {endpoint, secret}
   let rows = [];
 
   const $ = id => document.getElementById(id);
@@ -4198,37 +4198,19 @@ const SHIP = (() => {
     if (!text) el.className = 'sh-msg';
   }
 
-  /* ── CSV 解析：要處理引號內的逗號與換行，不能用 split(',') ── */
-  function parseCSV(text) {
-    const out = [];
-    let row = [], cell = '', q = false;
-    text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    for (let i = 0; i < text.length; i++) {
-      const c = text[i];
-      if (q) {
-        if (c === '"') {
-          if (text[i + 1] === '"') { cell += '"'; i++; }
-          else q = false;
-        } else cell += c;
-      } else if (c === '"') q = true;
-      else if (c === ',') { row.push(cell); cell = ''; }
-      else if (c === '\n') { row.push(cell); out.push(row); row = []; cell = ''; }
-      else cell += c;
-    }
-    if (cell !== '' || row.length) { row.push(cell); out.push(row); }
-    return out.filter(r => r.some(c => String(c).trim() !== ''));
+  function cfg() {
+    try { return JSON.parse(localStorage.getItem(LS_CFG) || 'null'); } catch (e) { return null; }
   }
 
-  function csvUrl() { try { return localStorage.getItem(LS_URL) || ''; } catch (e) { return ''; } }
-
   function setup() {
-    const cur = csvUrl();
-    const v = prompt(
-      'Google Sheet 的「發布到網路」CSV 網址：\n\n' +
-      '試算表 → 檔案 → 共用 → 發布到網路 → 選「登錄」分頁 → 格式選「逗號分隔值 (.csv)」→ 發布，\n' +
-      '把產生的網址貼在這裡。', cur);
-    if (v === null) return;
-    try { localStorage.setItem(LS_URL, v.trim()); } catch (e) {}
+    const c = cfg() || { endpoint: '', secret: '' };
+    const ep = prompt(
+      '包裝出件登錄的 Apps Script 網址（/exec 結尾）：\n\n' +
+      '就是現場面板用的那一條，跟管理者拿。', c.endpoint || '');
+    if (ep === null) return;
+    const sc = prompt('共享密鑰（與現場面板同一組）：', c.secret || '');
+    if (sc === null) return;
+    try { localStorage.setItem(LS_CFG, JSON.stringify({ endpoint: ep.trim(), secret: sc })); } catch (e) {}
     msg('來源已儲存（只存在這個瀏覽器）', 'ok');
   }
 
@@ -4238,26 +4220,33 @@ const SHIP = (() => {
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
   }
 
+  /* 讀取走 Apps Script 的 list 端點，不用「發布到網路 → CSV」。
+     兩個理由：發布到網路等於把客戶／訂單／施工地址公開給任何拿到連結的人；
+     而且那條網址跨網域讀會被擋（實測 Failed to fetch）。 */
   async function load() {
-    const url = csvUrl();
-    if (!url) { setup(); return; }
+    const c = cfg();
+    if (!c || !c.endpoint || !c.secret) { setup(); return; }
 
     msg('讀取中…', 'info');
     $('sh-body').style.display = 'none';
     try {
-      /* 加時戳避開 Google 的快取，否則現場剛登錄的資料要等好幾分鐘才看得到 */
-      const sep = url.indexOf('?') >= 0 ? '&' : '?';
-      const res = await fetch(url + sep + 't=' + Date.now());
+      const res = await fetch(c.endpoint, {
+        method: 'POST',
+        /* text/plain 讓瀏覽器視為 simple request，避開 Apps Script 不支援的 preflight */
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          secret: c.secret, action: 'list',
+          d1: $('sh-d1').value || '', d2: $('sh-d2').value || ''
+        })
+      });
       if (!res.ok) throw new Error('HTTP ' + res.status);
-      const grid = parseCSV(await res.text());
-      if (grid.length < 2) { msg('來源沒有資料（只有標題列或空白）', 'err'); return; }
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || '未知錯誤');
 
-      const head = grid[0].map(h => String(h).trim());
+      const head = (data.headers || []).map(h => String(h).trim());
       const ci = name => head.indexOf(name);
-      const need = ['登錄時間', '件數'];
-      const missing = need.filter(n => ci(n) < 0);
-      if (missing.length) {
-        msg('來源缺少欄位：' + missing.join('、') + '。請確認發布的是「登錄」分頁。', 'err');
+      if (ci('登錄時間') < 0 || ci('件數') < 0) {
+        msg('來源缺少必要欄位，請確認 Apps Script 是最新版並已重新部署', 'err');
         return;
       }
 
@@ -4265,21 +4254,22 @@ const SHIP = (() => {
       ['登錄時間','施工單ID','客戶','訂單號','施工人員','施工時間','施工地點','施工地址','件數','登錄人','備註','出件狀態']
         .forEach(k => idx[k] = ci(k));
 
-      rows = grid.slice(1).map(r => {
+      rows = (data.rows || []).map(r => {
         const o = {};
         Object.keys(idx).forEach(k => o[k] = idx[k] >= 0 ? String(r[idx[k]] ?? '').trim() : '');
         o.日 = (o.登錄時間 || '').slice(0, 10);
-        o.件數n = parseInt(o.件數, 10) || 0;
+        o.件數n = parseInt(o.件數, 10) || 0;   // 件數 0 是合法值
         return o;
       });
 
-      $('sh-stamp').textContent = '讀取於 ' + new Date().toLocaleTimeString('zh-TW');
+      $('sh-stamp').textContent = '讀取於 ' + new Date().toLocaleTimeString('zh-TW') +
+        '（全部 ' + (data.total != null ? data.total : rows.length) + ' 筆）';
       msg('', '');
       render();
       $('sh-body').style.display = 'block';
     } catch (err) {
       msg('讀取失敗：' + err.message +
-          '　（多半是網址沒設成「發布到網路」的 CSV，或這台電腦連不上 Google）', 'err');
+          '　（請按「設定來源」確認網址與密鑰，並確認 Apps Script 已重新部署為最新版）', 'err');
     }
   }
 

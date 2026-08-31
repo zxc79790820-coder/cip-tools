@@ -162,9 +162,14 @@ JS 命名空間：`LAMP`、`WO`、`POSM`、`TC`、`PC`、`SCAN`、`URGENT`、`SH
 Apps Script 端 `~/Scripts/pack_ship_appsscript.gs`，
 建置與安裝頁 `~/Scripts/pack_ship_build.py`。整套背景見記憶檔 `packing_ship_handoff.md`。
 
-**資料來源**：Google Sheet 的「發布到網路 → CSV」唯讀網址，存在 `localStorage.cipShip:csvUrl`。
-**本 repo 內不放任何 ERP 資料，也不放權杖**——資料一律經該網址讀取（同工具箱鐵則）。
-讀取時附 `t=` 時戳，否則 Google 的快取會讓現場剛登錄的資料延遲好幾分鐘才出現。
+**資料來源**：POST 到 Apps Script 的 `list` 端點，設定（網址＋密鑰）存在 `localStorage.cipShip:cfg`。
+**本 repo 內不放任何 ERP 資料，也不放權杖**——設定只存在使用者自己的瀏覽器（同工具箱鐵則）。
+
+**為什麼不用「發布到網路 → CSV」**（原本的做法，已廢棄）：
+1. 發布到網路等於把客戶、訂單號、施工地址公開給任何拿到連結的人
+2. 那條網址跨網域讀取會被擋（現場實測 `Failed to fetch`）
+
+Apps Script 端回的是 `getDisplayValues()`，也就是儲存格上看到的字。
 
 **流程**：設定來源（一次）→ 選日期區間（預設今天）→ 載入 → 依施工地點分組檢視 → 複製／匯出。
 
@@ -182,7 +187,7 @@ Apps Script 端 `~/Scripts/pack_ship_appsscript.gs`，
 因為 ERP 貨運系統與各貨運商網頁的匯入欄位規格還沒拿到，硬做會是猜的。
 拿到規格後在 `COLS` 旁另加一個對應表即可。
 
-**相依**：無外部套件（自帶 CSV 解析，需處理引號內的逗號與換行）。CSS 前綴 `sh-`。
+**相依**：無外部套件。CSS 前綴 `sh-`。件數 0 是合法值，統計與顯示都不可當成空值略過。
 
 ---
 
