@@ -1244,6 +1244,182 @@ body { background: #f4f1ec; }
 .sh-empty{padding:34px;text-align:center;color:#aaa;font-size:15px}
 @media(max-width:820px){.sh-q{width:100%}}
 
+/* ── Tool I：設備維修排程（.mt- 前綴，不影響其他工具）── */
+#panel-maint{min-width:0;max-width:100%}
+.mt-status{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.mt-tag{display:inline-flex;align-items:center;gap:5px;padding:2px 11px;border-radius:12px;font-size:12px;font-weight:600;border:1px solid var(--cip-border2);background:#fff;color:var(--cip-text2)}
+.mt-tag.mock{background:#fff8ec;color:#8a6100;border-color:#e8c877}
+.mt-tag.ok{background:#e6f6e6;color:#1a7f1a;border-color:#9cd39c}
+.mt-tag.role{background:var(--cip-dark);color:#fff;border-color:var(--cip-dark)}
+.mt-upd{font-size:12px;color:var(--cip-text3)}
+.mt-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.mt-toolbar .btn{padding:8px 14px}
+.mt-sm{padding:4px 11px !important;font-size:12px !important}
+.mt-msg{display:none;padding:9px 13px;border-radius:7px;font-size:13px;margin-bottom:12px}
+.mt-msg.err{display:block;background:#fdeaea;color:#a11;border:1px solid #e0a0a0}
+.mt-msg.info{display:block;background:#eef2f7;color:#456;border:1px solid #bcc8d6}
+.mt-pickbar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--cip-orange);color:#fff;padding:8px 14px;border-radius:7px;margin-bottom:10px;font-size:13px;font-weight:600;position:sticky;top:0;z-index:30}
+.mt-pickbar[hidden]{display:none}
+.mt-busy{cursor:progress}
+.mt-busy .mt-gridwrap,.mt-busy .mt-rqs{pointer-events:none;opacity:.7}
+.mt-spin{display:inline-block;width:13px;height:13px;border:2px solid var(--cip-border2);border-top-color:var(--cip-orange);border-radius:50%;animation:mtspin .8s linear infinite;vertical-align:-2px}
+.mt-spin.big{width:26px;height:26px;border-width:3px}
+@keyframes mtspin{to{transform:rotate(360deg)}}
+.mt-empty{text-align:center;padding:40px 16px;background:#fff;border:1px solid var(--cip-border);border-radius:10px;color:var(--cip-text2);font-size:14px;line-height:1.8}
+.mt-empty h3{color:var(--cip-text);font-size:17px;margin:6px 0}
+.mt-empty .btn{margin-top:10px;text-decoration:none}
+.mt-empty-ic{font-size:34px}
+.mt-none{padding:20px;text-align:center;color:var(--cip-text3);font-size:13px;background:#fff;border:1px dashed var(--cip-border2);border-radius:8px}
+
+/* 排程格 */
+.mt-gridwrap{overflow-x:auto;max-width:100%;border:1px solid var(--cip-border);border-radius:8px;background:#fff;-webkit-overflow-scrolling:touch}
+.mt-grid{display:grid;grid-template-columns:96px repeat(14,minmax(52px,1fr));grid-template-rows:30px repeat(7,50px);min-width:824px;position:relative}
+.mt-hd{background:#f4f1ec;font-size:11px;font-weight:600;color:var(--cip-text2);text-align:center;line-height:30px;border-bottom:1px solid var(--cip-border);border-right:1px solid #ece7de;z-index:4}
+.mt-hd.lunch{background:#ebe7df}
+.mt-corner{position:sticky;left:0;z-index:6;border-right:2px solid var(--cip-border2)}
+.mt-rowbg{z-index:0}
+.mt-rowbg.off{background:#f6f2ea}
+.mt-dc{position:sticky;left:0;z-index:5;background:#fff;border-right:2px solid var(--cip-border2);border-bottom:1px solid var(--cip-border);padding:5px 6px;font-size:12px;line-height:1.3;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.mt-dc.off{background:#f3efe8}
+.mt-dc.today{box-shadow:inset 3px 0 0 var(--cip-orange)}
+.mt-dc-d{font-weight:700;color:var(--cip-text);white-space:nowrap}
+.mt-dc-n{display:flex;align-items:center;gap:4px;margin-top:2px;min-width:0;font-size:11px;color:#a8641a}
+.mt-dc-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt-today{flex:none;padding:0 5px;border-radius:8px;background:var(--cip-orange);color:#fff;font-size:10px;font-weight:700}
+.mt-leave{flex:none;margin-left:auto;border:1px solid var(--cip-border2);background:#fff;color:var(--cip-text2);border-radius:4px;font-size:10px;line-height:1;padding:2px 4px;cursor:pointer;font-family:inherit}
+.mt-leave:hover{border-color:var(--cip-orange);color:var(--cip-orange)}
+.mt-c{z-index:1;border-right:1px solid #ece7de;border-bottom:1px solid var(--cip-border)}
+.mt-c.lunch{background:rgba(0,0,0,.045)}
+.mt-grid.eng .mt-c.free{cursor:pointer}
+.mt-grid.eng .mt-c.free:hover{background:var(--cip-orange-bg);box-shadow:inset 0 0 0 1px var(--cip-orange)}
+.mt-picking .mt-c.free{background:rgba(223,146,0,.2);box-shadow:inset 0 0 0 1px rgba(223,146,0,.55)}
+.mt-picking .mt-c.free:hover{background:rgba(223,146,0,.4)}
+.mt-b{z-index:3;margin:3px 2px;border-radius:5px;padding:3px 6px;color:#fff;font-size:12px;line-height:1.25;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;justify-content:center;min-width:0;box-shadow:0 1px 2px rgba(0,0,0,.25);text-align:left}
+.mt-b:focus-visible{outline:2px solid var(--cip-dark);outline-offset:1px}
+.mt-bt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.mt-bh{font-size:11px;opacity:.92;white-space:nowrap}
+.mt-b.repair,.lg.repair{background-color:var(--cip-orange)}
+.mt-b.urgent,.lg.urgent{background-color:#e53935}
+.mt-b.leave,.lg.leave{background-color:#8e8e93}
+.mt-b.out,.lg.out{background-color:#1e88e5}
+.mt-b.done,.lg.done{filter:saturate(.45);opacity:.82}
+.mt-b.incomplete,.lg.incomplete{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.35) 0 6px,rgba(255,255,255,0) 6px 12px)}
+.mt-nowwrap{z-index:2;pointer-events:none;position:relative}
+.mt-now{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#e53935}
+.mt-now::before{content:"";position:absolute;top:-1px;left:-3px;width:8px;height:8px;border-radius:50%;background:#e53935}
+.mt-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 2px 0;font-size:12px;color:var(--cip-text2)}
+.mt-legend span{display:inline-flex;align-items:center;gap:5px}
+.lg{display:inline-block;width:14px;height:10px;border-radius:3px}
+.lg.now{width:3px;height:12px;background:#e53935;border-radius:0}
+
+/* 需求清單 */
+.mt-sec{font-size:15px;font-weight:700;color:var(--cip-text);margin:22px 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mt-sec.sm{font-size:13px;margin:16px 0 8px}
+.mt-sec-n{font-size:12px;font-weight:500;color:var(--cip-text3)}
+.mt-rqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.mt-rq{background:#fff;border:1px solid var(--cip-border);border-left:4px solid var(--cip-orange);border-radius:8px;padding:11px 13px;min-width:0}
+.mt-rq.urgent{border-left-color:#e53935;background:#fffafa}
+.mt-rq-h{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px}
+.mt-rq-eq{font-size:14px}
+.mt-rq-m{font-size:12px;color:var(--cip-text2);line-height:1.6}
+.mt-rq-d{font-size:13px;margin-top:6px;line-height:1.6;color:var(--cip-text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.mt-rq-d.long{cursor:pointer}
+.mt-rq-d.long::after{content:"…展開";color:var(--cip-orange);font-size:11px}
+.mt-rq-d.open{display:block;-webkit-line-clamp:unset;overflow:visible}
+.mt-rq-d.open::after{content:"　收合";}
+.mt-rq-note{margin-top:6px;font-size:12px;background:var(--cip-offwhite);border-radius:5px;padding:5px 8px;color:var(--cip-text2)}
+.mt-rq-a{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.mt-chip{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:600;background:#f0ece4;color:var(--cip-text2);white-space:nowrap}
+.mt-chip.red{background:#fdeaea;color:#c62828}
+.mt-chip.grn{background:#e6f6e6;color:#1a7f1a}
+.mt-chip.blue{background:#e3f0fb;color:#1565c0}
+.mt-chip.st-wait{background:#fff6e0;color:#8a6100}
+.mt-chip.st-sch{background:#e3f0fb;color:#1565c0}
+
+/* 稼動率 */
+.mt-ranges{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:12px}
+.mt-dt-in{width:auto !important;padding:4px 8px !important}
+.mt-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:8px}
+.mt-cards.dim{opacity:.55}
+.mt-card{background:#fff;border:1px solid var(--cip-border);border-radius:8px;padding:11px 13px;min-width:0}
+.mt-card.main{border-color:var(--cip-orange);background:var(--cip-orange-bg)}
+.mt-card-l{font-size:12px;color:var(--cip-text2)}
+.mt-card-n{font-size:26px;font-weight:700;color:var(--cip-text);line-height:1.3}
+.mt-card-n small{font-size:12px;font-weight:500;color:var(--cip-text3)}
+.mt-card-s{font-size:11px;color:var(--cip-text3);line-height:1.5}
+.mt-tbwrap{overflow-x:auto;max-width:100%;border:1px solid var(--cip-border);border-radius:8px;background:#fff;margin-top:8px}
+.mt-tbwrap.narrow{max-width:360px}
+.mt-tbwrap.cal{max-height:240px;overflow-y:auto}
+.mt-tb{width:100%;border-collapse:collapse;font-size:13px}
+.mt-tb th{background:#f4f1ec;color:var(--cip-text2);font-weight:600;font-size:12px;padding:7px 10px;text-align:left;border-bottom:1px solid var(--cip-border);white-space:nowrap}
+.mt-tb td{padding:7px 10px;border-bottom:1px solid #f0ece4;vertical-align:top}
+.mt-tb tr:last-child td{border-bottom:0}
+.mt-tb th.num,.mt-tb td.num{text-align:right;font-variant-numeric:tabular-nums}
+.mt-tb td.nw{white-space:nowrap}
+.mt-tb td.wrap{min-width:140px;word-break:break-word}
+
+/* Modal */
+.mt-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;display:flex;align-items:center;justify-content:center;padding:12px}
+.mt-modal{background:#fff;border-radius:10px;width:100%;max-width:520px;max-height:calc(100vh - 24px);display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden}
+.mt-modal.wide{max-width:760px}
+.mt-mh{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:3px solid var(--cip-orange);background:var(--cip-dark);color:#fff}
+.mt-mt{font-size:15px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.mt-x{background:none;border:0;color:#fff;font-size:17px;cursor:pointer;padding:2px 6px;line-height:1}
+.mt-mb{padding:14px 16px 16px;overflow-y:auto;color:var(--cip-text);font-size:14px}
+.mt-form{display:flex;flex-direction:column;gap:11px}
+.mt-f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.mt-f>label,.mt-fl{font-size:12px;font-weight:600;color:var(--cip-text2)}
+.mt-in{border:1px solid var(--cip-border2);border-radius:6px;padding:8px 10px;font-size:14px;font-family:inherit;background:#fff;color:var(--cip-text);width:100%;min-width:0}
+.mt-in:focus{outline:2px solid rgba(223,146,0,.4);border-color:var(--cip-orange)}
+textarea.mt-in{resize:vertical}
+.mt-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mt-row3{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px}
+.mt-hint{font-size:12px;color:var(--cip-text3);line-height:1.6}
+.mt-cnt{font-size:11px;color:var(--cip-text3);text-align:right}
+.mt-err{display:none;background:#fef2f0;border:1px solid #f5c0b0;border-radius:6px;padding:8px 12px;color:#b83015;font-size:13px}
+.mt-mf{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:4px}
+.mt-mf .mt-del{margin-right:auto}
+.mt-chk{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+.mt-choice{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mt-ch{position:relative;cursor:pointer;display:block}
+.mt-ch input{position:absolute;opacity:0;pointer-events:none}
+.mt-ch span{display:flex;flex-direction:column;gap:2px;padding:12px;border:2px solid var(--cip-border2);border-radius:8px;background:#fff;height:100%}
+.mt-ch span b{font-size:15px}
+.mt-ch span small{font-size:11px;color:var(--cip-text3)}
+.mt-ch input:checked+span{border-color:var(--cip-orange);background:var(--cip-orange-bg)}
+.mt-ch.urgent input:checked+span{border-color:#e53935;background:#fff1f0}
+.mt-ch input:focus-visible+span{outline:2px solid var(--cip-dark)}
+.mt-dt{width:100%;border-collapse:collapse;font-size:14px}
+.mt-dt th{width:84px;text-align:left;color:var(--cip-text2);font-weight:600;font-size:12px;padding:7px 8px 7px 0;vertical-align:top;white-space:nowrap}
+.mt-dt td{padding:7px 0;border-bottom:1px solid #f0ece4;word-break:break-word}
+.mt-leave-btns{display:grid;gap:8px}
+.mt-leave-btns .btn{justify-content:center;padding:12px}
+.mt-pair{background:var(--cip-offwhite);border-radius:7px;padding:10px 12px;font-size:13px;line-height:1.7;display:flex;flex-direction:column;gap:2px}
+.mt-pair span{display:inline-block;min-width:78px;color:var(--cip-text3);font-size:12px}
+.mt-prev{border:1px solid var(--cip-border);border-radius:8px;padding:10px;background:var(--cip-offwhite)}
+.mt-prev-s{font-size:13px;margin-bottom:8px}
+.mt-prev-s span{color:var(--cip-text3);font-size:12px;margin-right:8px}
+.mt-prev-f{width:100%;height:300px;border:1px solid var(--cip-border);border-radius:6px;background:#fff}
+.mt-done-box{text-align:center;padding:14px 8px;line-height:1.8}
+.mt-done-ic{font-size:34px}
+.mt-done-box h3{font-size:17px;margin:4px 0}
+.mt-calrow{display:grid;grid-template-columns:150px 90px 1fr auto;gap:8px}
+.mt-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:4000;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600;color:#fff;background:#2d9048;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:calc(100vw - 32px);transition:opacity .35s}
+.mt-toast.err{background:#c62828}
+.mt-toast.out{opacity:0}
+@media(max-width:820px){
+  .mt-in{font-size:16px}
+  .mt-row3{grid-template-columns:1fr 1fr}
+  .mt-row3 .mt-f:first-child{grid-column:1/-1}
+  .mt-cards{grid-template-columns:1fr 1fr}
+  .mt-calrow{grid-template-columns:1fr 1fr}
+  .mt-calrow input:nth-child(3),.mt-calrow button{grid-column:1/-1}
+  .mt-rqs{grid-template-columns:1fr}
+  .mt-card-n{font-size:22px}
+}
+@media(max-width:420px){.mt-row2,.mt-choice{grid-template-columns:1fr}}
+/* ── /Tool I CSS ── */
+
 </style>
 </head>
 <body>
@@ -1302,6 +1478,11 @@ body { background: #f4f1ec; }
       <span class="nav-icon">📦</span>
       <span class="nav-label">出件明細</span>
       <span class="nav-tag">H</span>
+    </div>
+    <div class="nav-item" id="nav-maint" onclick="switchTool('maint')">
+      <span class="nav-icon">🛠️</span>
+      <span class="nav-label">設備維修排程</span>
+      <span class="nav-tag">I</span>
     </div>
     <!-- 新工具在此新增 nav-item -->
   </div>
@@ -1370,6 +1551,12 @@ body { background: #f4f1ec; }
             <div class="welcome-card-label">Tool F</div>
             <div class="welcome-card-title">貼紙掃碼清點</div>
             <div class="welcome-card-desc">上傳含條碼的統單貼紙檔，用條碼機逐張掃描核對，缺件即時顯示，掃滿才可封箱。</div>
+          </div>
+          <div class="welcome-card" onclick="switchTool('maint')">
+            <span class="welcome-card-icon">🛠️</span>
+            <div class="welcome-card-label">Tool I</div>
+            <div class="welcome-card-title">設備維修排程</div>
+            <div class="welcome-card-desc">同事線上報修，設備工程師排程維修、休假與外出，可寄故障／恢復通知給全公司，並統計稼動率。</div>
           </div>
         </div>
       </div>
@@ -2003,6 +2190,25 @@ body { background: #f4f1ec; }
       </div>
     </div><!-- /panel-ship -->
 
+    <!-- ══════════════════════════════
+         TOOL I: 設備維修排程
+    ══════════════════════════════ -->
+    <div class="tool-panel" id="panel-maint">
+      <div class="page-head">
+        <div class="page-head-icon">🛠️</div>
+        <div>
+          <div class="page-head-title">設備維修排程</div>
+          <div class="page-head-sub">同事報修 → 工程師排程 → 故障通知 → 稼動率</div>
+        </div>
+      </div>
+
+      <div class="mt-status" id="mt-status"></div>
+      <div class="mt-toolbar" id="mt-toolbar"></div>
+      <div class="mt-msg" id="mt-msg"></div>
+      <div class="mt-pickbar" id="mt-pickbar" hidden></div>
+      <div id="mt-body"></div>
+    </div><!-- /panel-maint -->
+
 
   </div><!-- /content -->
 </div><!-- /main-area -->
@@ -2034,6 +2240,7 @@ const TOOL_META = {
   scan: { title: '貼紙掃碼清點', sub: '上傳含條碼貼紙檔 → 逐張掃描核對 → 缺件即時顯示 → 掃滿封箱' },
   urgent: { title: '急件追蹤', sub: 'ERP 每 15 分鐘自動更新 → 急件開立／進度／站別負載' },
   ship: { title: '出件明細', sub: '包裝掃碼登錄的資料 → 依施工地點彙整 → 供出件登打／匯出' },
+  maint: { title: '設備維修排程', sub: '同事報修 → 工程師排程 → 故障通知 → 稼動率' },
 };
 
 function switchTool(id) {
@@ -4378,6 +4585,1395 @@ const SHIP = (() => {
   init();
   return { init, load };
 })();
+
+/* ════════════════════════════════════════════════
+   TOOL I — 設備維修排程  (namespace: MAINT)
+
+   前端嚴格照 API 合約（maint_api_contract.md）。
+   ENDPOINT 填上 Apps Script /exec 網址即切換為真實後端；
+   網址帶 ?mock=1 時改用瀏覽器內建的模擬後端（localStorage），回傳 JSON 形狀與真實後端相同。
+   模擬密碼：通行碼 demo／工程師 eng123／主管 mgr123。
+════════════════════════════════════════════════ */
+const MAINT = (() => {
+  const ENDPOINT = '';   // 真實 Apps Script /exec 網址（待部署後填入）
+  const MOCK = /[?&]mock=1(?:&|$)/.test(location.search);
+  const CONFIGURED = MOCK || !!ENDPOINT;
+  const VERSION = 'mock-1';
+
+  const K_CODE = 'cipMaint:code';
+  const K_TOKEN = 'cipMaint:token';
+  const K_ROLE = 'cipMaint:role';
+  const K_MOCK = 'cipMaint:mock';
+  const K_ME = 'cipMaint:me';
+
+  const CATEGORIES = ['生產設備', '事務設備', '消防', '水電', '其他'];
+  const REQ_STATUS = ['待排程', '已排程', '已完成', '已取消'];
+  const BLOCK_TYPES = ['維修', '休假', '外出'];
+  const BLOCK_STATUS = ['已排定', '已完成', '未完成'];
+  const WORK_HOURS = [[9, 12], [13, 18]];
+  const WORK_DAYS = [1, 2, 3, 4, 5];
+  const WEEKDAY_ZH = ['日', '一', '二', '三', '四', '五', '六'];
+  const HMIN = 9, HMAX = 22;   // 第一格／最後一格（startHour）
+
+  /*PURE-BEGIN*/
+  /* ── 純函式：日期運算與稼動率演算法（不碰 DOM、不碰時區 API，供單元測試抽出執行）── */
+  const pad2 = n => String(n).padStart(2, '0');
+  function ymdParse(s) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ''));
+    if (!m) return null;
+    const y = +m[1], mo = +m[2], d = +m[3];
+    const t = Date.UTC(y, mo - 1, d);
+    const dt = new Date(t);
+    if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== mo - 1 || dt.getUTCDate() !== d) return null;
+    return t;
+  }
+  function ymdFmt(t) {
+    const d = new Date(t);
+    return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate());
+  }
+  const isYmd = s => ymdParse(s) !== null;
+  const addDays = (s, n) => ymdFmt(ymdParse(s) + n * 86400000);
+  const weekdayOf = s => new Date(ymdParse(s)).getUTCDay();   // 週日=0
+  function workCells(workHours) {
+    const a = [];
+    (workHours || WORK_HOURS).forEach(r => { for (let h = r[0]; h < r[1]; h++) a.push(h); });
+    return a;
+  }
+
+  /* 稼動率：前後端演算法必須相同（見合約「稼動率 stats」） */
+  function calcStats(o) {
+    const blocks = (o.blocks || []).filter(b => b && !b.deleted);
+    const cal = {};
+    (o.calendar || []).forEach(c => { if (c && c.date && c.kind) cal[c.date] = c.kind; });
+    const reqCat = {};
+    (o.requests || []).forEach(r => { reqCat[r.id] = r.category; });
+    const workDays = o.workDays || WORK_DAYS;
+    const cells = workCells(o.workHours);
+    const baseDay = cells.length;
+    const from = o.from, to = o.to, today = o.today;
+    const effectiveTo = to < today ? to : today;
+    const out = {
+      from: from, to: to, effectiveTo: effectiveTo, workdays: 0, baseHours: 0, leaveHours: 0,
+      availHours: 0, doneHours: 0, outHours: 0, rate: null, byDay: [], byCategory: []
+    };
+    if (effectiveTo < from) return out;
+
+    const byDate = {};
+    blocks.forEach(b => { (byDate[b.date] = byDate[b.date] || []).push(b); });
+    const cat = {};
+    let guard = 0;
+    for (let d = from; d <= effectiveTo && guard < 1000; d = addDays(d, 1), guard++) {
+      const kind = cal[d] || '';
+      const workday = (kind === '補班') || (workDays.indexOf(weekdayOf(d)) >= 0 && kind !== '假日');
+      const base = workday ? baseDay : 0;
+      let done = 0, outH = 0;
+      const leaveSet = {};   // 同一小時被多筆休假蓋到只算一次（與後端口徑一致）
+      (byDate[d] || []).forEach(b => {
+        if (b.type === '休假') {
+          for (let h = b.startHour; h < b.startHour + b.hours; h++) if (cells.indexOf(h) >= 0) leaveSet[h] = 1;
+        } else if (b.type === '維修' && b.status === '已完成') {
+          const a = Number(b.actualHours);
+          const v = a > 0 ? a : b.hours;
+          done += v;
+          const c = (b.requestId && reqCat[b.requestId]) || '其他';
+          cat[c] = cat[c] || { category: c, hours: 0, count: 0 };
+          cat[c].hours += v;
+          cat[c].count += 1;
+        } else if (b.type === '外出') {
+          outH += b.hours;
+        }
+      });
+      const leave = workday ? Math.min(baseDay, Object.keys(leaveSet).length) : 0;
+      out.byDay.push({ date: d, weekday: weekdayOf(d), workday: workday, cal: kind, base: base, leave: leave, done: done, out: outH });
+      if (workday) out.workdays++;
+      out.baseHours += base;
+      out.leaveHours += leave;
+      out.doneHours += done;
+      out.outHours += outH;
+    }
+    out.availHours = out.baseHours - out.leaveHours;
+    out.rate = out.availHours > 0 ? out.doneHours / out.availHours : null;
+    out.byCategory = Object.keys(cat).map(k => cat[k]).sort((a, b) => b.hours - a.hours);
+    return out;
+  }
+  /*PURE-END*/
+
+  /* ── 台北時間（一律用 Intl 取台北日期，不用 UTC 轉換，否則會差一天）── */
+  const TPE_FMT = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+  });
+  function tpeParts(d) {
+    const o = {};
+    TPE_FMT.formatToParts(d || new Date()).forEach(p => { o[p.type] = p.value; });
+    return { date: o.year + '-' + o.month + '-' + o.day, h: (+o.hour) % 24, m: +o.minute };
+  }
+  const tpeToday = d => tpeParts(d).date;
+  const tpeStamp = d => { const p = tpeParts(d); return p.date + ' ' + pad2(p.h) + ':' + pad2(p.m); };
+
+  /* ── 通用小工具 ── */
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const nl2br = s => esc(s).replace(/\r?\n/g, '<br>');
+  const store = kind => ({
+    get(k) { try { return window[kind].getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { window[kind].setItem(k, v); } catch (e) { } },
+    del(k) { try { window[kind].removeItem(k); } catch (e) { } }
+  });
+  const ls = store('localStorage'), ss = store('sessionStorage');
+  const uuid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+    : (Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10));
+  const fmtMD = d => d.slice(5, 7) + '/' + d.slice(8, 10) + '（' + WEEKDAY_ZH[weekdayOf(d)] + '）';
+  const fmtH = n => String(+(+n).toFixed(2));
+  const hourLabel = h => pad2(h);
+  const timeRange = (s, n) => pad2(s) + '–' + pad2(s + n);
+  const oneLine = s => String(s || '').replace(/\s+/g, ' ').trim();
+  const reqTitle = r => (r.equipment || '') + '－' + oneLine(r.description).slice(0, 20);
+  function errText(res) {
+    if (res && res.errCode === 'OVERLAP') return '與『' + ((res.conflict && res.conflict.title) || '其他排程') + '』時段重疊';
+    return (res && res.error) || '發生未知錯誤';
+  }
+
+  /* ════════ 純演算法之外：模擬後端 ════════ */
+  const MOCK_CODE = 'demo', MOCK_ENG = 'eng123', MOCK_MGR = 'mgr123';
+  const MOCK_ENGINEER = '張大明';
+  let mockMem = null;
+
+  const mockStore = {
+    load() {
+      if (!mockMem) {
+        try {
+          const s = ls.get(K_MOCK);
+          if (s) { const o = JSON.parse(s); if (o && o.requests && o.blocks) mockMem = o; }
+        } catch (e) { }
+        if (!mockMem) { mockMem = mockSeed(); mockStore.save(mockMem); }
+      }
+      return mockMem;
+    },
+    save(o) { mockMem = o; ls.set(K_MOCK, JSON.stringify(o)); },
+    reset() { mockMem = null; ls.del(K_MOCK); return mockStore.load(); }
+  };
+
+  const nextId = (st, p) => p + String(st.seq = (st.seq || 0) + 1).padStart(4, '0');
+
+  function mockSeed() {
+    const today = tpeToday();
+    const D = n => addDays(today, n);
+    const st = { seq: 0, requests: [], blocks: [], faults: [], calendar: [], logs: [], nonces: {}, tokens: {}, authFails: [], lockedUntil: 0 };
+    const mkReq = o => { const r = Object.assign({ id: nextId(st, 'R'), createdAt: D(-1) + ' 09:00', requester: '', dept: '', category: '其他', location: '', equipment: '', description: '', urgent: false, status: '待排程', engineerNote: '', updatedAt: D(-1) + ' 09:00' }, o); r.updatedAt = o.updatedAt || r.createdAt; st.requests.push(r); return r; };
+    const mkBlk = o => { const b = Object.assign({ id: nextId(st, 'B'), date: today, startHour: 9, hours: 1, type: '維修', status: '已排定', requestId: '', title: '', location: '', note: '', actualHours: null, urgent: false, createdAt: D(-2) + ' 17:00', updatedAt: D(-2) + ' 17:00' }, o); st.blocks.push(b); return b; };
+
+    /* 4 筆未結案需求（2 筆急件） */
+    const r1 = mkReq({ requester: '王小明', dept: '生產部', category: '生產設備', location: '一樓輸出區', equipment: '大圖輸出機 3 號機', description: '噴頭疑似堵塞，輸出時有橫向條紋，已清洗兩次仍未改善。', urgent: true, createdAt: D(-1) + ' 08:40', status: '已排程', updatedAt: D(-1) + ' 17:00' });
+    mkReq({ requester: '陳美玲', dept: '行政部', category: '水電', location: '二樓茶水間', equipment: '洗手台水管', description: '水管接頭滲水，地面積水，目前先用水桶接。', urgent: true, createdAt: D(0) + ' 08:15' });
+    mkReq({ requester: '林大華', dept: '業務部', category: '事務設備', location: '二樓辦公室', equipment: '影印機', description: '連續卡紙，進紙滾輪有異音，列印品質也偏淡。', createdAt: D(-1) + ' 14:20' });
+    mkReq({ requester: '張雅婷', dept: '倉儲', category: '消防', location: '一樓倉庫入口', equipment: '手提滅火器', description: '壓力表指針落在紅色區，疑似需要更換或補充。', createdAt: D(-2) + ' 10:05' });
+
+    /* 已結案需求（供稼動率類別分布） */
+    const done = (cat, eq, who, dept, loc, desc, off) => mkReq({ requester: who, dept: dept, category: cat, location: loc, equipment: eq, description: desc, status: '已完成', createdAt: D(off - 1) + ' 09:30', updatedAt: D(off) + ' 17:30' });
+    const d1 = done('生產設備', '大圖輸出機 1 號機', '李志強', '生產部', '一樓輸出區', '色彩偏黃，需要重新校色。', -13);
+    const d2 = done('事務設備', '影印機', '黃淑芬', '行政部', '二樓辦公室', '進紙滾輪磨損。', -12);
+    const d3 = done('水電', '日光燈管', '吳家豪', '倉儲', '一樓走道', '燈管閃爍。', -8);
+    const d4 = done('生產設備', '數位裁切機', '趙文傑', '後製部', '二樓後製區', '刀架定位偏移。', -7);
+    const d5 = done('消防', '滅火器', '張雅婷', '倉儲', '一樓倉庫', '年度檢查。', -5);
+    const d6 = done('生產設備', '大圖輸出機 3 號機', '王小明', '生產部', '一樓輸出區', '墨水管老化更換。', -2);
+
+    /* 今天、明天、後天 */
+    mkBlk({ date: D(0), startHour: 9, hours: 1, type: '維修', status: '已完成', title: '飲水機－濾心更換', location: '一樓茶水間', actualHours: 1, requestId: '' });
+    mkBlk({ date: D(0), startHour: 10, hours: 2, type: '維修', status: '已排定', title: '大圖輸出機 3 號機－噴頭堵塞', location: '一樓輸出區', urgent: true, requestId: r1.id });
+    mkBlk({ date: D(0), startHour: 14, hours: 2, type: '外出', status: '已排定', title: '外出取料', location: '合作廠商', note: '取回備品耗材' });
+    mkBlk({ date: D(1), startHour: 13, hours: 5, type: '休假', status: '已排定', title: '休假（下午）', note: '' });
+    mkBlk({ date: D(2), startHour: 9, hours: 2, type: '維修', status: '已排定', title: '數位裁切機－定期保養', location: '二樓後製區' });
+
+    /* 過去 14 天：幾筆已完成維修、一天休假、一筆外出 */
+    mkBlk({ date: D(-13), startHour: 10, hours: 2, type: '維修', status: '已完成', title: '大圖輸出機 1 號機－校色', requestId: d1.id, actualHours: 2 });
+    mkBlk({ date: D(-12), startHour: 14, hours: 3, type: '維修', status: '已完成', title: '影印機－滾輪更換', requestId: d2.id, actualHours: 3 });
+    mkBlk({ date: D(-11), startHour: 9, hours: 2, type: '維修', status: '已完成', title: '空壓機－排水保養', actualHours: 2 });
+    mkBlk({ date: D(-8), startHour: 13, hours: 2, type: '維修', status: '已完成', title: '日光燈管－更換', requestId: d3.id, actualHours: 2 });
+    mkBlk({ date: D(-7), startHour: 9, hours: 3, type: '維修', status: '已完成', title: '數位裁切機－刀架調整', requestId: d4.id, actualHours: 3.5 });
+    mkBlk({ date: D(-6), startHour: 9, hours: 9, type: '休假', status: '已排定', title: '休假（全天）' });
+    mkBlk({ date: D(-5), startHour: 15, hours: 2, type: '維修', status: '已完成', title: '滅火器－定期檢查', requestId: d5.id, actualHours: 2 });
+    mkBlk({ date: D(-4), startHour: 10, hours: 4, type: '維修', status: '已完成', title: '冷氣濾網清洗', actualHours: 4 });
+    mkBlk({ date: D(-3), startHour: 14, hours: 2, type: '外出', status: '已排定', title: '外出採購零件' });
+    mkBlk({ date: D(-2), startHour: 9, hours: 2, type: '維修', status: '已完成', title: '大圖輸出機 3 號機－墨水管更換', requestId: d6.id, actualHours: 2 });
+
+    let hd = 12; while ([0, 6].indexOf(weekdayOf(D(hd))) >= 0) hd++;   // 找一個平日當範例假日
+    st.calendar.push({ date: D(hd), kind: '假日', note: '公司旅遊' });
+    return st;
+  }
+
+  function mockBuildMail(f, sentAt) { return buildMail(f, MOCK_ENGINEER, sentAt); }
+
+  function validBlock(b) {
+    if (!b || typeof b !== 'object') return '資料格式錯誤';
+    if (!isYmd(b.date)) return '日期格式錯誤';
+    if (!Number.isInteger(b.startHour) || b.startHour < HMIN || b.startHour > HMAX) return '起始小時需為 9–22 的整數';
+    if (!Number.isInteger(b.hours) || b.hours < 1) return '時長需為 1 以上的整數';
+    if (b.startHour + b.hours > 23) return '時段不得超過 23:00';
+    if (BLOCK_TYPES.indexOf(b.type) < 0) return '類型不正確';
+    if (BLOCK_STATUS.indexOf(b.status) < 0) return '狀態不正確';
+    if (!String(b.title || '').trim()) return '請填寫標題';
+    if (String(b.title).length > 60 || String(b.location || '').length > 60) return '標題與位置不可超過 60 字';
+    if (String(b.note || '').length > 500) return '說明不可超過 500 字';
+    if (b.actualHours != null && !(typeof b.actualHours === 'number' && b.actualHours >= 0 && b.actualHours <= 24)) return '實際工時不正確';
+    return '';
+  }
+
+  function revertRequest(st, reqId, exceptBlockId, nowS) {
+    if (!reqId) return;
+    const r = st.requests.find(x => x.id === reqId);
+    if (!r || r.status !== '已排程') return;
+    const left = st.blocks.some(x => !x.deleted && x.requestId === reqId && x.id !== exceptBlockId);
+    if (!left) { r.status = '待排程'; r.updatedAt = nowS; }
+  }
+
+  function mockDispatch(st, b) {
+    const A = b.action, now = Date.now();
+    const E = (error, errCode, extra) => Object.assign({ ok: false, error: error, errCode: errCode }, extra || {});
+    if (A === 'ping') return { ok: true, today: tpeToday(), version: VERSION };
+    if (b.code !== MOCK_CODE) return E('通行碼錯誤或尚未輸入', 'CODE');
+
+    st.tokens = st.tokens || {};
+    Object.keys(st.tokens).forEach(k => { if (st.tokens[k].exp < now) delete st.tokens[k]; });
+    const tk = b.token ? st.tokens[b.token] : null;
+    const role = tk ? tk.role : '';
+    const need = roles => !role ? E('請先登入', 'AUTH') : (roles.indexOf(role) < 0 ? E('權限不足，此操作僅限工程師', 'AUTH') : null);
+    const today = tpeToday(), nowS = tpeStamp();
+    let d;
+
+    switch (A) {
+      case 'bootstrap': {
+        const hm = tpeParts();
+        const days = []; for (let i = 0; i < 7; i++) days.push(addDays(today, i));
+        const blocks = st.blocks.filter(x => !x.deleted && x.date >= days[0] && x.date <= days[6]);
+        const open = st.requests.filter(r => r.status === '待排程' || r.status === '已排程')
+          .sort((a, c) => (a.urgent === c.urgent ? 0 : (a.urgent ? -1 : 1)) || (a.createdAt < c.createdAt ? -1 : a.createdAt > c.createdAt ? 1 : 0));
+        const calendar = st.calendar.filter(c => c.date >= addDays(today, -60) && c.date <= addDays(today, 60)).sort((a, c) => a.date < c.date ? -1 : 1);
+        return { ok: true, today: today, nowHour: hm.h, days: days, blocks: blocks, openRequests: open, calendar: calendar, cfg: { engineerName: MOCK_ENGINEER, workDays: WORK_DAYS, workHours: WORK_HOURS } };
+      }
+      case 'submitRequest': {
+        const q = b.req || {};
+        const nonce = String(b.nonce || '');
+        if (nonce && st.nonces['req:' + nonce]) return { ok: true, id: st.nonces['req:' + nonce] };
+        const t = s => String(s == null ? '' : s).trim();
+        if (!t(q.requester) || !t(q.equipment) || !t(q.description)) return E('報修人、設備名稱、問題描述為必填', 'INVALID');
+        if (t(q.description).length > 500) return E('問題描述不可超過 500 字', 'INVALID');
+        if ([q.requester, q.dept, q.category, q.location, q.equipment].some(v => t(v).length > 60)) return E('報修人、部門、位置、設備名稱不可超過 60 字', 'INVALID');
+        if (t(q.category) && CATEGORIES.indexOf(t(q.category)) < 0) return E('類別不正確', 'INVALID');
+        st.logs = (st.logs || []).filter(l => l.t > now - 3600000);
+        if (st.logs.filter(l => l.kind === 'req').length >= 30) return E('報修太頻繁，請稍後再試', 'THROTTLE');
+        const r = { id: nextId(st, 'R'), createdAt: nowS, requester: t(q.requester), dept: t(q.dept), category: t(q.category) || '其他', location: t(q.location), equipment: t(q.equipment), description: t(q.description), urgent: !!q.urgent, status: '待排程', engineerNote: '', updatedAt: nowS };
+        st.requests.push(r);
+        st.logs.push({ t: now, kind: 'req' });
+        if (nonce) st.nonces['req:' + nonce] = r.id;
+        return { ok: true, id: r.id };
+      }
+      case 'auth': {
+        st.authFails = (st.authFails || []).filter(t => t > now - 600000);
+        if (st.lockedUntil && st.lockedUntil > now) return E('密碼錯誤次數過多，請 15 分鐘後再試', 'LOCKED');
+        const pw = String(b.password || '');
+        const r = pw === MOCK_ENG ? 'engineer' : pw === MOCK_MGR ? 'manager' : '';
+        if (!r) {
+          st.authFails.push(now);
+          if (st.authFails.length >= 5) { st.lockedUntil = now + 900000; st.authFails = []; return E('密碼錯誤次數過多，已鎖定 15 分鐘', 'LOCKED'); }
+          return E('密碼錯誤（10 分鐘內還可嘗試 ' + (5 - st.authFails.length) + ' 次）', 'AUTH');
+        }
+        st.authFails = [];
+        const token = uuid().replace(/-/g, '');
+        st.tokens[token] = { role: r, exp: now + 43200000 };
+        return { ok: true, token: token, role: r, expiresIn: 43200 };
+      }
+      case 'whoami': return tk ? { ok: true, role: role } : E('登入已過期，請重新登入', 'AUTH');
+      case 'logout': if (b.token) delete st.tokens[b.token]; return { ok: true };
+      case 'saveBlock': {
+        if ((d = need(['engineer']))) return d;
+        const blk = b.block;
+        const msg = validBlock(blk);
+        if (msg) return E(msg, 'INVALID');
+        let ex = null;
+        if (blk.id) {
+          ex = st.blocks.find(x => x.id === blk.id && !x.deleted);
+          if (!ex) return E('找不到此排程', 'NOTFOUND');
+          if (blk.updatedAt !== ex.updatedAt) return E('資料已被其他人更新，請重新載入', 'CONFLICT');
+        }
+        const conflict = st.blocks.find(x => !x.deleted && x.date === blk.date && (!ex || x.id !== ex.id) && x.startHour < blk.startHour + blk.hours && blk.startHour < x.startHour + x.hours);
+        if (conflict) return E('時段與其他排程重疊', 'OVERLAP', { conflict: conflict });
+        const reqId = String(blk.requestId || '');
+        let rq = null;
+        if (reqId) { rq = st.requests.find(r => r.id === reqId); if (!rq) return E('找不到連結的報修需求', 'INVALID'); }
+        const rec = {
+          id: ex ? ex.id : nextId(st, 'B'), date: blk.date, startHour: blk.startHour, hours: blk.hours, type: blk.type, status: blk.status,
+          requestId: reqId, title: String(blk.title).trim(), location: String(blk.location || '').trim(), note: String(blk.note || ''),
+          actualHours: (typeof blk.actualHours === 'number' && blk.actualHours > 0) ? blk.actualHours : null, urgent: !!blk.urgent,
+          createdAt: ex ? ex.createdAt : nowS, updatedAt: nowS
+        };
+        if (ex) {
+          const oldReq = ex.requestId;
+          Object.assign(ex, rec);
+          if (oldReq && oldReq !== reqId) revertRequest(st, oldReq, ex.id, nowS);
+        } else st.blocks.push(rec);
+        if (rq && rq.status === '待排程') { rq.status = '已排程'; rq.updatedAt = nowS; }
+        return { ok: true, block: ex || rec };
+      }
+      case 'deleteBlock': {
+        if ((d = need(['engineer']))) return d;
+        const x = st.blocks.find(y => y.id === b.id && !y.deleted);
+        if (!x) return E('找不到此排程', 'NOTFOUND');
+        x.deleted = true; x.updatedAt = nowS;
+        revertRequest(st, x.requestId, x.id, nowS);
+        return { ok: true };
+      }
+      case 'updateRequest': {
+        if ((d = need(['engineer']))) return d;
+        const r = st.requests.find(y => y.id === b.id);
+        if (!r) return E('找不到此需求', 'NOTFOUND');
+        if (b.updatedAt !== r.updatedAt) return E('資料已被其他人更新，請重新載入', 'CONFLICT');
+        if (b.status !== undefined) { if (REQ_STATUS.indexOf(b.status) < 0) return E('狀態不正確', 'INVALID'); r.status = b.status; }
+        if (b.engineerNote !== undefined) { if (String(b.engineerNote).length > 500) return E('備註不可超過 500 字', 'INVALID'); r.engineerNote = String(b.engineerNote); }
+        r.updatedAt = nowS;
+        return { ok: true, request: r };
+      }
+      case 'sendFault': {
+        if ((d = need(['engineer']))) return d;
+        const nonce = String(b.nonce || '');
+        if (nonce && st.nonces['fault:' + nonce]) return st.nonces['fault:' + nonce];
+        const f = b.fault || {};
+        const t = s => String(s == null ? '' : s).trim();
+        if (f.kind !== '故障' && f.kind !== '恢復') return E('通報類型不正確', 'INVALID');
+        if (!t(f.equipment) || !t(f.location) || !t(f.symptom)) return E('設備、位置、' + (f.kind === '恢復' ? '處理結果' : '故障狀況') + '為必填', 'INVALID');
+        if (t(f.equipment).length > 60 || t(f.location).length > 60 || t(f.eta).length > 60 || t(f.impact).length > 500 || t(f.symptom).length > 500) return E('欄位字數超過上限', 'INVALID');
+        if (f.kind === '恢復') {
+          const p = st.faults.find(x => x.id === f.pairId);
+          if (!p || p.kind !== '故障') return E('找不到對應的故障通報', 'INVALID');
+          if (st.faults.some(x => x.kind === '恢復' && x.pairId === p.id)) return E('這筆故障已寄過恢復通知', 'INVALID');
+        }
+        if (st.faults.some(x => x.kind === f.kind && x.equipment === t(f.equipment) && x._ts > now - 600000)) return E('同一設備 10 分鐘內已寄過相同通知，請稍後再試', 'THROTTLE');
+        if (st.faults.filter(x => x.sentAt.slice(0, 10) === today).length >= 20) return E('今日通知已達 20 封上限', 'THROTTLE');
+        const rec = { id: nextId(st, 'F'), sentAt: nowS, kind: f.kind, pairId: f.kind === '恢復' ? f.pairId : '', equipment: t(f.equipment), location: t(f.location), symptom: t(f.symptom), impact: t(f.impact), eta: t(f.eta), sentTo: 'all@example.com（模擬）', result: '已寄出（模擬）', recovered: false, _ts: now };
+        st.faults.push(rec);
+        const res = { ok: true, id: rec.id, mail: Object.assign({ to: 'all@example.com（模擬）' }, (m => ({ subject: m.subject, html: m.html }))(mockBuildMail(rec, nowS))), remainingQuota: 1500 };
+        if (nonce) st.nonces['fault:' + nonce] = res;
+        return res;
+      }
+      case 'listFaults': {
+        if ((d = need(['engineer']))) return d;
+        const rec = {};
+        st.faults.forEach(x => { if (x.kind === '恢復' && x.pairId) rec[x.pairId] = true; });
+        const list = st.faults.slice().reverse().sort((a, c) => a.sentAt < c.sentAt ? 1 : a.sentAt > c.sentAt ? -1 : 0).slice(0, 50)
+          .map(x => { const o = Object.assign({}, x); delete o._ts; o.recovered = !!rec[x.id]; return o; });
+        return { ok: true, faults: list };
+      }
+      case 'stats': {
+        if ((d = need(['engineer', 'manager']))) return d;
+        if (!isYmd(b.from) || !isYmd(b.to) || b.from > b.to) return E('日期區間不正確', 'INVALID');
+        if (ymdParse(b.to) - ymdParse(b.from) > 400 * 86400000) return E('區間不可超過 400 天', 'INVALID');
+        const s = calcStats({ blocks: st.blocks.filter(x => !x.deleted), calendar: st.calendar, requests: st.requests, from: b.from, to: b.to, today: today, workDays: WORK_DAYS, workHours: WORK_HOURS });
+        return Object.assign({ ok: true }, s);
+      }
+      case 'listBlocks': {
+        if ((d = need(['engineer', 'manager']))) return d;
+        if (!isYmd(b.from) || !isYmd(b.to) || b.from > b.to) return E('日期區間不正確', 'INVALID');
+        return { ok: true, blocks: st.blocks.filter(x => !x.deleted && x.date >= b.from && x.date <= b.to) };
+      }
+      case 'saveCalendar': {
+        if ((d = need(['engineer']))) return d;
+        const items = b.items;
+        if (!Array.isArray(items)) return E('資料格式錯誤', 'INVALID');
+        for (const it of items) {
+          if (!it || !isYmd(it.date)) return E('日期格式錯誤：' + (it && it.date), 'INVALID');
+          if (['假日', '補班', ''].indexOf(it.kind) < 0) return E('類別需為 假日／補班（空白為刪除）', 'INVALID');
+          if (String(it.note || '').length > 60) return E('說明不可超過 60 字', 'INVALID');
+        }
+        items.forEach(it => {
+          st.calendar = st.calendar.filter(c => c.date !== it.date);
+          if (it.kind) st.calendar.push({ date: it.date, kind: it.kind, note: String(it.note || '').trim() });
+        });
+        return { ok: true };
+      }
+      default: return E('未知的 action：' + A, 'INVALID');
+    }
+  }
+
+  function mockApi(body) {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        let res;
+        try {
+          const st = mockStore.load();
+          res = mockDispatch(st, JSON.parse(JSON.stringify(body)));
+          mockStore.save(st);
+        } catch (e) { res = { ok: false, error: '模擬後端錯誤：' + e.message, errCode: 'INVALID' }; }
+        resolve(JSON.parse(JSON.stringify(res)));
+      }, 300);
+    });
+  }
+
+  /* 信件內容（預覽與模擬後端共用；真實後端寄出時以 Apps Script 產生的為準） */
+  function buildMail(f, engineer, sentAt) {
+    const rec = f.kind === '恢復';
+    const subject = rec
+      ? '【已恢復】' + f.equipment + '（' + f.location + '）已恢復正常'
+      : '【設備故障通知】' + f.equipment + '（' + f.location + '）';
+    const rows = rec
+      ? [['設備', f.equipment], ['位置', f.location], ['處理結果', f.symptom]]
+        .concat(f.impact ? [['備註', f.impact]] : []).concat([['恢復時間', sentAt], ['通報人', engineer]])
+      : [['設備', f.equipment], ['位置', f.location], ['故障狀況', f.symptom], ['影響範圍', f.impact || '—'], ['預計修復時間', f.eta || '待確認'], ['通報人', engineer]];
+    const tr = rows.map(r => '<tr><td style="padding:8px 12px;border:1px solid #e0dbd2;background:#f8f7f5;width:110px;font-weight:bold;color:#3D3D3D;vertical-align:top">' + esc(r[0]) +
+      '</td><td style="padding:8px 12px;border:1px solid #e0dbd2">' + nl2br(r[1]) + '</td></tr>').join('');
+    const html = '<div style="font-family:Arial,\'Microsoft JhengHei\',sans-serif;max-width:560px;margin:0 auto;color:#2c2826;font-size:14px">' +
+      '<div style="background:#3D3D3D;color:#ffffff;padding:14px 18px;border-bottom:4px solid #DF9200;font-size:16px;font-weight:bold">' + esc(rec ? '設備已恢復正常' : '設備故障通知') + '</div>' +
+      '<table style="border-collapse:collapse;width:100%;margin-top:12px">' + tr + '</table>' +
+      '<p style="font-size:12px;color:#6b6058;margin-top:14px">如有疑問請直接回覆此信</p></div>';
+    return { subject: subject, html: html };
+  }
+
+  /* ════════ 前端狀態 ════════ */
+  const S = {
+    ready: false, loading: 0, busy: false, today: '', nowHour: null, nowMin: 0,
+    days: [], blocks: [], openRequests: [], calendar: [],
+    cfg: { engineerName: '', workDays: WORK_DAYS, workHours: WORK_HOURS },
+    role: '', pickReq: null, expanded: {}, error: '', lastLoad: '',
+    statsOpen: false, statsKey: 'week', statsFrom: '', statsTo: '', stats: null, statsErr: '', statsBusy: false
+  };
+  let booted = false;
+  let codePrompt = null;
+
+  /* ════════ 網路層 ════════ */
+  async function rawCall(body) {
+    if (MOCK) return mockApi(body);
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        /* text/plain 讓瀏覽器視為 simple request，避開 Apps Script 不支援的 preflight */
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    } catch (e) {
+      return { ok: false, error: '連線失敗：' + e.message, errCode: 'NET' };
+    }
+  }
+
+  async function call(action, params) {
+    S.loading++; paintStatus();
+    try {
+      for (let i = 0; i < 6; i++) {
+        const body = Object.assign({ action: action, code: ls.get(K_CODE) || '' }, params || {});
+        const tk = ss.get(K_TOKEN);
+        if (tk && body.token === undefined) body.token = tk;
+        const res = await rawCall(body);
+        if (res && res.ok === false && res.errCode === 'CODE') {
+          const c = await askCode(res.error);
+          if (c === null) return res;
+          ls.set(K_CODE, c);
+          continue;
+        }
+        if (res && res.ok === false && res.errCode === 'AUTH' && tk && ['auth', 'whoami', 'logout'].indexOf(action) < 0) {
+          /* 可能是 token 過期：用 whoami 確認，失效就清掉登入狀態 */
+          const w = await rawCall({ action: 'whoami', code: ls.get(K_CODE) || '', token: tk });
+          if (!w || !w.ok) { clearAuth(); render(); }
+        }
+        return res;
+      }
+      return { ok: false, error: '通行碼錯誤', errCode: 'CODE' };
+    } finally { S.loading--; paintStatus(); }
+  }
+
+  function clearAuth() { ss.del(K_TOKEN); ss.del(K_ROLE); S.role = ''; S.statsOpen = false; S.pickReq = null; }
+
+  /* ════════ 自製 Modal ════════ */
+  const modals = [];
+  function openModal(o) {
+    const ov = document.createElement('div');
+    ov.className = 'mt-ov';
+    ov.innerHTML = '<div class="mt-modal' + (o.wide ? ' wide' : '') + '" role="dialog" aria-modal="true">' +
+      '<div class="mt-mh"><div class="mt-mt">' + esc(o.title) + '</div><button type="button" class="mt-x" data-mclose aria-label="關閉">✕</button></div>' +
+      '<div class="mt-mb">' + o.html + '</div></div>';
+    document.body.appendChild(ov);
+    const m = {
+      el: ov, body: ov.querySelector('.mt-mb'), closed: false,
+      q: s => ov.querySelector(s),
+      qa: s => Array.prototype.slice.call(ov.querySelectorAll(s)),
+      close() {
+        if (m.closed) return;
+        m.closed = true;
+        const i = modals.indexOf(m); if (i >= 0) modals.splice(i, 1);
+        ov.remove();
+        if (o.onClose) o.onClose();
+      }
+    };
+    ov.addEventListener('mousedown', e => { m._down = (e.target === ov); });
+    ov.addEventListener('click', e => {
+      if (e.target === ov && m._down && o.backdrop !== false) { m.close(); return; }
+      if (e.target.closest('[data-mclose]')) m.close();
+    });
+    modals.push(m);
+    const f = ov.querySelector('input:not([type=hidden]):not([type=radio]),select,textarea');
+    if (f && o.focus !== false) setTimeout(() => { try { f.focus(); } catch (e) { } }, 30);
+    return m;
+  }
+
+  function toast(msg, kind) {
+    const t = document.createElement('div');
+    t.className = 'mt-toast ' + (kind || 'ok');
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 400); }, kind === 'err' ? 5000 : 2600);
+  }
+
+  function askCode(why) {
+    if (codePrompt) return codePrompt;
+    codePrompt = new Promise(resolve => {
+      let answered = false;
+      const m = openModal({
+        title: '請輸入通行碼', backdrop: false,
+        html: '<div class="mt-form"><p class="mt-hint">' + esc(why || '需要通行碼才能使用本工具。') + '</p>' +
+          '<div class="mt-f"><label>通行碼</label><input class="mt-in" id="mt-code-in" type="password" autocomplete="off"></div>' +
+          '<div class="mt-mf"><button class="btn btn-ghost" type="button" data-mclose>取消</button><button class="btn btn-primary" type="button" id="mt-code-ok">確定</button></div></div>',
+        onClose() { if (!answered) { answered = true; codePrompt = null; resolve(null); } }
+      });
+      const done = () => {
+        const v = m.q('#mt-code-in').value.trim();
+        if (!v) { m.q('#mt-code-in').focus(); return; }
+        answered = true; codePrompt = null; resolve(v); m.close();
+      };
+      m.q('#mt-code-ok').onclick = done;
+      m.q('#mt-code-in').addEventListener('keydown', e => { if (e.key === 'Enter') done(); });
+    });
+    return codePrompt;
+  }
+
+  /* ════════ 載入 ════════ */
+  async function load(silent) {
+    const res = await call('bootstrap');
+    if (!res || !res.ok) {
+      S.error = errText(res);
+      if (!S.ready) render();
+      else showMsg('更新失敗：' + S.error, 'err');
+      return false;
+    }
+    S.error = '';
+    S.today = res.today; S.nowHour = res.nowHour; S.days = res.days || [];
+    S.blocks = res.blocks || []; S.openRequests = res.openRequests || []; S.calendar = res.calendar || [];
+    if (res.cfg) S.cfg = res.cfg;
+    const hm = tpeParts();
+    S.nowMin = hm.h === S.nowHour ? hm.m : 0;
+    S.lastLoad = pad2(hm.h) + ':' + pad2(hm.m);
+    S.ready = true;
+    showMsg('', '');
+    render();
+    if (S.statsOpen && S.role) loadStats();
+    return true;
+  }
+
+  async function boot() {
+    booted = true;
+    const tk = ss.get(K_TOKEN);
+    if (tk) {
+      const w = await call('whoami', { token: tk });
+      if (w && w.ok) { S.role = w.role; ss.set(K_ROLE, w.role); }
+      else if (w && w.errCode === 'AUTH') clearAuth();
+    }
+    await load();
+  }
+
+  function onShow() {
+    if (!CONFIGURED) { render(); return; }
+    if (!booted) { render(); boot(); } else load(true);
+  }
+
+  function tick() {
+    if (!CONFIGURED || !S.ready || S.loading || S.busy) return;
+    if (document.visibilityState !== 'visible') return;
+    const p = $('panel-maint');
+    if (!p || !p.classList.contains('active')) return;
+    if (modals.length) return;
+    load(true);
+  }
+
+  /* 包住會寫入的動作：期間鎖住畫面，避免連點 */
+  async function run(fn) {
+    if (S.busy) return;
+    S.busy = true; $('panel-maint').classList.add('mt-busy');
+    try { return await fn(); }
+    finally { S.busy = false; $('panel-maint').classList.remove('mt-busy'); }
+  }
+
+  /* 寫入失敗的共通處理。回傳 true 代表已處理完（呼叫端不用再顯示錯誤） */
+  function handleFail(res, m, errEl) {
+    if (res.errCode === 'CONFLICT') {
+      if (m) m.close();
+      toast('資料已被更新，已重新載入', 'err');
+      load(true);
+      return true;
+    }
+    const t = errText(res);
+    if (errEl) { errEl.textContent = t; errEl.style.display = 'block'; }
+    else toast(t, 'err');
+    return false;
+  }
+
+  /* ════════ 畫面：狀態列／工具列／主體 ════════ */
+  function showMsg(t, kind) {
+    const el = $('mt-msg'); if (!el) return;
+    el.textContent = t || '';
+    el.className = 'mt-msg' + (t ? ' ' + (kind || 'info') : '');
+  }
+
+  function paintStatus() {
+    const el = $('mt-status'); if (!el) return;
+    let h = '';
+    if (!CONFIGURED) h += '<span class="mt-tag">未連線</span>';
+    else if (MOCK) h += '<span class="mt-tag mock">模擬模式（通行碼 demo／工程師 eng123／主管 mgr123）</span>';
+    else h += '<span class="mt-tag ok">已連線</span>';
+    if (S.role === 'engineer') h += '<span class="mt-tag role">工程師模式</span>';
+    if (S.role === 'manager') h += '<span class="mt-tag role">主管模式</span>';
+    if (S.loading) h += '<span class="mt-tag"><span class="mt-spin"></span> 處理中…</span>';
+    else if (S.lastLoad) h += '<span class="mt-upd">更新於 ' + esc(S.lastLoad) + '</span>';
+    el.innerHTML = h;
+  }
+
+  function btn(act, label, cls, extra) {
+    return '<button type="button" class="btn ' + (cls || 'btn-ghost') + '" data-act="' + act + '"' + (extra || '') + '>' + label + '</button>';
+  }
+
+  function paintToolbar() {
+    const el = $('mt-toolbar'); if (!el) return;
+    if (!CONFIGURED) { el.innerHTML = ''; return; }
+    let h = btn('report', '📝 我要報修', 'btn-primary');
+    if (!S.role) h += btn('login', '🔑 登入');
+    if (S.role === 'engineer') {
+      h += btn('add', '＋ 新增排程', 'btn-dark') + btn('fault', '🚨 設備故障通知', 'btn-warn') + btn('faultlog', '📜 通報紀錄') +
+        btn('stats', '📈 稼動率') + btn('calendar', '📅 行事曆');
+    }
+    if (S.role === 'manager') h += btn('stats', '📈 稼動率');
+    if (S.role) h += btn('logout', '登出');
+    if (MOCK) h += btn('resetmock', '重設模擬資料');
+    el.innerHTML = h;
+  }
+
+  function render() {
+    paintStatus(); paintToolbar();
+    const root = $('panel-maint');
+    root.classList.toggle('mt-picking', !!S.pickReq);
+    paintPickbar();
+    const body = $('mt-body');
+    if (!CONFIGURED) {
+      body.innerHTML = '<div class="mt-empty"><div class="mt-empty-ic">🛠️</div><h3>後端尚未部署</h3>' +
+        '<p>這個工具需要連到設備維修排程的後端（Google Apps Script）。後端部署完成並把網址填入後即可使用。</p>' +
+        '<p>想先看看操作方式，可以用模擬模式試用：資料只存在這台電腦的瀏覽器，不會送到任何地方。</p>' +
+        '<a class="btn btn-primary" href="?mock=1#maint">以模擬模式試用</a></div>';
+      return;
+    }
+    if (!S.ready) {
+      body.innerHTML = S.error
+        ? '<div class="mt-empty"><h3>載入失敗</h3><p>' + esc(S.error) + '</p><button class="btn btn-primary" type="button" data-act="retry">重新載入</button></div>'
+        : '<div class="mt-empty"><span class="mt-spin big"></span><p>載入中…</p></div>';
+      return;
+    }
+    const prev = body.querySelector('.mt-gridwrap');
+    const sl = prev ? prev.scrollLeft : 0;
+    body.innerHTML = gridHtml() + requestsHtml() + (S.statsOpen && S.role ? '<div id="mt-stats">' + statsHtml() + '</div>' : '');
+    const nw = body.querySelector('.mt-gridwrap');
+    if (nw && sl) nw.scrollLeft = sl;
+  }
+
+  function paintPickbar() {
+    const el = $('mt-pickbar'); if (!el) return;
+    if (S.pickReq) {
+      el.hidden = false;
+      el.innerHTML = '<span>請點選要排入的時段（' + esc(reqTitle(S.pickReq)) + '），Esc 取消</span><button type="button" class="btn btn-ghost mt-sm" data-act="pickcancel">取消排入</button>';
+    } else { el.hidden = true; el.innerHTML = ''; }
+  }
+
+  /* ── 排程格 ── */
+  function dayInfo(date) {
+    const wd = weekdayOf(date);
+    const c = S.calendar.find(x => x.date === date);
+    const kind = c ? c.kind : '';
+    const wdays = (S.cfg && S.cfg.workDays) || WORK_DAYS;
+    const weekend = wdays.indexOf(wd) < 0;
+    if (kind === '假日') return { off: true, note: '假日' + (c.note ? '・' + c.note : '') };
+    if (kind === '補班') return { off: false, note: '補班' + (c.note ? '・' + c.note : '') };
+    if (weekend) return { off: true, note: '週末' };
+    return { off: false, note: '' };
+  }
+
+  function blockClass(b) {
+    let c = 'mt-b ';
+    if (b.type === '休假') c += 'leave';
+    else if (b.type === '外出') c += 'out';
+    else c += b.urgent ? 'urgent' : 'repair';
+    if (b.status === '已完成') c += ' done';
+    if (b.status === '未完成') c += ' incomplete';
+    return c;
+  }
+
+  function gridHtml() {
+    const eng = S.role === 'engineer';
+    const occ = {};
+    S.blocks.forEach(b => { for (let h = b.startHour; h < b.startHour + b.hours; h++) (occ[b.date] = occ[b.date] || {})[h] = true; });
+    let h = '<div class="mt-gridwrap"><div class="mt-grid' + (eng ? ' eng' : '') + '">';
+    h += '<div class="mt-hd mt-corner" style="grid-row:1;grid-column:1">日期</div>';
+    for (let hr = HMIN; hr <= HMAX; hr++) {
+      h += '<div class="mt-hd' + (hr === 12 ? ' lunch' : '') + '" style="grid-row:1;grid-column:' + (hr - HMIN + 2) + '">' + hourLabel(hr) + ':00</div>';
+    }
+    S.days.forEach((date, i) => {
+      const row = i + 2, info = dayInfo(date), isToday = date === S.today;
+      h += '<div class="mt-rowbg' + (info.off ? ' off' : '') + '" style="grid-row:' + row + ';grid-column:1/-1"></div>';
+      h += '<div class="mt-dc' + (info.off ? ' off' : '') + (isToday ? ' today' : '') + '" style="grid-row:' + row + ';grid-column:1">' +
+        '<div class="mt-dc-d">' + esc(fmtMD(date)) + '</div>' +
+        '<div class="mt-dc-n">' + (isToday ? '<span class="mt-today">今天</span>' : '') +
+        (info.note ? '<span class="mt-dc-t">' + esc(info.note) + '</span>' : '') +
+        (eng ? '<button type="button" class="mt-leave" data-act="leave" data-date="' + esc(date) + '" title="一鍵請假">休假</button>' : '') + '</div>' +
+        '</div>';
+      for (let hr = HMIN; hr <= HMAX; hr++) {
+        const taken = occ[date] && occ[date][hr];
+        const free = eng && !taken;
+        h += '<div class="mt-c' + (hr === 12 ? ' lunch' : '') + (free ? ' free' : '') + '" style="grid-row:' + row + ';grid-column:' + (hr - HMIN + 2) + '"' +
+          (free ? ' data-act="cell" data-date="' + esc(date) + '" data-h="' + hr + '"' : '') + '></div>';
+      }
+      if (isToday && S.nowHour != null && S.nowHour >= HMIN && S.nowHour <= HMAX) {
+        const pct = ((S.nowHour - HMIN) + S.nowMin / 60) / (HMAX - HMIN + 1) * 100;
+        h += '<div class="mt-nowwrap" style="grid-row:' + row + ';grid-column:2/-1"><div class="mt-now" style="left:' + pct.toFixed(2) + '%" title="目前時間"></div></div>';
+      }
+    });
+    S.blocks.forEach(b => {
+      const row = S.days.indexOf(b.date);
+      if (row < 0) return;
+      const tt = (b.status === '已完成' ? '✓ ' : '') + (b.title || b.type);
+      h += '<div class="' + blockClass(b) + '" role="button" tabindex="0" data-act="block" data-id="' + esc(b.id) + '" style="grid-row:' + (row + 2) +
+        ';grid-column:' + (b.startHour - HMIN + 2) + ' / span ' + b.hours + '" title="' + esc(b.type + '｜' + tt + '｜' + timeRange(b.startHour, b.hours)) + '">' +
+        '<span class="mt-bt">' + esc(tt) + '</span><span class="mt-bh">' + esc(timeRange(b.startHour, b.hours)) + '</span></div>';
+    });
+    h += '</div></div>';
+    h += '<div class="mt-legend"><span><i class="lg urgent"></i>急件維修</span><span><i class="lg repair"></i>維修</span><span><i class="lg leave"></i>休假</span><span><i class="lg out"></i>外出</span>' +
+      '<span><i class="lg repair done"></i>✓ 已完成</span><span><i class="lg repair incomplete"></i>未完成</span><span><i class="lg now"></i>目前時間</span></div>';
+    return h;
+  }
+
+  /* ── 待排程需求 ── */
+  function requestsHtml() {
+    const eng = S.role === 'engineer';
+    const list = S.openRequests;
+    let h = '<div class="mt-sec">待排程需求 <span class="mt-sec-n">' + list.length + ' 筆未結案</span></div>';
+    if (!list.length) return h + '<div class="mt-none">目前沒有未結案的報修需求</div>';
+    h += '<div class="mt-rqs">';
+    list.forEach(r => {
+      const long = String(r.description || '').length > 60 || String(r.description || '').indexOf('\n') >= 0;
+      const open = !!S.expanded[r.id];
+      h += '<div class="mt-rq' + (r.urgent ? ' urgent' : '') + '">' +
+        '<div class="mt-rq-h">' + (r.urgent ? '<span class="mt-chip red">🔴 急件</span>' : '') +
+        '<span class="mt-chip">' + esc(r.category) + '</span><b class="mt-rq-eq">' + esc(r.equipment) + '</b>' +
+        '<span class="mt-chip st-' + (r.status === '已排程' ? 'sch' : 'wait') + '">' + esc(r.status) + '</span></div>' +
+        '<div class="mt-rq-m">' + (r.location ? '📍 ' + esc(r.location) + '　' : '') + '報修人：' + esc(r.requester) + (r.dept ? '（' + esc(r.dept) + '）' : '') + '　提出：' + esc(r.createdAt) + '</div>' +
+        '<div class="mt-rq-d' + (open ? ' open' : '') + (long ? ' long' : '') + '"' + (long ? ' data-act="expand" data-id="' + esc(r.id) + '" title="點擊展開／收合"' : '') + '>' + nl2br(r.description) + '</div>' +
+        (r.engineerNote ? '<div class="mt-rq-note">🗒️ 工程師備註：' + nl2br(r.engineerNote) + '</div>' : '') +
+        (eng ? '<div class="mt-rq-a">' +
+          btn('place', '排入', 'btn-primary mt-sm', ' data-id="' + esc(r.id) + '"') + btn('close', '結案', 'btn-success mt-sm', ' data-id="' + esc(r.id) + '"') +
+          btn('cancel', '取消', 'btn-warn mt-sm', ' data-id="' + esc(r.id) + '"') + btn('note', '備註', 'btn-ghost mt-sm', ' data-id="' + esc(r.id) + '"') + '</div>' : '') +
+        '</div>';
+    });
+    return h + '</div>';
+  }
+
+  /* ════════ 事件分派 ════════ */
+  function onClick(e) {
+    const t = e.target.closest('[data-act]');
+    if (!t) return;
+    const act = t.getAttribute('data-act'), id = t.getAttribute('data-id'), date = t.getAttribute('data-date');
+    switch (act) {
+      case 'report': return reportModal();
+      case 'login': return loginModal();
+      case 'logout': return logout();
+      case 'add': return addModal();
+      case 'fault': return faultModal({ kind: '故障' });
+      case 'faultlog': return faultLogModal();
+      case 'stats': return toggleStats();
+      case 'calendar': return calendarModal();
+      case 'resetmock': return resetMock();
+      case 'retry': S.error = ''; return boot();
+      case 'expand': S.expanded[id] = !S.expanded[id]; return t.classList.toggle('open', !!S.expanded[id]);
+      case 'cell': return onCell(date, +t.getAttribute('data-h'));
+      case 'block': return onBlock(id);
+      case 'leave': return leaveModal(date);
+      case 'place': return startPick(id);
+      case 'pickcancel': S.pickReq = null; return render();
+      case 'close': return closeRequest(id);
+      case 'cancel': return cancelRequest(id);
+      case 'note': return noteModal(id);
+      case 'range': return setRange(t.getAttribute('data-k'));
+      case 'rangego': return rangeGo();
+    }
+  }
+
+  function onKey(e) {
+    if (e.key === 'Escape') {
+      if (modals.length) { modals[modals.length - 1].close(); return; }
+      const p = $('panel-maint');
+      if (S.pickReq && p && p.classList.contains('active')) { S.pickReq = null; render(); }
+      return;
+    }
+    if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.classList && e.target.classList.contains('mt-b')) {
+      e.preventDefault(); onBlock(e.target.getAttribute('data-id'));
+    }
+  }
+
+  function onCell(date, hour) {
+    if (S.role !== 'engineer') return;
+    const req = S.pickReq;
+    blockModal({ date: date, start: hour, req: req });
+  }
+  function onBlock(id) {
+    const b = S.blocks.find(x => x.id === id);
+    if (!b) return;
+    if (S.role === 'engineer') blockModal({ block: b });
+    else viewBlockModal(b);
+  }
+  function startPick(id) {
+    const r = S.openRequests.find(x => x.id === id);
+    if (!r) return;
+    S.pickReq = r; render();
+    const g = document.querySelector('#panel-maint .mt-gridwrap');
+    if (g && g.scrollIntoView) g.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  /* ════════ 登入／登出 ════════ */
+  function loginModal() {
+    const m = openModal({
+      title: '登入', backdrop: false,
+      html: '<div class="mt-form"><div class="mt-f"><label>密碼</label><input class="mt-in" id="lg-pw" type="password" autocomplete="off"></div>' +
+        '<div class="mt-err" id="lg-err"></div>' +
+        '<div class="mt-mf"><button class="btn btn-ghost" type="button" data-mclose>取消</button><button class="btn btn-primary" type="button" id="lg-ok">登入</button></div></div>'
+    });
+    const go = async () => {
+      const pw = m.q('#lg-pw').value;
+      if (!pw) { m.q('#lg-pw').focus(); return; }
+      const ok = m.q('#lg-ok'); ok.disabled = true;
+      const res = await call('auth', { password: pw, token: '' });
+      ok.disabled = false;
+      if (res && res.ok) {
+        ss.set(K_TOKEN, res.token); ss.set(K_ROLE, res.role); S.role = res.role;
+        m.close(); toast('已登入：' + (res.role === 'engineer' ? '工程師模式' : '主管模式'));
+        render();
+      } else if (res && res.errCode !== 'CODE') {
+        const er = m.q('#lg-err'); er.textContent = errText(res); er.style.display = 'block';
+        m.q('#lg-pw').select();
+      }
+    };
+    m.q('#lg-ok').onclick = go;
+    m.q('#lg-pw').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  }
+
+  async function logout() {
+    const tk = ss.get(K_TOKEN);
+    await run(async () => {
+      if (tk) await call('logout', { token: tk });
+      clearAuth(); render();
+      toast('已登出');
+    });
+  }
+
+  function resetMock() {
+    if (!confirm('確定重設模擬資料？目前在模擬模式輸入的報修與排程都會清掉，並回到初始範例資料。')) return;
+    mockStore.reset(); clearAuth(); S.stats = null;
+    toast('模擬資料已重設'); load(true);
+  }
+
+  /* ════════ 報修表單 ════════ */
+  function reportModal() {
+    let me = {}; try { me = JSON.parse(ls.get(K_ME) || '{}') || {}; } catch (e) { }
+    const nonce = uuid();
+    const m = openModal({
+      title: '📝 我要報修', backdrop: false,
+      html: '<div class="mt-form">' +
+        '<div class="mt-row2"><div class="mt-f"><label>報修人 *</label><input class="mt-in" id="rq-name" maxlength="60" value="' + esc(me.requester || '') + '"></div>' +
+        '<div class="mt-f"><label>部門</label><input class="mt-in" id="rq-dept" maxlength="60" value="' + esc(me.dept || '') + '"></div></div>' +
+        '<div class="mt-row2"><div class="mt-f"><label>類別</label><select class="mt-in" id="rq-cat">' + CATEGORIES.map(c => '<option>' + esc(c) + '</option>').join('') + '</select></div>' +
+        '<div class="mt-f"><label>位置</label><input class="mt-in" id="rq-loc" maxlength="60" placeholder="例：二樓辦公室"></div></div>' +
+        '<div class="mt-f"><label>設備名稱 *</label><input class="mt-in" id="rq-eq" maxlength="60" placeholder="例：影印機"></div>' +
+        '<div class="mt-f"><label>問題描述 *</label><textarea class="mt-in" id="rq-desc" rows="4" maxlength="500" placeholder="發生什麼狀況？什麼時候開始？"></textarea><div class="mt-cnt" id="rq-cnt">還可輸入 500 字</div></div>' +
+        '<div class="mt-f"><label>是否急需處理</label><div class="mt-choice">' +
+        '<label class="mt-ch urgent"><input type="radio" name="rq-u" value="1"><span><b>🔴 急需處理</b><small>設備停擺、影響出貨或有安全疑慮</small></span></label>' +
+        '<label class="mt-ch"><input type="radio" name="rq-u" value="0" checked><span><b>一般</b><small>由工程師排時間處理</small></span></label></div></div>' +
+        '<div class="mt-hint">送出後由工程師安排維修時間，不需要自己選時間。</div>' +
+        '<div class="mt-err" id="rq-err"></div>' +
+        '<div class="mt-mf"><button class="btn btn-ghost" type="button" data-mclose>取消</button><button class="btn btn-primary" type="button" id="rq-ok">送出報修</button></div></div>'
+    });
+    const desc = m.q('#rq-desc'), cnt = m.q('#rq-cnt');
+    const upd = () => { cnt.textContent = '還可輸入 ' + (500 - desc.value.length) + ' 字'; };
+    desc.addEventListener('input', upd);
+    m.q('#rq-ok').onclick = async () => {
+      const v = id => m.q(id).value.trim();
+      const er = m.q('#rq-err'); er.style.display = 'none';
+      if (!v('#rq-name') || !v('#rq-eq') || !v('#rq-desc')) { er.textContent = '報修人、設備名稱、問題描述為必填'; er.style.display = 'block'; return; }
+      const ok = m.q('#rq-ok'); ok.disabled = true; ok.textContent = '送出中…';
+      const req = { requester: v('#rq-name'), dept: v('#rq-dept'), category: m.q('#rq-cat').value, location: v('#rq-loc'), equipment: v('#rq-eq'), description: v('#rq-desc'), urgent: m.q('input[name=rq-u]:checked').value === '1' };
+      const res = await call('submitRequest', { nonce: nonce, req: req });
+      ok.disabled = false; ok.textContent = '送出報修';
+      if (res && res.ok) {
+        ls.set(K_ME, JSON.stringify({ requester: req.requester, dept: req.dept }));
+        m.close(); toast('已送出，工程師會安排時間'); load(true);
+      } else if (res && res.errCode !== 'CODE') handleFail(res, null, er);
+    };
+  }
+
+  /* ════════ 排程區塊：檢視／新增／編輯 ════════ */
+  function viewBlockModal(b) {
+    const rq = b.requestId ? S.openRequests.find(r => r.id === b.requestId) : null;
+    const row = (k, v) => v ? '<tr><th>' + esc(k) + '</th><td>' + v + '</td></tr>' : '';
+    openModal({
+      title: '排程明細',
+      html: '<table class="mt-dt">' +
+        row('類型', esc(b.type) + (b.urgent ? '　<span class="mt-chip red">🔴 急件</span>' : '')) +
+        row('日期', esc(b.date) + '　' + esc(fmtMD(b.date).slice(5))) +
+        row('時段', esc(timeRange(b.startHour, b.hours)) + '（' + b.hours + ' 小時）') +
+        row('標題', esc(b.title)) + row('位置', esc(b.location)) + row('說明', nl2br(b.note)) +
+        row('狀態', esc(b.status) + (b.status === '已完成' && b.actualHours ? '（實際 ' + fmtH(b.actualHours) + ' 小時）' : '')) +
+        (rq ? row('報修人', esc(rq.requester) + (rq.dept ? '（' + esc(rq.dept) + '）' : '')) + row('報修內容', esc(rq.equipment) + '：' + nl2br(rq.description)) : '') +
+        '</table><div class="mt-mf"><button class="btn btn-ghost" type="button" data-mclose>關閉</button></div>'
+    });
+  }
+
+  function addModal() {
+    const today = S.today;
+    let start = HMIN;
+    const taken = {};
+    S.blocks.forEach(b => { if (b.date === today) for (let h = b.startHour; h < b.startHour + b.hours; h++) taken[h] = true; });
+    const from = Math.max(HMIN, S.nowHour == null ? HMIN : S.nowHour);
+    for (let h = from; h <= HMAX; h++) if (!taken[h]) { start = h; break; }
+    blockModal({ date: today, start: start, req: S.pickReq });
+  }
+
+  /* 從 start 起連續空格數（不含 exclude 這筆自己），上限到 22 點那一格 */
+  function freeSpan(date, start, exclude) {
+    const occ = {};
+    S.blocks.forEach(b => { if (b.date === date && b.id !== exclude) for (let h = b.startHour; h < b.startHour + b.hours; h++) occ[h] = true; });
+    let n = 0;
+    for (let h = start; h <= HMAX && !occ[h]; h++) n++;
+    return n;
+  }
+
+  function blockModal(o) {
+    const edit = !!o.block, b = o.block || {};
+    const reqs = S.openRequests.slice();
+    if (edit && b.requestId && !reqs.some(r => r.id === b.requestId)) reqs.push({ id: b.requestId, equipment: '（已結案或不在清單的需求）', description: '', urgent: b.urgent, location: b.location, _gone: true });
+    const type0 = edit ? b.type : (o.req ? '維修' : '維修');
+    const date0 = edit ? b.date : o.date, start0 = edit ? b.startHour : o.start;
+    const reqOpt = '<option value="">不連結需求（自填）</option>' + reqs.map(r => '<option value="' + esc(r.id) + '">' + (r.urgent ? '🔴 ' : '') + esc(r._gone ? r.equipment : reqTitle(r)) + '</option>').join('');
+    const hourOpt = (sel) => { let s = ''; for (let h = HMIN; h <= HMAX; h++) s += '<option value="' + h + '"' + (h === sel ? ' selected' : '') + '>' + hourLabel(h) + ':00</option>'; return s; };
+    const m = openModal({
+      title: edit ? '編輯排程' : '新增排程', backdrop: false,
+      html: '<div class="mt-form">' +
+        '<div class="mt-f"><label>類型</label><select class="mt-in" id="mb-type">' + BLOCK_TYPES.map(t => '<option' + (t === type0 ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></div>' +
+        '<div class="mt-f mt-only-rep"><label>連結報修需求</label><select class="mt-in" id="mb-req">' + reqOpt + '</select></div>' +
+        '<div class="mt-row3"><div class="mt-f"><label>日期</label><input class="mt-in" type="date" id="mb-date" value="' + esc(date0) + '"></div>' +
+        '<div class="mt-f"><label>起始</label><select class="mt-in" id="mb-start">' + hourOpt(start0) + '</select></div>' +
+        '<div class="mt-f"><label>時長（小時）</label><select class="mt-in" id="mb-hours"></select></div></div>' +
+        '<div class="mt-hint" id="mb-span"></div>' +
+        '<div class="mt-f"><label>標題 *</label><input class="mt-in" id="mb-title" maxlength="60" value="' + esc(edit ? b.title : '') + '"></div>' +
+        '<div class="mt-f"><label>位置</label><input class="mt-in" id="mb-loc" maxlength="60" value="' + esc(edit ? b.location : '') + '"></div>' +
+        '<label class="mt-chk mt-only-rep"><input type="checkbox" id="mb-urg"' + (edit && b.urgent ? ' checked' : '') + '> 🔴 急件</label>' +
+        '<div class="mt-f"><label>說明</label><textarea class="mt-in" id="mb-note" rows="3" maxlength="500">' + esc(edit ? b.note : '') + '</textarea></div>' +
+        '<div class="mt-row2"><div class="mt-f"><label>狀態</label><select class="mt-in" id="mb-status">' + BLOCK_STATUS.map(t => '<option' + (edit && t === b.status ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></div>' +
+        '<div class="mt-f" id="mb-act-wrap"><label>實際工時（小時）</label><input class="mt-in" type="number" id="mb-act" min="0" max="24" step="0.5"></div></div>' +
+        '<div class="mt-err" id="mb-err"></div>' +
+        '<div class="mt-mf">' + (edit ? '<button class="btn btn-warn mt-del" type="button" id="mb-del">刪除</button>' : '') +
+        '<button class="btn btn-ghost" type="button" data-mclose>取消</button><button class="btn btn-primary" type="button" id="mb-ok">儲存</button></div></div>'
+    });
+    const g = id => m.q(id);
+    let actTouched = false;
+    if (edit && b.actualHours) { g('#mb-act').value = b.actualHours; actTouched = true; }
+
+    const refreshHours = () => {
+      const date = g('#mb-date').value, start = +g('#mb-start').value;
+      const known = S.days.indexOf(date) >= 0;
+      const span = known ? freeSpan(date, start, edit ? b.id : null) : (HMAX - start + 1);
+      const keep = +g('#mb-hours').value || (edit ? b.hours : (o.req ? 2 : 1));
+      let s = '';
+      for (let h = 1; h <= span; h++) s += '<option value="' + h + '">' + h + '</option>';
+      const sel = g('#mb-hours');
+      sel.innerHTML = s || '<option value="">（此格已被占用）</option>';
+      if (span > 0) sel.value = String(Math.min(keep, span));
+      g('#mb-span').textContent = span > 0
+        ? '從 ' + hourLabel(start) + ':00 起最多可排 ' + span + ' 小時' + (known ? '' : '（此日期不在本週範圍，衝突由系統檢查）')
+        : '這個時段已有其他排程，請改選起始時間';
+      syncAct();
+    };
+    const syncAct = () => {
+      if (g('#mb-status').value === '已完成') {
+        g('#mb-act-wrap').style.display = '';
+        if (!actTouched) g('#mb-act').value = g('#mb-hours').value || '';
+      } else g('#mb-act-wrap').style.display = 'none';
+    };
+    const syncType = (prev) => {
+      const t = g('#mb-type').value;
+      m.qa('.mt-only-rep').forEach(el => { el.style.display = t === '維修' ? '' : 'none'; });
+      const ti = g('#mb-title');
+      if (!ti.value.trim() || ti.value === prev) ti.value = t === '維修' ? '' : t;
+      if (t !== '維修') g('#mb-req').value = '';
+      lockUrgent();
+    };
+    const lockUrgent = () => { g('#mb-urg').disabled = !!g('#mb-req').value; };
+    let prevType = type0;
+    g('#mb-type').onchange = () => { const p = prevType === '維修' ? '' : prevType; syncType(p); prevType = g('#mb-type').value; };
+    g('#mb-req').onchange = () => {
+      const r = reqs.find(x => x.id === g('#mb-req').value);
+      if (r && !r._gone) { g('#mb-title').value = reqTitle(r); g('#mb-loc').value = r.location || ''; g('#mb-urg').checked = !!r.urgent; }
+      lockUrgent();
+    };
+    g('#mb-date').onchange = refreshHours; g('#mb-start').onchange = refreshHours;
+    g('#mb-hours').onchange = syncAct;
+    g('#mb-status').onchange = syncAct;
+    g('#mb-act').oninput = () => { actTouched = true; };
+
+    if (edit) {
+      g('#mb-req').value = b.requestId || '';
+      m.qa('.mt-only-rep').forEach(el => { el.style.display = type0 === '維修' ? '' : 'none'; });
+      lockUrgent();
+    } else {
+      if (o.req) { g('#mb-req').value = o.req.id; g('#mb-title').value = reqTitle(o.req); g('#mb-loc').value = o.req.location || ''; g('#mb-urg').checked = !!o.req.urgent; }
+      syncType('');
+    }
+    refreshHours();
+
+    const showErr = t => { const er = g('#mb-err'); er.textContent = t; er.style.display = t ? 'block' : 'none'; };
+    g('#mb-ok').onclick = () => run(async () => {
+      showErr('');
+      const type = g('#mb-type').value, date = g('#mb-date').value, startHour = +g('#mb-start').value, hours = +g('#mb-hours').value;
+      const title = g('#mb-title').value.trim();
+      if (!isYmd(date)) return showErr('請選擇日期');
+      if (!(hours >= 1)) return showErr('此時段已被占用，請改選起始時間');
+      if (!title) return showErr('請填寫標題');
+      const status = g('#mb-status').value;
+      let actualHours = null;
+      if (status === '已完成') { const a = parseFloat(g('#mb-act').value); actualHours = a > 0 ? a : hours; }
+      const blk = {
+        date: date, startHour: startHour, hours: hours, type: type, status: status,
+        requestId: type === '維修' ? g('#mb-req').value : '', title: title, location: g('#mb-loc').value.trim(),
+        note: g('#mb-note').value, actualHours: actualHours, urgent: type === '維修' ? g('#mb-urg').checked : false
+      };
+      if (edit) { blk.id = b.id; blk.updatedAt = b.updatedAt; }
+      const ok = g('#mb-ok'); ok.disabled = true;
+      const res = await call('saveBlock', { block: blk });
+      ok.disabled = false;
+      if (res && res.ok) { m.close(); S.pickReq = null; toast('已儲存'); await load(true); }
+      else if (res && res.errCode !== 'CODE') handleFail(res, m, g('#mb-err'));
+    });
+    if (edit) g('#mb-del').onclick = () => run(async () => {
+      if (!confirm('確定刪除「' + b.title + '」這筆排程？')) return;
+      const res = await call('deleteBlock', { id: b.id });
+      if (res && res.ok) { m.close(); toast('已刪除'); await load(true); }
+      else if (res && res.errCode !== 'CODE') handleFail(res, m, g('#mb-err'));
+    });
+  }
+
+  /* 一鍵請假 */
+  function leaveModal(date) {
+    const m = openModal({
+      title: '一鍵請假　' + fmtMD(date),
+      html: '<div class="mt-form"><div class="mt-leave-btns">' +
+        '<button class="btn btn-ghost" type="button" data-s="9" data-n="9" data-t="休假（全天）">全天假 09–18</button>' +
+        '<button class="btn btn-ghost" type="button" data-s="9" data-n="3" data-t="休假（上午）">上午假 09–12</button>' +
+        '<button class="btn btn-ghost" type="button" data-s="13" data-n="5" data-t="休假（下午）">下午假 13–18</button></div>' +
+        '<div class="mt-hint">午休不會算進請假時數。若該時段已有排程會提示衝突。</div><div class="mt-err" id="lv-err"></div></div>'
+    });
+    m.qa('[data-s]').forEach(el => {
+      el.onclick = () => run(async () => {
+        const blk = { date: date, startHour: +el.getAttribute('data-s'), hours: +el.getAttribute('data-n'), type: '休假', status: '已排定', requestId: '', title: el.getAttribute('data-t'), location: '', note: '', actualHours: null, urgent: false };
+        m.qa('[data-s]').forEach(x => { x.disabled = true; });
+        const res = await call('saveBlock', { block: blk });
+        m.qa('[data-s]').forEach(x => { x.disabled = false; });
+        if (res && res.ok) { m.close(); toast('已登記休假'); await load(true); }
+        else if (res && res.errCode !== 'CODE') handleFail(res, m, m.q('#lv-err'));
+      });
+    });
+  }
+
+  /* ════════ 需求：結案／取消／備註 ════════ */
+  const reqById = id => S.openRequests.find(r => r.id === id);
+
+  function closeRequest(id) {
+    const r = reqById(id); if (!r) return;
+    run(async () => {
+      const res = await call('updateRequest', { id: id, status: '已完成', updatedAt: r.updatedAt });
+      if (res && res.ok) { toast('已結案：' + r.equipment); await load(true); }
+      else if (res && res.errCode !== 'CODE') handleFail(res, null, null);
+    });
+  }
+  function cancelRequest(id) {
+    const r = reqById(id); if (!r) return;
+    if (!confirm('確定取消「' + r.equipment + '」這筆報修？取消後會從清單移除。')) return;
+    run(async () => {
+      const res = await call('updateRequest', { id: id, status: '已取消', updatedAt: r.updatedAt });
+      if (res && res.ok) { toast('已取消'); await load(true); }
+      else if (res && res.errCode !== 'CODE') handleFail(res, null, null);
+    });
+  }
+  function noteModal(id) {
+    const r = reqById(id); if (!r) return;
+    const m = openModal({
+      title: '工程師備註：' + r.equipment, backdrop: false,
+      html: '<div class="mt-form"><div class="mt-f"><label>備註（只有工程師在清單上看得到的處理進度，上限 500 字）</label>' +
+        '<textarea class="mt-in" id="nt-in" rows="4" maxlength="500">' + esc(r.engineerNote || '') + '</textarea></div><div class="mt-err" id="nt-err"></div>' +
+        '<div class="mt-mf"><button class="btn btn-ghost" type="button" data-mclose>取消</button><button class="btn btn-primary" type="button" id="nt-ok">儲存</button></div></div>'
+    });
+    m.q('#nt-ok').onclick = () => run(async () => {
+      const ok = m.q('#nt-ok'); ok.disabled = true;
+      const res = await call('updateRequest', { id: id, engineerNote: m.q('#nt-in').value, updatedAt: r.updatedAt });
+      ok.disabled = false;
+      if (res && res.ok) { m.close(); toast('備註已儲存'); await load(true); }
+      else if (res && res.errCode !== 'CODE') handleFail(res, m, m.q('#nt-err'));
+    });
+  }
+
+  /* ════════ 設備故障／恢復通知 ════════ */
+  function faultModal(o) {
+    const rec = o.kind === '恢復', pair = o.pair || {};
+    const nonce = uuid();
+    let shown = '';
+    const m = openModal({
+      title: rec ? '✅ 寄恢復通知' : '🚨 設備故障通知', wide: true, backdrop: false,
+      html: '<div class="mt-form">' +
+        (rec
+          ? '<div class="mt-pair"><div><span>設備</span><b>' + esc(pair.equipment) + '</b></div><div><span>位置</span><b>' + esc(pair.location) + '</b></div><div><span>原故障狀況</span>' + esc(pair.symptom) + '</div></div>' +
+          '<div class="mt-f"><label>處理結果 *</label><textarea class="mt-in" id="ft-sym" rows="3" maxlength="500" placeholder="例：更換噴頭後測試輸出正常"></textarea></div>' +
+          '<div class="mt-f"><label>備註</label><input class="mt-in" id="ft-imp" maxlength="200"></div>'
+          : '<div class="mt-row2"><div class="mt-f"><label>設備 *</label><input class="mt-in" id="ft-eq" maxlength="60" placeholder="例：大圖輸出機 3 號機"></div>' +
+          '<div class="mt-f"><label>位置 *</label><input class="mt-in" id="ft-loc" maxlength="60" placeholder="例：一樓輸出區"></div></div>' +
+          '<div class="mt-f"><label>故障狀況 *</label><textarea class="mt-in" id="ft-sym" rows="3" maxlength="500"></textarea></div>' +
+          '<div class="mt-row2"><div class="mt-f"><label>影響範圍</label><input class="mt-in" id="ft-imp" maxlength="200" placeholder="例：一樓輸出暫停，急件改走 2 號機"></div>' +
+          '<div class="mt-f"><label>預計修復時間</label><input class="mt-in" id="ft-eta" maxlength="60" placeholder="例：今天 15:00"></div></div>') +
+        '<div class="mt-err" id="ft-err"></div>' +
+        '<div id="ft-prev" class="mt-prev" style="display:none"><div class="mt-prev-s"></div><iframe class="mt-prev-f" sandbox="allow-same-origin" title="信件預覽"></iframe>' +
+        '<div class="mt-hint">以上為預覽，實際寄出的內容以系統產生為準。此信會寄給全公司群組。</div></div>' +
+        '<div class="mt-mf"><button class="btn btn-ghost" type="button" data-mclose>取消</button>' +
+        '<button class="btn btn-dark" type="button" id="ft-pv">預覽</button>' +
+        '<button class="btn btn-primary" type="button" id="ft-send" style="display:none">確認寄出</button></div></div>'
+    });
+    const g = id => m.q(id);
+    const val = id => { const el = g(id); return el ? el.value.trim() : ''; };
+    const collect = () => rec
+      ? { kind: '恢復', pairId: pair.id, equipment: pair.equipment, location: pair.location, symptom: val('#ft-sym'), impact: val('#ft-imp'), eta: '' }
+      : { kind: '故障', pairId: '', equipment: val('#ft-eq'), location: val('#ft-loc'), symptom: val('#ft-sym'), impact: val('#ft-imp'), eta: val('#ft-eta') };
+    const showErr = t => { const er = g('#ft-err'); er.textContent = t; er.style.display = t ? 'block' : 'none'; };
+    const invalidate = () => { if (shown) { shown = ''; g('#ft-prev').style.display = 'none'; g('#ft-send').style.display = 'none'; } };
+    m.body.addEventListener('input', () => { if (shown && JSON.stringify(collect()) !== shown) invalidate(); });
+
+    g('#ft-pv').onclick = () => {
+      showErr('');
+      const f = collect();
+      if (!f.equipment || !f.location || !f.symptom) { showErr(rec ? '請填寫處理結果' : '設備、位置、故障狀況為必填'); return; }
+      const mail = buildMail(f, S.cfg.engineerName || '設備工程師', tpeStamp());
+      shown = JSON.stringify(f);
+      const pv = g('#ft-prev');
+      pv.style.display = '';
+      pv.querySelector('.mt-prev-s').innerHTML = '<span>主旨</span><b>' + esc(mail.subject) + '</b>';
+      pv.querySelector('iframe').srcdoc = mail.html;
+      g('#ft-send').style.display = '';
+      g('#ft-send').scrollIntoView({ block: 'nearest' });
+    };
+
+    g('#ft-send').onclick = () => run(async () => {
+      showErr('');
+      const f = collect();
+      if (JSON.stringify(f) !== shown) { showErr('內容已變更，請重新預覽'); invalidate(); return; }
+      if (!confirm('將寄給全公司群組，確定？')) return;
+      const sb = g('#ft-send'), pb = g('#ft-pv');
+      sb.disabled = true; pb.disabled = true; sb.textContent = '寄送中…';
+      const res = await call('sendFault', { nonce: nonce, fault: f });
+      sb.disabled = false; pb.disabled = false; sb.textContent = '確認寄出';
+      if (res && res.ok) {
+        const mail = res.mail || {};
+        m.body.innerHTML = '<div class="mt-form"><div class="mt-done-box"><div class="mt-done-ic">✅</div><h3>' + (rec ? '恢復通知已寄出' : '故障通知已寄出') + '</h3>' +
+          (mail.subject ? '<p>主旨：' + esc(mail.subject) + '</p>' : '') + (mail.to ? '<p>收件：' + esc(mail.to) + '</p>' : '') +
+          (res.remainingQuota != null ? '<p>今日剩餘寄信額度：<b>' + esc(res.remainingQuota) + '</b> 封</p>' : '') + '</div>' +
+          '<div class="mt-mf"><button class="btn btn-primary" type="button" data-mclose>關閉</button></div></div>';
+        if (o.onSent) o.onSent();
+      } else if (res && res.errCode !== 'CODE') handleFail(res, null, g('#ft-err'));
+    });
+  }
+
+  function faultLogModal() {
+    const m = openModal({ title: '📜 通報紀錄', wide: true, html: '<div id="fl-body" class="mt-none">載入中…</div><div class="mt-mf"><button class="btn btn-ghost" type="button" data-mclose>關閉</button></div>' });
+    let list = [];
+    const paint = () => {
+      const el = m.q('#fl-body'); if (!el) return;
+      if (!list.length) { el.className = 'mt-none'; el.textContent = '還沒有通報紀錄'; return; }
+      el.className = '';
+      el.innerHTML = '<div class="mt-tbwrap"><table class="mt-tb"><thead><tr><th>時間</th><th>類型</th><th>設備</th><th>位置</th><th>狀況／處理結果</th><th>狀態</th></tr></thead><tbody>' +
+        list.map(f => '<tr><td class="nw">' + esc(f.sentAt) + '</td><td><span class="mt-chip ' + (f.kind === '故障' ? 'red' : 'grn') + '">' + esc(f.kind) + '</span></td>' +
+          '<td>' + esc(f.equipment) + '</td><td>' + esc(f.location) + '</td><td class="wrap">' + nl2br(f.symptom) + '</td>' +
+          '<td class="nw">' + (f.kind === '故障'
+            ? (f.recovered ? '<span class="mt-chip grn">已恢復</span>' : '<span class="mt-chip red">未恢復</span> <button type="button" class="btn btn-primary mt-sm" data-m="recover" data-id="' + esc(f.id) + '">寄恢復通知</button>')
+            : '—') + '</td></tr>').join('') + '</tbody></table></div>';
+    };
+    const refresh = async () => {
+      const res = await call('listFaults');
+      if (m.closed) return;
+      if (res && res.ok) { list = res.faults || []; paint(); }
+      else { const el = m.q('#fl-body'); el.className = 'mt-err'; el.style.display = 'block'; el.textContent = errText(res); }
+    };
+    m.el.addEventListener('click', e => {
+      const t = e.target.closest('[data-m="recover"]'); if (!t) return;
+      const f = list.find(x => x.id === t.getAttribute('data-id'));
+      if (f) faultModal({ kind: '恢復', pair: f, onSent: refresh });
+    });
+    refresh();
+  }
+
+  /* ════════ 稼動率 ════════ */
+  function rangeFor(key, today) {
+    const wd = weekdayOf(today), mon = addDays(today, -((wd + 6) % 7));
+    const y = +today.slice(0, 4), mo = +today.slice(5, 7);
+    if (key === 'week') return [mon, addDays(mon, 6)];
+    if (key === 'lastweek') return [addDays(mon, -7), addDays(mon, -1)];
+    if (key === 'month') return [ymdFmt(Date.UTC(y, mo - 1, 1)), ymdFmt(Date.UTC(y, mo, 0))];
+    if (key === 'lastmonth') return [ymdFmt(Date.UTC(y, mo - 2, 1)), ymdFmt(Date.UTC(y, mo - 1, 0))];
+    return null;
+  }
+  const RANGE_KEYS = [['week', '本週'], ['lastweek', '上週'], ['month', '本月'], ['lastmonth', '上月'], ['custom', '自訂']];
+
+  function toggleStats() {
+    S.statsOpen = !S.statsOpen;
+    if (S.statsOpen) {
+      if (!S.statsFrom) { const r = rangeFor('week', S.today); S.statsFrom = r[0]; S.statsTo = r[1]; S.statsKey = 'week'; }
+      render(); loadStats();
+      const el = $('mt-stats'); if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    } else render();
+  }
+  function setRange(key) {
+    S.statsKey = key;
+    if (key !== 'custom') { const r = rangeFor(key, S.today); S.statsFrom = r[0]; S.statsTo = r[1]; paintStats(); loadStats(); }
+    else paintStats();
+  }
+  function rangeGo() {
+    const f = ($('st-from') || {}).value, t = ($('st-to') || {}).value;
+    if (!isYmd(f) || !isYmd(t) || f > t) { S.statsErr = '請選擇正確的起訖日期（起日不可晚於迄日）'; S.stats = null; paintStats(); return; }
+    S.statsFrom = f; S.statsTo = t; loadStats();
+  }
+  let statsSeq = 0;
+  async function loadStats() {
+    const seq = ++statsSeq;
+    S.statsBusy = true; S.statsErr = ''; paintStats();
+    const res = await call('stats', { from: S.statsFrom, to: S.statsTo });
+    if (seq !== statsSeq) return;
+    S.statsBusy = false;
+    if (res && res.ok) { S.stats = res; S.statsErr = ''; }
+    else { S.stats = null; S.statsErr = errText(res); }
+    paintStats();
+  }
+  function paintStats() { const el = $('mt-stats'); if (el) el.innerHTML = statsHtml(); }
+
+  function statsHtml() {
+    const st = S.stats;
+    let h = '<div class="mt-sec">📈 稼動率</div><div class="mt-ranges">' +
+      RANGE_KEYS.map(k => '<button type="button" class="btn mt-sm ' + (S.statsKey === k[0] ? 'btn-dark' : 'btn-ghost') + '" data-act="range" data-k="' + k[0] + '">' + k[1] + '</button>').join('');
+    if (S.statsKey === 'custom') {
+      h += '<input type="date" class="mt-in mt-dt-in" id="st-from" value="' + esc(S.statsFrom) + '"><span>～</span><input type="date" class="mt-in mt-dt-in" id="st-to" value="' + esc(S.statsTo) + '">' +
+        '<button type="button" class="btn btn-primary mt-sm" data-act="rangego">查詢</button>';
+    }
+    h += '</div>';
+    if (S.statsBusy && !st) return h + '<div class="mt-none"><span class="mt-spin"></span> 計算中…</div>';
+    if (S.statsErr) return h + '<div class="mt-err" style="display:block">' + esc(S.statsErr) + '</div>';
+    if (!st) return h;
+    const rate = st.rate == null ? '—' : (st.rate * 100).toFixed(1) + '%';
+    h += '<div class="mt-cards' + (S.statsBusy ? ' dim' : '') + '">' +
+      '<div class="mt-card main"><div class="mt-card-l">稼動率</div><div class="mt-card-n">' + rate + '</div><div class="mt-card-s">' + (st.rate != null && st.rate > 1 ? '含加班（完成工時超過可用工時）' : '完成維修工時 ÷ 可用工時') + '</div></div>' +
+      '<div class="mt-card"><div class="mt-card-l">完成維修工時</div><div class="mt-card-n">' + fmtH(st.doneHours) + '<small> 小時</small></div></div>' +
+      '<div class="mt-card"><div class="mt-card-l">可用工時</div><div class="mt-card-n">' + fmtH(st.availHours) + '<small> 小時</small></div><div class="mt-card-s">基準 ' + fmtH(st.baseHours) + ' − 休假 ' + fmtH(st.leaveHours) + '</div></div>' +
+      '<div class="mt-card"><div class="mt-card-l">外出時數</div><div class="mt-card-n">' + fmtH(st.outHours) + '<small> 小時</small></div></div></div>';
+    h += '<div class="mt-hint">' + (st.effectiveTo < st.from ? '這個區間尚未開始，沒有統計資料。' : '統計截至 ' + esc(st.effectiveTo) + '（區間 ' + esc(st.from) + ' ～ ' + esc(st.to) + '，工作日 ' + st.workdays + ' 天）') + '</div>';
+    if (st.byDay && st.byDay.length) {
+      h += '<div class="mt-tbwrap"><table class="mt-tb"><thead><tr><th>日期</th><th>星期</th><th>類別</th><th class="num">基準</th><th class="num">休假</th><th class="num">完成</th><th class="num">外出</th></tr></thead><tbody>' +
+        st.byDay.map(d => {
+          const wd = typeof d.weekday === 'number' ? '週' + WEEKDAY_ZH[d.weekday] : esc(d.weekday);
+          const kind = d.cal === '補班' ? '補班' : (d.workday ? '工作日' : '假日');
+          return '<tr><td class="nw">' + esc(d.date) + '</td><td>' + wd + '</td><td>' + kind + (d.cal && d.cal !== kind ? '' : '') + '</td><td class="num">' + fmtH(d.base) + '</td><td class="num">' + fmtH(d.leave) + '</td><td class="num">' + fmtH(d.done) + '</td><td class="num">' + fmtH(d.out) + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+    if (st.byCategory && st.byCategory.length) {
+      h += '<div class="mt-sec sm">類別分布（已完成維修）</div><div class="mt-tbwrap narrow"><table class="mt-tb"><thead><tr><th>類別</th><th class="num">工時</th><th class="num">件數</th></tr></thead><tbody>' +
+        st.byCategory.slice().sort((a, b) => b.hours - a.hours).map(c => '<tr><td>' + esc(c.category) + '</td><td class="num">' + fmtH(c.hours) + '</td><td class="num">' + esc(c.count) + '</td></tr>').join('') + '</tbody></table></div>';
+    }
+    return h;
+  }
+
+  /* ════════ 行事曆（假日／補班） ════════ */
+  function calendarModal() {
+    const m = openModal({
+      title: '📅 行事曆（假日／補班）', wide: true, backdrop: false,
+      html: '<div class="mt-form"><div class="mt-hint">預設週一至週五為工作日。標成「假日」的日子不計入稼動率基準；週末臨時補班請標「補班」。</div>' +
+        '<div class="mt-calrow"><input type="date" class="mt-in" id="cl-date"><select class="mt-in" id="cl-kind"><option>假日</option><option>補班</option></select>' +
+        '<input class="mt-in" id="cl-note" maxlength="60" placeholder="說明（選填）"><button type="button" class="btn btn-primary" id="cl-add">新增</button></div>' +
+        '<div class="mt-f"><label>貼上批次匯入（每行：yyyy-MM-dd,假日,說明）</label><textarea class="mt-in" id="cl-bulk" rows="3" placeholder="2026-10-10,假日,國慶日&#10;2026-10-17,補班,補班日"></textarea></div>' +
+        '<div><button type="button" class="btn btn-dark" id="cl-imp">匯入</button></div>' +
+        '<div class="mt-err" id="cl-err"></div><div id="cl-list"></div>' +
+        '<div class="mt-mf"><button class="btn btn-ghost" type="button" data-mclose>關閉</button></div></div>'
+    });
+    const g = id => m.q(id);
+    const showErr = t => { const er = g('#cl-err'); er.textContent = t; er.style.display = t ? 'block' : 'none'; };
+    const paint = () => {
+      const l = S.calendar.slice().sort((a, b) => a.date < b.date ? -1 : 1);
+      g('#cl-list').innerHTML = l.length
+        ? '<div class="mt-tbwrap cal"><table class="mt-tb"><thead><tr><th>日期</th><th>類別</th><th>說明</th><th></th></tr></thead><tbody>' +
+        l.map(c => '<tr><td class="nw">' + esc(c.date) + '（' + WEEKDAY_ZH[weekdayOf(c.date)] + '）</td><td><span class="mt-chip ' + (c.kind === '假日' ? 'red' : 'blue') + '">' + esc(c.kind) + '</span></td><td>' + esc(c.note) +
+          '</td><td><button type="button" class="btn btn-warn mt-sm" data-m="del" data-d="' + esc(c.date) + '">刪除</button></td></tr>').join('') + '</tbody></table></div>'
+        : '<div class="mt-none">還沒有設定任何假日或補班日</div>';
+    };
+    const save = items => run(async () => {
+      showErr('');
+      const res = await call('saveCalendar', { items: items });
+      if (res && res.ok) { toast('行事曆已更新'); await load(true); if (!m.closed) paint(); return true; }
+      if (res && res.errCode !== 'CODE') handleFail(res, null, g('#cl-err'));
+      return false;
+    });
+    g('#cl-add').onclick = () => {
+      const d = g('#cl-date').value;
+      if (!isYmd(d)) { showErr('請選擇日期'); return; }
+      save([{ date: d, kind: g('#cl-kind').value, note: g('#cl-note').value.trim() }]).then(ok => { if (ok) { g('#cl-note').value = ''; } });
+    };
+    g('#cl-imp').onclick = () => {
+      const lines = g('#cl-bulk').value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      if (!lines.length) { showErr('請先貼上要匯入的內容'); return; }
+      const items = [], bad = [];
+      lines.forEach((ln, i) => {
+        const p = ln.split(/[,，\t]/).map(s => s.trim());
+        if (!isYmd(p[0])) bad.push('第 ' + (i + 1) + ' 行日期格式錯誤');
+        else if (p[1] !== '假日' && p[1] !== '補班') bad.push('第 ' + (i + 1) + ' 行類別需為「假日」或「補班」');
+        else items.push({ date: p[0], kind: p[1], note: p.slice(2).join(',').slice(0, 60) });
+      });
+      if (bad.length) { showErr(bad.slice(0, 5).join('；') + (bad.length > 5 ? '…' : '') + '。整批未匯入，請修正後重試。'); return; }
+      save(items).then(ok => { if (ok) g('#cl-bulk').value = ''; });
+    };
+    m.el.addEventListener('click', e => {
+      const t = e.target.closest('[data-m="del"]'); if (!t) return;
+      const d = t.getAttribute('data-d');
+      if (!confirm('確定刪除 ' + d + ' 這筆設定？')) return;
+      save([{ date: d, kind: '', note: '' }]);
+    });
+    paint();
+  }
+
+  /* ════════ 初始化 ════════ */
+  function init() {
+    const p = $('panel-maint');
+    p.addEventListener('click', onClick);
+    document.addEventListener('keydown', onKey);
+    setInterval(tick, 60000);
+    /* 不改 switchTool 本體：外面包一層，切到本工具時才觸發載入 */
+    const sw = window.switchTool;
+    window.switchTool = function (id) { const r = sw.apply(this, arguments); if (id === 'maint') onShow(); return r; };
+    render();
+    if (location.hash === '#maint') window.switchTool('maint');
+  }
+
+  init();
+  return { init, load, __test: { calcStats: calcStats } };
+})();
+
+/* ── /TOOL I ── */
 
 </script>
 </body>
