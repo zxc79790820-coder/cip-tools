@@ -4601,7 +4601,7 @@ const SHIP = (() => {
    模擬密碼：通行碼 demo／工程師 eng123／主管 mgr123。
 ════════════════════════════════════════════════ */
 const MAINT = (() => {
-  const ENDPOINT = '';   // 真實 Apps Script /exec 網址（待部署後填入）
+  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwtol9v4Qz8kp-l_ChZ9BfaRpaN4CLUza4JAcRhqAfKWcRGcOCrOoodICT44z643dew/exec';   // Apps Script /exec（公司 Workspace 帳號部署；改程式要用「管理部署作業→新版本」網址才不變）
   const MOCK = /[?&]mock=1(?:&|$)/.test(location.search);
   const CONFIGURED = MOCK || !!ENDPOINT;
   const VERSION = 'mock-1';
