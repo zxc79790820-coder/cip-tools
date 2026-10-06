@@ -1347,6 +1347,12 @@ body { background: #f4f1ec; }
 .mt-card-n{font-size:26px;font-weight:700;color:var(--cip-text);line-height:1.3}
 .mt-card-n small{font-size:12px;font-weight:500;color:var(--cip-text3)}
 .mt-card-s{font-size:11px;color:var(--cip-text3);line-height:1.5}
+.mt-bar{height:8px;background:#efe4d0;border-radius:4px;overflow:hidden;margin:4px 0 5px}
+.mt-bar i{display:block;height:100%;background:var(--cip-orange);border-radius:4px;transition:width .3s}
+.mt-bar.over i{background:#b87e00}
+.mt-tb tr.mt-total td{font-weight:700;background:var(--cip-orange-bg);border-top:2px solid var(--cip-orange)}
+.mt-calimp{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+.mt-calimp span{font-size:11px;color:var(--cip-text3)}
 .mt-tbwrap{overflow-x:auto;max-width:100%;border:1px solid var(--cip-border);border-radius:8px;background:#fff;margin-top:8px}
 .mt-tbwrap.narrow{max-width:360px}
 .mt-tbwrap.cal{max-height:240px;overflow-y:auto}
@@ -4612,6 +4618,44 @@ const MAINT = (() => {
   const BLOCK_STATUS = ['已排定', '已完成', '未完成'];
   const WORK_HOURS = [[9, 12], [13, 18]];
   const WORK_DAYS = [1, 2, 3, 4, 5];
+  /* 人事行政總處「中華民國政府行政機關辦公日曆表」115、116 年（data.gov.tw 資料集 14718）
+     只收平日放假（假日）與週末上班（補班）；週末本來就不計基準，不必列。每年 6–7 月公布次年後補上。 */
+  const TW_HOLIDAYS = [
+    ['2026-01-01','假日','開國紀念日'],
+    ['2026-02-16','假日','農曆除夕'],
+    ['2026-02-17','假日','春節'],
+    ['2026-02-18','假日','春節'],
+    ['2026-02-19','假日','春節'],
+    ['2026-02-20','假日','補假'],
+    ['2026-02-27','假日','補假'],
+    ['2026-04-03','假日','補假'],
+    ['2026-04-06','假日','補假'],
+    ['2026-05-01','假日','勞動節'],
+    ['2026-06-19','假日','端午節'],
+    ['2026-09-25','假日','中秋節'],
+    ['2026-09-28','假日','孔子誕辰紀念日/教師節'],
+    ['2026-10-09','假日','補假'],
+    ['2026-10-26','假日','補假'],
+    ['2026-12-25','假日','行憲紀念日'],
+    ['2027-01-01','假日','開國紀念日'],
+    ['2027-02-04','假日','小年夜'],
+    ['2027-02-05','假日','農曆除夕'],
+    ['2027-02-08','假日','春節'],
+    ['2027-02-09','假日','補假'],
+    ['2027-02-10','假日','補假'],
+    ['2027-03-01','假日','補假'],
+    ['2027-04-05','假日','清明節'],
+    ['2027-04-06','假日','補假'],
+    ['2027-04-30','假日','補假'],
+    ['2027-06-09','假日','端午節'],
+    ['2027-09-15','假日','中秋節'],
+    ['2027-09-28','假日','孔子誕辰紀念日/教師節'],
+    ['2027-10-11','假日','補假'],
+    ['2027-10-25','假日','臺灣光復暨金門古寧頭大捷紀念日'],
+    ['2027-12-24','假日','補假'],
+    ['2027-12-31','假日','補假']
+  ];
+  const HOL_YEARS = [...new Set(TW_HOLIDAYS.map(x => x[0].slice(0, 4)))].join('、');
   const WEEKDAY_ZH = ['日', '一', '二', '三', '四', '五', '六'];
   const HMIN = 9, HMAX = 22;   // 第一格／最後一格（startHour）
 
@@ -4797,8 +4841,7 @@ const MAINT = (() => {
     mkBlk({ date: D(-3), startHour: 14, hours: 2, type: '外出', status: '已排定', title: '外出採購零件' });
     mkBlk({ date: D(-2), startHour: 9, hours: 2, type: '維修', status: '已完成', title: '大圖輸出機 3 號機－墨水管更換', requestId: d6.id, actualHours: 2 });
 
-    let hd = 12; while ([0, 6].indexOf(weekdayOf(D(hd))) >= 0) hd++;   // 找一個平日當範例假日
-    st.calendar.push({ date: D(hd), kind: '假日', note: '公司旅遊' });
+    TW_HOLIDAYS.forEach(x => st.calendar.push({ date: x[0], kind: x[1], note: x[2] }));   // 與真實後端 setup() 一樣預先匯入國定假日
     return st;
   }
 
@@ -4989,6 +5032,15 @@ const MAINT = (() => {
           if (it.kind) st.calendar.push({ date: it.date, kind: it.kind, note: String(it.note || '').trim() });
         });
         return { ok: true };
+      }
+      case 'importHolidays': {
+        if ((d = need(['engineer']))) return d;
+        let added = 0, skipped = 0;
+        TW_HOLIDAYS.forEach(x => {
+          if (st.calendar.some(c => c.date === x[0])) { skipped++; return; }   // 已設定的日期不覆蓋（可能是手動改過）
+          st.calendar.push({ date: x[0], kind: x[1], note: x[2] }); added++;
+        });
+        return { ok: true, added: added, skipped: skipped, years: HOL_YEARS.split('、') };
       }
       default: return E('未知的 action：' + A, 'INVALID');
     }
@@ -5878,24 +5930,29 @@ const MAINT = (() => {
     if (S.statsBusy && !st) return h + '<div class="mt-none"><span class="mt-spin"></span> 計算中…</div>';
     if (S.statsErr) return h + '<div class="mt-err" style="display:block">' + esc(S.statsErr) + '</div>';
     if (!st) return h;
-    const rate = st.rate == null ? '—' : (st.rate * 100).toFixed(1) + '%';
+    const pct = v => (v == null || !isFinite(v)) ? '—' : (v * 100).toFixed(1) + '%';
+    const rate = pct(st.rate);
+    const barW = st.rate == null ? 0 : Math.min(100, st.rate * 100);
     h += '<div class="mt-cards' + (S.statsBusy ? ' dim' : '') + '">' +
-      '<div class="mt-card main"><div class="mt-card-l">稼動率</div><div class="mt-card-n">' + rate + '</div><div class="mt-card-s">' + (st.rate != null && st.rate > 1 ? '含加班（完成工時超過可用工時）' : '完成維修工時 ÷ 可用工時') + '</div></div>' +
+      '<div class="mt-card main"><div class="mt-card-l">稼動率</div><div class="mt-card-n">' + rate + '</div><div class="mt-bar' + (st.rate > 1 ? ' over' : '') + '"><i style="width:' + barW + '%"></i></div><div class="mt-card-s">' + (st.rate != null && st.rate > 1 ? '含加班（完成工時超過可用工時）' : '完成維修工時 ÷ 可用工時') + '</div></div>' +
       '<div class="mt-card"><div class="mt-card-l">完成維修工時</div><div class="mt-card-n">' + fmtH(st.doneHours) + '<small> 小時</small></div></div>' +
       '<div class="mt-card"><div class="mt-card-l">可用工時</div><div class="mt-card-n">' + fmtH(st.availHours) + '<small> 小時</small></div><div class="mt-card-s">基準 ' + fmtH(st.baseHours) + ' − 休假 ' + fmtH(st.leaveHours) + '</div></div>' +
-      '<div class="mt-card"><div class="mt-card-l">外出時數</div><div class="mt-card-n">' + fmtH(st.outHours) + '<small> 小時</small></div></div></div>';
+      '<div class="mt-card"><div class="mt-card-l">外出時數</div><div class="mt-card-n">' + fmtH(st.outHours) + '<small> 小時</small></div><div class="mt-card-s">占可用工時 ' + pct(st.availHours > 0 ? st.outHours / st.availHours : null) + '</div></div></div>';
     h += '<div class="mt-hint">' + (st.effectiveTo < st.from ? '這個區間尚未開始，沒有統計資料。' : '統計截至 ' + esc(st.effectiveTo) + '（區間 ' + esc(st.from) + ' ～ ' + esc(st.to) + '，工作日 ' + st.workdays + ' 天）') + '</div>';
     if (st.byDay && st.byDay.length) {
-      h += '<div class="mt-tbwrap"><table class="mt-tb"><thead><tr><th>日期</th><th>星期</th><th>類別</th><th class="num">基準</th><th class="num">休假</th><th class="num">完成</th><th class="num">外出</th></tr></thead><tbody>' +
+      h += '<div class="mt-tbwrap"><table class="mt-tb"><thead><tr><th>日期</th><th>星期</th><th>類別</th><th class="num">基準</th><th class="num">休假</th><th class="num">完成</th><th class="num">外出</th><th class="num">稼動率</th></tr></thead><tbody>' +
         st.byDay.map(d => {
           const wd = typeof d.weekday === 'number' ? '週' + WEEKDAY_ZH[d.weekday] : esc(d.weekday);
-          const kind = d.cal === '補班' ? '補班' : (d.workday ? '工作日' : '假日');
-          return '<tr><td class="nw">' + esc(d.date) + '</td><td>' + wd + '</td><td>' + kind + (d.cal && d.cal !== kind ? '' : '') + '</td><td class="num">' + fmtH(d.base) + '</td><td class="num">' + fmtH(d.leave) + '</td><td class="num">' + fmtH(d.done) + '</td><td class="num">' + fmtH(d.out) + '</td></tr>';
-        }).join('') + '</tbody></table></div>';
+          const calNote = ((S.calendar.find(c => c.date === d.date) || {}).note) || (TW_HOLIDAYS.find(x => x[0] === d.date) || [])[2] || '';
+          const kind = d.cal === '補班' ? '補班' : d.workday ? '工作日' : d.cal === '假日' ? '假日' + (calNote ? '・' + esc(calNote) : '') : '週末';
+          return '<tr><td class="nw">' + esc(d.date) + '</td><td>' + wd + '</td><td>' + kind + (d.cal && d.cal !== kind ? '' : '') + '</td><td class="num">' + fmtH(d.base) + '</td><td class="num">' + fmtH(d.leave) + '</td><td class="num">' + fmtH(d.done) + '</td><td class="num">' + fmtH(d.out) + '</td><td class="num">' + pct((d.base - d.leave) > 0 ? d.done / (d.base - d.leave) : null) + '</td></tr>';
+        }).join('') +
+        '<tr class="mt-total"><td>合計</td><td></td><td>' + st.workdays + ' 個工作日</td><td class="num">' + fmtH(st.baseHours) + '</td><td class="num">' + fmtH(st.leaveHours) + '</td><td class="num">' + fmtH(st.doneHours) + '</td><td class="num">' + fmtH(st.outHours) + '</td><td class="num">' + rate + '</td></tr>' +
+        '</tbody></table></div>';
     }
     if (st.byCategory && st.byCategory.length) {
-      h += '<div class="mt-sec sm">類別分布（已完成維修）</div><div class="mt-tbwrap narrow"><table class="mt-tb"><thead><tr><th>類別</th><th class="num">工時</th><th class="num">件數</th></tr></thead><tbody>' +
-        st.byCategory.slice().sort((a, b) => b.hours - a.hours).map(c => '<tr><td>' + esc(c.category) + '</td><td class="num">' + fmtH(c.hours) + '</td><td class="num">' + esc(c.count) + '</td></tr>').join('') + '</tbody></table></div>';
+      h += '<div class="mt-sec sm">類別分布（已完成維修）</div><div class="mt-tbwrap narrow"><table class="mt-tb"><thead><tr><th>類別</th><th class="num">工時</th><th class="num">占比</th><th class="num">件數</th></tr></thead><tbody>' +
+        st.byCategory.slice().sort((a, b) => b.hours - a.hours).map(c => '<tr><td>' + esc(c.category) + '</td><td class="num">' + fmtH(c.hours) + '</td><td class="num">' + pct(st.doneHours > 0 ? c.hours / st.doneHours : null) + '</td><td class="num">' + esc(c.count) + '</td></tr>').join('') + '</tbody></table></div>';
     }
     return h;
   }
@@ -5905,6 +5962,8 @@ const MAINT = (() => {
     const m = openModal({
       title: '📅 行事曆（假日／補班）', wide: true, backdrop: false,
       html: '<div class="mt-form"><div class="mt-hint">預設週一至週五為工作日。標成「假日」的日子不計入稼動率基準；週末臨時補班請標「補班」。</div>' +
+        '<div class="mt-calimp"><button type="button" class="btn btn-primary" id="cl-hol">📥 匯入國定假日（' + HOL_YEARS + ' 年）</button>' +
+        '<span>資料來源：行政院人事行政總處辦公日曆表；只補還沒設定的日期，不會覆蓋你手動改過的</span></div>' +
         '<div class="mt-calrow"><input type="date" class="mt-in" id="cl-date"><select class="mt-in" id="cl-kind"><option>假日</option><option>補班</option></select>' +
         '<input class="mt-in" id="cl-note" maxlength="60" placeholder="說明（選填）"><button type="button" class="btn btn-primary" id="cl-add">新增</button></div>' +
         '<div class="mt-f"><label>貼上批次匯入（每行：yyyy-MM-dd,假日,說明）</label><textarea class="mt-in" id="cl-bulk" rows="3" placeholder="2026-10-10,假日,國慶日&#10;2026-10-17,補班,補班日"></textarea></div>' +
@@ -5920,7 +5979,8 @@ const MAINT = (() => {
         ? '<div class="mt-tbwrap cal"><table class="mt-tb"><thead><tr><th>日期</th><th>類別</th><th>說明</th><th></th></tr></thead><tbody>' +
         l.map(c => '<tr><td class="nw">' + esc(c.date) + '（' + WEEKDAY_ZH[weekdayOf(c.date)] + '）</td><td><span class="mt-chip ' + (c.kind === '假日' ? 'red' : 'blue') + '">' + esc(c.kind) + '</span></td><td>' + esc(c.note) +
           '</td><td><button type="button" class="btn btn-warn mt-sm" data-m="del" data-d="' + esc(c.date) + '">刪除</button></td></tr>').join('') + '</tbody></table></div>'
-        : '<div class="mt-none">還沒有設定任何假日或補班日</div>';
+        : '<div class="mt-none">今天前後 60 天內沒有假日或補班日</div>';
+      if (l.length) g('#cl-list').insertAdjacentHTML('afterbegin', '<div class="mt-hint">清單顯示今天前後 60 天；更遠的日期已存在試算表，統計時照樣計算。</div>');
     };
     const save = items => run(async () => {
       showErr('');
@@ -5928,6 +5988,14 @@ const MAINT = (() => {
       if (res && res.ok) { toast('行事曆已更新'); await load(true); if (!m.closed) paint(); return true; }
       if (res && res.errCode !== 'CODE') handleFail(res, null, g('#cl-err'));
       return false;
+    });
+    g('#cl-hol').onclick = () => run(async () => {
+      showErr('');
+      const res = await call('importHolidays', {});
+      if (res && res.ok) {
+        toast('國定假日已匯入：新增 ' + res.added + ' 天' + (res.skipped ? '，' + res.skipped + ' 天已設定過略過' : ''));
+        await load(true); if (!m.closed) paint();
+      } else if (res && res.errCode !== 'CODE') handleFail(res, null, g('#cl-err'));
     });
     g('#cl-add').onclick = () => {
       const d = g('#cl-date').value;
