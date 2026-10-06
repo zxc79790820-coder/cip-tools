@@ -1424,6 +1424,28 @@ textarea.mt-in{resize:vertical}
   .mt-card-n{font-size:22px}
 }
 @media(max-width:420px){.mt-row2,.mt-choice{grid-template-columns:1fr}}
+
+/* 報修照片 */
+.mt-ph-add{width:100%;justify-content:center;padding:14px 12px !important;font-size:15px !important;border-style:dashed !important}
+.mt-ph-add:disabled{opacity:.55;cursor:not-allowed}
+.mt-ph-list{display:flex;flex-wrap:wrap;gap:12px}
+.mt-ph-list:empty{display:none}
+.mt-ph-it{position:relative;width:92px}
+.mt-ph-it img{display:block;width:92px;height:92px;object-fit:cover;border-radius:7px;border:1px solid var(--cip-border2);background:#f4f1ec}
+.mt-ph-x{position:absolute;top:-8px;right:-8px;width:28px;height:28px;border-radius:50%;border:2px solid #fff;background:#c62828;color:#fff;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.mt-ph-sz{margin-top:3px;font-size:11px;color:var(--cip-text3);text-align:center}
+.mt-ph-msg{font-size:12px;line-height:1.6;color:var(--cip-text3)}
+.mt-ph-msg.warn{color:#b83015;font-weight:600}
+.mt-ph-up{display:none;font-size:13px;font-weight:600;color:#8a6100;background:#fff6e0;border:1px solid #f0d28a;border-radius:6px;padding:8px 12px}
+.mt-chip.ph{background:#eef2f7;color:#456}
+button.mt-chip.ph{border:0;font-family:inherit;cursor:pointer;padding:3px 10px;background:#e3f0fb;color:#1565c0}
+button.mt-chip.ph:hover{background:#cfe5f8}
+.mt-chip.ph.off{cursor:not-allowed}
+.mt-pv-hint{font-size:12px;color:var(--cip-text3);margin-bottom:8px}
+.mt-pv-f{margin:0 0 14px}
+.mt-pv-c{font-size:12px;font-weight:600;color:var(--cip-text2);margin-bottom:4px}
+.mt-pv-img{display:block;max-width:100%;max-height:70vh;margin:0 auto;object-fit:contain;border-radius:6px;border:1px solid var(--cip-border);background:#f4f1ec;cursor:zoom-in}
+.mt-pv-ph{display:flex;align-items:center;justify-content:center;min-height:120px;padding:14px;text-align:center;font-size:13px;color:var(--cip-text2);background:#ececec;border:1px dashed #b5b5b5;border-radius:6px;word-break:break-word}
 /* ── /Tool I CSS ── */
 
 </style>
@@ -4782,6 +4804,9 @@ const MAINT = (() => {
   const MOCK_CODE = 'demo', MOCK_ENG = 'eng123', MOCK_MGR = 'mgr123';
   const MOCK_ENGINEER = '張大明';
   let mockMem = null;
+  /* 報修照片：只放模組記憶體（requestId → [{type,data}]），不進 localStorage（容量會爆）；重新整理即消失，需求只存 photoCount */
+  const mockPhotos = new Map();
+  const PHOTO_MAX = 3, PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'], PHOTO_LEN_MAX = 1400000;
 
   const mockStore = {
     load() {
@@ -4795,7 +4820,7 @@ const MAINT = (() => {
       return mockMem;
     },
     save(o) { mockMem = o; ls.set(K_MOCK, JSON.stringify(o)); },
-    reset() { mockMem = null; ls.del(K_MOCK); return mockStore.load(); }
+    reset() { mockMem = null; mockPhotos.clear(); ls.del(K_MOCK); return mockStore.load(); }
   };
 
   const nextId = (st, p) => p + String(st.seq = (st.seq || 0) + 1).padStart(4, '0');
@@ -4804,7 +4829,7 @@ const MAINT = (() => {
     const today = tpeToday();
     const D = n => addDays(today, n);
     const st = { seq: 0, requests: [], blocks: [], faults: [], calendar: [], logs: [], nonces: {}, tokens: {}, authFails: [], lockedUntil: 0 };
-    const mkReq = o => { const r = Object.assign({ id: nextId(st, 'R'), createdAt: D(-1) + ' 09:00', requester: '', dept: '', category: '其他', location: '', equipment: '', description: '', urgent: false, status: '待排程', engineerNote: '', updatedAt: D(-1) + ' 09:00' }, o); r.updatedAt = o.updatedAt || r.createdAt; st.requests.push(r); return r; };
+    const mkReq = o => { const r = Object.assign({ id: nextId(st, 'R'), createdAt: D(-1) + ' 09:00', requester: '', dept: '', category: '其他', location: '', equipment: '', description: '', urgent: false, status: '待排程', engineerNote: '', photoCount: 0, updatedAt: D(-1) + ' 09:00' }, o); r.updatedAt = o.updatedAt || r.createdAt; st.requests.push(r); return r; };
     const mkBlk = o => { const b = Object.assign({ id: nextId(st, 'B'), date: today, startHour: 9, hours: 1, type: '維修', status: '已排定', requestId: '', title: '', location: '', note: '', actualHours: null, urgent: false, createdAt: D(-2) + ' 17:00', updatedAt: D(-2) + ' 17:00' }, o); st.blocks.push(b); return b; };
 
     /* 4 筆未結案需求（2 筆急件） */
@@ -4890,7 +4915,8 @@ const MAINT = (() => {
         const days = []; for (let i = 0; i < 7; i++) days.push(addDays(today, i));
         const blocks = st.blocks.filter(x => !x.deleted && x.date >= days[0] && x.date <= days[6]);
         const open = st.requests.filter(r => r.status === '待排程' || r.status === '已排程')
-          .sort((a, c) => (a.urgent === c.urgent ? 0 : (a.urgent ? -1 : 1)) || (a.createdAt < c.createdAt ? -1 : a.createdAt > c.createdAt ? 1 : 0));
+          .sort((a, c) => (a.urgent === c.urgent ? 0 : (a.urgent ? -1 : 1)) || (a.createdAt < c.createdAt ? -1 : a.createdAt > c.createdAt ? 1 : 0))
+          .map(r => Object.assign({}, r, { photoCount: r.photoCount | 0 }));
         const calendar = st.calendar.filter(c => c.date >= addDays(today, -60) && c.date <= addDays(today, 60)).sort((a, c) => a.date < c.date ? -1 : 1);
         return { ok: true, today: today, nowHour: hm.h, days: days, blocks: blocks, openRequests: open, calendar: calendar, cfg: { engineerName: MOCK_ENGINEER, workDays: WORK_DAYS, workHours: WORK_HOURS } };
       }
@@ -4903,13 +4929,32 @@ const MAINT = (() => {
         if (t(q.description).length > 500) return E('問題描述不可超過 500 字', 'INVALID');
         if ([q.requester, q.dept, q.category, q.location, q.equipment].some(v => t(v).length > 60)) return E('報修人、部門、位置、設備名稱不可超過 60 字', 'INVALID');
         if (t(q.category) && CATEGORIES.indexOf(t(q.category)) < 0) return E('類別不正確', 'INVALID');
+        const photos = q.photos == null ? [] : q.photos;
+        if (!Array.isArray(photos)) return E('照片資料格式錯誤', 'INVALID');
+        if (photos.length > PHOTO_MAX) return E('每筆報修最多 ' + PHOTO_MAX + ' 張照片', 'INVALID');
+        for (const p of photos) {
+          if (!p || typeof p !== 'object' || PHOTO_TYPES.indexOf(p.type) < 0) return E('照片格式不支援（只收 JPG、PNG、WebP）', 'INVALID');
+          if (typeof p.data !== 'string' || !p.data) return E('照片內容不可為空', 'INVALID');
+          if (p.data.length > PHOTO_LEN_MAX) return E('照片檔案過大，請重新選擇或縮小後再試', 'INVALID');
+        }
         st.logs = (st.logs || []).filter(l => l.t > now - 3600000);
         if (st.logs.filter(l => l.kind === 'req').length >= 30) return E('報修太頻繁，請稍後再試', 'THROTTLE');
-        const r = { id: nextId(st, 'R'), createdAt: nowS, requester: t(q.requester), dept: t(q.dept), category: t(q.category) || '其他', location: t(q.location), equipment: t(q.equipment), description: t(q.description), urgent: !!q.urgent, status: '待排程', engineerNote: '', updatedAt: nowS };
+        const r = { id: nextId(st, 'R'), createdAt: nowS, requester: t(q.requester), dept: t(q.dept), category: t(q.category) || '其他', location: t(q.location), equipment: t(q.equipment), description: t(q.description), urgent: !!q.urgent, status: '待排程', engineerNote: '', photoCount: photos.length, updatedAt: nowS };
         st.requests.push(r);
+        if (photos.length) mockPhotos.set(r.id, photos.map(p => ({ type: p.type, data: p.data })));
         st.logs.push({ t: now, kind: 'req' });
         if (nonce) st.nonces['req:' + nonce] = r.id;
         return { ok: true, id: r.id };
+      }
+      case 'getPhotos': {
+        if ((d = need(['engineer', 'manager']))) return d;
+        const rq = st.requests.find(y => y.id === b.requestId);
+        if (!rq) return E('找不到此需求', 'NOTFOUND');
+        const mem = mockPhotos.get(rq.id);
+        if (mem) return { ok: true, photos: mem.map(p => ({ type: p.type, data: p.data })) };
+        const n = rq.photoCount | 0, ph = [];
+        for (let i = 0; i < n; i++) ph.push({ type: '', data: '', error: '模擬模式重新整理後不保留照片' });
+        return { ok: true, photos: ph };
       }
       case 'auth': {
         st.authFails = (st.authFails || []).filter(t => t > now - 600000);
@@ -4974,7 +5019,7 @@ const MAINT = (() => {
         if (b.status !== undefined) { if (REQ_STATUS.indexOf(b.status) < 0) return E('狀態不正確', 'INVALID'); r.status = b.status; }
         if (b.engineerNote !== undefined) { if (String(b.engineerNote).length > 500) return E('備註不可超過 500 字', 'INVALID'); r.engineerNote = String(b.engineerNote); }
         r.updatedAt = nowS;
-        return { ok: true, request: r };
+        return { ok: true, request: Object.assign({}, r, { photoCount: r.photoCount | 0 }) };
       }
       case 'sendFault': {
         if ((d = need(['engineer']))) return d;
@@ -5056,7 +5101,7 @@ const MAINT = (() => {
           mockStore.save(st);
         } catch (e) { res = { ok: false, error: '模擬後端錯誤：' + e.message, errCode: 'INVALID' }; }
         resolve(JSON.parse(JSON.stringify(res)));
-      }, 300);
+      }, 300 + ((body.req && Array.isArray(body.req.photos) && body.req.photos.length) ? 900 : 0));   // 有照片時模擬較長的上傳時間
     });
   }
 
@@ -5108,7 +5153,7 @@ const MAINT = (() => {
   }
 
   const RETRY_SAFE = ['ping', 'bootstrap', 'whoami', 'auth', 'logout', 'stats', 'listBlocks', 'listFaults',
-                      'submitRequest', 'sendFault', 'saveCalendar', 'importHolidays'];
+                      'submitRequest', 'sendFault', 'saveCalendar', 'importHolidays', 'getPhotos'];
   async function call(action, params) {
     S.loading++; paintStatus();
     try {
@@ -5432,7 +5477,7 @@ const MAINT = (() => {
       h += '<div class="mt-rq' + (r.urgent ? ' urgent' : '') + '">' +
         '<div class="mt-rq-h">' + (r.urgent ? '<span class="mt-chip red">🔴 急件</span>' : '') +
         '<span class="mt-chip">' + esc(r.category) + '</span><b class="mt-rq-eq">' + esc(r.equipment) + '</b>' +
-        '<span class="mt-chip st-' + (r.status === '已排程' ? 'sch' : 'wait') + '">' + esc(r.status) + '</span></div>' +
+        '<span class="mt-chip st-' + (r.status === '已排程' ? 'sch' : 'wait') + '">' + esc(r.status) + '</span>' + photoBadge(r) + '</div>' +
         '<div class="mt-rq-m">' + (r.location ? '📍 ' + esc(r.location) + '　' : '') + '報修人：' + esc(r.requester) + (r.dept ? '（' + esc(r.dept) + '）' : '') + '　提出：' + esc(r.createdAt) + '</div>' +
         '<div class="mt-rq-d' + (open ? ' open' : '') + (long ? ' long' : '') + '"' + (long ? ' data-act="expand" data-id="' + esc(r.id) + '" title="點擊展開／收合"' : '') + '>' + nl2br(r.description) + '</div>' +
         (r.engineerNote ? '<div class="mt-rq-note">🗒️ 工程師備註：' + nl2br(r.engineerNote) + '</div>' : '') +
@@ -5469,6 +5514,7 @@ const MAINT = (() => {
       case 'close': return closeRequest(id);
       case 'cancel': return cancelRequest(id);
       case 'note': return noteModal(id);
+      case 'photos': return showPhotos(id);
       case 'range': return setRange(t.getAttribute('data-k'));
       case 'rangego': return rangeGo();
     }
@@ -5547,10 +5593,127 @@ const MAINT = (() => {
     toast('模擬資料已重設'); load(true);
   }
 
+  /* ════════ 報修照片 ════════ */
+  const PH_MAX = 3, PH_SIDE = 1600, PH_LIMIT = 900 * 1024;
+  const PH_TYPE_RE = /^image\/(jpeg|png|webp)$/;
+  const PH_SRC_RE = /^data:image\/(jpeg|png|webp);base64,/;
+  const PH_ERR_READ = '無法讀取這張圖片（可能是 HEIC 格式），請改用 JPG／PNG，或用手機直接拍照';
+  const fmtBytes = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+  const canSeePhotos = () => S.role === 'engineer' || S.role === 'manager';
+
+  /* 載入圖片：優先 createImageBitmap（EXIF 方向正確），失敗退回 <img>；都失敗就丟錯 */
+  async function phLoad(file) {
+    if (window.createImageBitmap) {
+      try {
+        const bm = await createImageBitmap(file, { imageOrientation: 'from-image' });
+        return { src: bm, w: bm.width, h: bm.height, done() { try { bm.close(); } catch (e) { } } };
+      } catch (e) { }
+    }
+    return await new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file), img = new Image();
+      img.onload = () => resolve({ src: img, w: img.naturalWidth, h: img.naturalHeight, done() { URL.revokeObjectURL(url); } });
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode')); };
+      img.src = url;
+    });
+  }
+  const phBlob = (cv, q) => new Promise(r => { try { cv.toBlob(r, 'image/jpeg', q); } catch (e) { r(null); } });
+  const phB64 = blob => new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => { const s = String(fr.result || ''); resolve(s.slice(s.indexOf(',') + 1)); };   // 不含 data: 前綴
+    fr.onerror = () => reject(new Error('read'));
+    fr.readAsDataURL(blob);
+  });
+
+  /* 壓縮：最長邊 1600px、JPEG，品質 0.82 → 0.7 → 0.55 逐次降到 ≤ 900KB（仍超過就再縮小尺寸重試） */
+  async function phCompress(file) {
+    const im = await phLoad(file);
+    try {
+      if (!(im.w > 0 && im.h > 0)) throw new Error('size');
+      let scale = Math.min(1, PH_SIDE / Math.max(im.w, im.h));
+      const cv = document.createElement('canvas'), cx = cv.getContext('2d');
+      let blob = null, cw = 0, ch = 0;
+      for (let round = 0; round < 4 && !blob; round++) {
+        cw = Math.max(1, Math.round(im.w * scale)); ch = Math.max(1, Math.round(im.h * scale));
+        cv.width = cw; cv.height = ch;
+        cx.fillStyle = '#fff'; cx.fillRect(0, 0, cw, ch);   // 透明 PNG 轉 JPEG 不要變黑底
+        cx.drawImage(im.src, 0, 0, cw, ch);
+        for (const q of [0.82, 0.7, 0.55]) {
+          const b = await phBlob(cv, q);
+          if (!b) throw new Error('encode');
+          if (b.size <= PH_LIMIT) { blob = b; break; }
+        }
+        scale *= 0.8;
+      }
+      cv.width = cv.height = 0;
+      if (!blob) throw new Error('toolarge');
+      return { size: blob.size, w: cw, h: ch, b64: await phB64(blob), url: URL.createObjectURL(blob) };
+    } finally { im.done(); }
+  }
+
+  /* 圖片 src 只接受 data:image/(jpeg|png|webp);base64, 開頭；其餘一律不顯示 */
+  function phSrc(p) {
+    if (!p || p.error || typeof p.type !== 'string' || typeof p.data !== 'string' || !p.data || !PH_TYPE_RE.test(p.type)) return '';
+    const s = 'data:' + p.type + ';base64,' + p.data;
+    return PH_SRC_RE.test(s) ? s : '';
+  }
+  function phToBlobUrl(p) {
+    try {
+      const bin = atob(p.data), u8 = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+      return URL.createObjectURL(new Blob([u8], { type: p.type }));
+    } catch (e) { return ''; }
+  }
+
+  /* 需求卡片上的照片徽章：工程師／主管可點，同事只看得到張數 */
+  function photoBadge(r) {
+    const n = r.photoCount | 0;
+    if (n <= 0) return '';
+    if (canSeePhotos()) return '<button type="button" class="mt-chip ph" data-act="photos" data-id="' + esc(r.id) + '" title="點擊查看照片">📷 ' + n + ' 張</button>';
+    return '<span class="mt-chip ph off" title="照片只有工程師與主管可檢視">📷 ' + n + ' 張</span>';
+  }
+
+  let phBusy = false;
+  async function showPhotos(reqId) {
+    if (!canSeePhotos() || phBusy) return;
+    const rq = S.openRequests.find(x => x.id === reqId);
+    phBusy = true;
+    let res;
+    try { res = await call('getPhotos', { requestId: reqId }); } finally { phBusy = false; }
+    if (!res || !res.ok) { if (!res || res.errCode !== 'CODE') toast(errText(res), 'err'); return; }
+    const list = Array.isArray(res.photos) ? res.photos : [];
+    if (!list.length) { toast('這筆報修沒有照片'); return; }
+    const urls = [];   // 「新分頁看原尺寸」用的 Blob objectURL，關閉時一併 revoke
+    const m = openModal({
+      title: '📷 報修照片' + (rq ? '：' + rq.equipment : ''), wide: true, focus: false,
+      html: '<div class="mt-pv-hint">共 ' + list.length + ' 張，點圖片可在新分頁看原尺寸</div>' +
+        list.map((p, i) => '<figure class="mt-pv-f"><div class="mt-pv-c">第 ' + (i + 1) + ' 張</div>' +
+          (phSrc(p) ? '<div class="mt-pv-w" data-i="' + i + '"></div>' : '<div class="mt-pv-ph">無法顯示' + (p && p.error ? '：' + esc(p.error) : '') + '</div>') + '</figure>').join('') +
+        '<div class="mt-mf"><button class="btn btn-ghost" type="button" data-mclose>關閉</button></div>',
+      onClose() { urls.forEach(u => URL.revokeObjectURL(u)); urls.length = 0; }
+    });
+    list.forEach((p, i) => {
+      const src = phSrc(p), wrap = m.q('.mt-pv-w[data-i="' + i + '"]');
+      if (!src || !wrap) return;
+      const img = new Image();
+      img.className = 'mt-pv-img'; img.alt = '報修照片 ' + (i + 1); img.title = '點擊在新分頁看原尺寸';
+      let bu = '';
+      img.onclick = () => {
+        if (!bu) { bu = phToBlobUrl(p); if (bu) urls.push(bu); }
+        if (!bu) { toast('無法開啟原圖', 'err'); return; }
+        const a = document.createElement('a'); a.href = bu; a.target = '_blank'; a.rel = 'noopener'; a.click();
+      };
+      img.onerror = () => { wrap.innerHTML = '<div class="mt-pv-ph">圖片無法顯示</div>'; };
+      img.src = src;   // 用 DOM 屬性設定，不經 innerHTML
+      wrap.appendChild(img);
+    });
+  }
+
   /* ════════ 報修表單 ════════ */
   function reportModal() {
     let me = {}; try { me = JSON.parse(ls.get(K_ME) || '{}') || {}; } catch (e) { }
     const nonce = uuid();
+    const photos = [];   // 已壓縮的照片：{ size, w, h, b64, url(縮圖 objectURL) }
+    let phWorking = false, sending = false;
     const m = openModal({
       title: '📝 我要報修', backdrop: false,
       html: '<div class="mt-form">' +
@@ -5560,28 +5723,90 @@ const MAINT = (() => {
         '<div class="mt-f"><label>位置</label><input class="mt-in" id="rq-loc" maxlength="60" placeholder="例：二樓辦公室"></div></div>' +
         '<div class="mt-f"><label>設備名稱 *</label><input class="mt-in" id="rq-eq" maxlength="60" placeholder="例：影印機"></div>' +
         '<div class="mt-f"><label>問題描述 *</label><textarea class="mt-in" id="rq-desc" rows="4" maxlength="500" placeholder="發生什麼狀況？什麼時候開始？"></textarea><div class="mt-cnt" id="rq-cnt">還可輸入 500 字</div></div>' +
+        '<div class="mt-f"><label>📷 照片（選填，最多 ' + PH_MAX + ' 張）</label>' +
+        '<button type="button" class="btn btn-ghost mt-ph-add" id="rq-ph-add">＋ 拍照／選擇照片</button>' +
+        '<input type="file" id="rq-ph-in" accept="image/*" multiple style="display:none">' +
+        '<div class="mt-ph-list" id="rq-ph-list"></div>' +
+        '<div class="mt-ph-msg" id="rq-ph-msg">拍下故障位置或異常畫面，工程師比較容易判斷問題。</div></div>' +
         '<div class="mt-f"><label>是否急需處理</label><div class="mt-choice">' +
         '<label class="mt-ch urgent"><input type="radio" name="rq-u" value="1"><span><b>🔴 急需處理</b><small>設備停擺、影響出貨或有安全疑慮</small></span></label>' +
         '<label class="mt-ch"><input type="radio" name="rq-u" value="0" checked><span><b>一般</b><small>由工程師排時間處理</small></span></label></div></div>' +
         '<div class="mt-hint">送出後由工程師安排維修時間，不需要自己選時間。</div>' +
         '<div class="mt-err" id="rq-err"></div>' +
-        '<div class="mt-mf"><button class="btn btn-ghost" type="button" data-mclose>取消</button><button class="btn btn-primary" type="button" id="rq-ok">送出報修</button></div></div>'
+        '<div class="mt-ph-up" id="rq-ph-up">正在上傳照片，請勿關閉視窗</div>' +
+        '<div class="mt-mf"><button class="btn btn-ghost" type="button" id="rq-cancel" data-mclose>取消</button><button class="btn btn-primary" type="button" id="rq-ok">送出報修</button></div></div>',
+      onClose() { photos.forEach(p => URL.revokeObjectURL(p.url)); photos.length = 0; }
     });
     const desc = m.q('#rq-desc'), cnt = m.q('#rq-cnt');
     const upd = () => { cnt.textContent = '還可輸入 ' + (500 - desc.value.length) + ' 字'; };
     desc.addEventListener('input', upd);
+
+    /* 照片：選完立刻壓縮、顯示縮圖列 */
+    const phMsg = (t, warn) => { const el = m.q('#rq-ph-msg'); el.textContent = t; el.className = 'mt-ph-msg' + (warn ? ' warn' : ''); };
+    const paintPh = () => {
+      m.q('#rq-ph-list').innerHTML = photos.map((p, i) => '<div class="mt-ph-it"><img src="' + p.url + '" alt="照片 ' + (i + 1) + '">' +
+        '<button type="button" class="mt-ph-x" data-i="' + i + '" aria-label="移除第 ' + (i + 1) + ' 張照片">✕</button>' +
+        '<div class="mt-ph-sz">' + esc(fmtBytes(p.size)) + '</div></div>').join('');
+      const add = m.q('#rq-ph-add');
+      add.disabled = phWorking || sending || photos.length >= PH_MAX;
+      add.textContent = phWorking ? '處理照片中…' : (photos.length >= PH_MAX ? '已達 ' + PH_MAX + ' 張上限' : '＋ 拍照／選擇照片');
+      m.q('#rq-ok').disabled = phWorking || sending;
+    };
+    m.q('#rq-ph-add').onclick = () => m.q('#rq-ph-in').click();
+    m.q('#rq-ph-list').addEventListener('click', e => {
+      const x = e.target.closest('.mt-ph-x'); if (!x || sending) return;
+      const i = +x.getAttribute('data-i'), p = photos[i];
+      if (!p) return;
+      URL.revokeObjectURL(p.url); photos.splice(i, 1);
+      phMsg('已移除。還可再加 ' + (PH_MAX - photos.length) + ' 張。');
+      paintPh();
+    });
+    m.q('#rq-ph-in').addEventListener('change', async e => {
+      const inp = e.target;
+      let files = Array.prototype.slice.call(inp.files || []);
+      inp.value = '';   // 清掉，讓同一張照片可以再選一次
+      if (!files.length || phWorking || sending) return;
+      const room = PH_MAX - photos.length;
+      const notes = [];
+      if (room <= 0) { phMsg('最多 ' + PH_MAX + ' 張，請先移除再新增', true); return; }
+      if (files.length > room) { notes.push('最多 ' + PH_MAX + ' 張，只取前 ' + room + ' 張'); files = files.slice(0, room); }
+      phWorking = true; paintPh(); phMsg('正在處理照片…');
+      let bad = 0;
+      for (const f of files) {
+        try {
+          const r = await phCompress(f);
+          if (m.closed) { URL.revokeObjectURL(r.url); return; }
+          photos.push(r);
+        } catch (err) { if (m.closed) return; bad++; }
+        if (m.closed) return;
+      }
+      phWorking = false;
+      if (bad) notes.push(files.length > 1 ? bad + ' 張無法讀取，已略過。' + PH_ERR_READ : PH_ERR_READ);
+      phMsg(notes.length ? notes.join('；') : '已加入 ' + (files.length - bad) + ' 張，還可再加 ' + (PH_MAX - photos.length) + ' 張。', !!notes.length);
+      paintPh();
+    });
+
     m.q('#rq-ok').onclick = async () => {
       const v = id => m.q(id).value.trim();
       const er = m.q('#rq-err'); er.style.display = 'none';
       if (!v('#rq-name') || !v('#rq-eq') || !v('#rq-desc')) { er.textContent = '報修人、設備名稱、問題描述為必填'; er.style.display = 'block'; return; }
-      const ok = m.q('#rq-ok'); ok.disabled = true; ok.textContent = '送出中…';
+      if (phWorking) { er.textContent = '照片還在處理中，請稍候'; er.style.display = 'block'; return; }
+      const ok = m.q('#rq-ok'); ok.disabled = true; ok.textContent = photos.length ? '上傳中…' : '送出中…';
+      sending = true; paintPh();
+      if (photos.length) { m.q('#rq-ph-up').style.display = 'block'; m.q('#rq-cancel').disabled = true; }
       const req = { requester: v('#rq-name'), dept: v('#rq-dept'), category: m.q('#rq-cat').value, location: v('#rq-loc'), equipment: v('#rq-eq'), description: v('#rq-desc'), urgent: m.q('input[name=rq-u]:checked').value === '1' };
+      if (photos.length) req.photos = photos.map(p => ({ type: 'image/jpeg', data: p.b64 }));
       const res = await call('submitRequest', { nonce: nonce, req: req });
-      ok.disabled = false; ok.textContent = '送出報修';
+      sending = false;
+      if (!m.closed) {
+        ok.textContent = '送出報修'; m.q('#rq-ph-up').style.display = 'none'; m.q('#rq-cancel').disabled = false; paintPh();
+      }
       if (res && res.ok) {
         ls.set(K_ME, JSON.stringify({ requester: req.requester, dept: req.dept }));
         m.close(); toast('已送出，工程師會安排時間'); load(true);
-      } else if (res && res.errCode !== 'CODE') handleFail(res, null, er);
+      } else if (res && res.errCode !== 'CODE') {
+        if (m.closed) toast(errText(res), 'err'); else handleFail(res, null, er);
+      }
     };
   }
 
@@ -5589,7 +5814,8 @@ const MAINT = (() => {
   function viewBlockModal(b) {
     const rq = b.requestId ? S.openRequests.find(r => r.id === b.requestId) : null;
     const row = (k, v) => v ? '<tr><th>' + esc(k) + '</th><td>' + v + '</td></tr>' : '';
-    openModal({
+    const phN = (rq && canSeePhotos()) ? (rq.photoCount | 0) : 0;
+    const m = openModal({
       title: '排程明細',
       html: '<table class="mt-dt">' +
         row('類型', esc(b.type) + (b.urgent ? '　<span class="mt-chip red">🔴 急件</span>' : '')) +
@@ -5597,9 +5823,12 @@ const MAINT = (() => {
         row('時段', esc(timeRange(b.startHour, b.hours)) + '（' + b.hours + ' 小時）') +
         row('標題', esc(b.title)) + row('位置', esc(b.location)) + row('說明', nl2br(b.note)) +
         row('狀態', esc(b.status) + (b.status === '已完成' && b.actualHours ? '（實際 ' + fmtH(b.actualHours) + ' 小時）' : '')) +
-        (rq ? row('報修人', esc(rq.requester) + (rq.dept ? '（' + esc(rq.dept) + '）' : '')) + row('報修內容', esc(rq.equipment) + '：' + nl2br(rq.description)) : '') +
+        (rq ? row('報修人', esc(rq.requester) + (rq.dept ? '（' + esc(rq.dept) + '）' : '')) + row('報修內容', esc(rq.equipment) + '：' + nl2br(rq.description)) +
+          (phN > 0 ? row('報修照片', '<button type="button" class="btn btn-ghost mt-sm" data-ph>📷 看照片（' + phN + '）</button>') : '') : '') +
         '</table><div class="mt-mf"><button class="btn btn-ghost" type="button" data-mclose>關閉</button></div>'
     });
+    const pb = m.q('[data-ph]');
+    if (pb) pb.onclick = () => showPhotos(rq.id);
   }
 
   function addModal() {
@@ -5633,7 +5862,7 @@ const MAINT = (() => {
       title: edit ? '編輯排程' : '新增排程', backdrop: false,
       html: '<div class="mt-form">' +
         '<div class="mt-f"><label>類型</label><select class="mt-in" id="mb-type">' + BLOCK_TYPES.map(t => '<option' + (t === type0 ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></div>' +
-        '<div class="mt-f mt-only-rep"><label>連結報修需求</label><select class="mt-in" id="mb-req">' + reqOpt + '</select></div>' +
+        '<div class="mt-f mt-only-rep"><label>連結報修需求</label><select class="mt-in" id="mb-req">' + reqOpt + '</select><div id="mb-ph-row"></div></div>' +
         '<div class="mt-row3"><div class="mt-f"><label>日期</label><input class="mt-in" type="date" id="mb-date" value="' + esc(date0) + '"></div>' +
         '<div class="mt-f"><label>起始</label><select class="mt-in" id="mb-start">' + hourOpt(start0) + '</select></div>' +
         '<div class="mt-f"><label>時長（小時）</label><select class="mt-in" id="mb-hours"></select></div></div>' +
@@ -5681,7 +5910,15 @@ const MAINT = (() => {
       if (t !== '維修') g('#mb-req').value = '';
       lockUrgent();
     };
-    const lockUrgent = () => { g('#mb-urg').disabled = !!g('#mb-req').value; };
+    /* 連結的需求有照片時，工程師可直接在這裡看 */
+    const syncPh = () => {
+      const row = g('#mb-ph-row'); if (!row) return;
+      const r = reqs.find(x => x.id === g('#mb-req').value);
+      const n = (r && !r._gone && canSeePhotos()) ? (r.photoCount | 0) : 0;
+      row.innerHTML = n > 0 ? '<button type="button" class="btn btn-ghost mt-sm" id="mb-ph">📷 看照片（' + n + '）</button>' : '';
+      const b2 = g('#mb-ph'); if (b2) b2.onclick = () => showPhotos(r.id);
+    };
+    const lockUrgent = () => { g('#mb-urg').disabled = !!g('#mb-req').value; syncPh(); };
     let prevType = type0;
     g('#mb-type').onchange = () => { const p = prevType === '維修' ? '' : prevType; syncType(p); prevType = g('#mb-type').value; };
     g('#mb-req').onchange = () => {
