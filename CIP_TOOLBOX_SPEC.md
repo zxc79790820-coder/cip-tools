@@ -23,10 +23,11 @@ cip_toolbox.html（單一檔案）
     ├── panel-pc     Tool E：插條產能統計
     ├── panel-scan   Tool F：貼紙掃碼清點
     ├── panel-urgent Tool G：急件追蹤
-    └── panel-ship   Tool H：出件明細
+    ├── panel-ship   Tool H：出件明細
+    └── panel-maint  Tool I：設備維修排程
 ```
 
-JS 命名空間：`LAMP`、`WO`、`POSM`、`TC`、`PC`、`SCAN`、`URGENT`、`SHIP`，各自獨立 IIFE，互不干擾。
+JS 命名空間：`LAMP`、`WO`、`POSM`、`TC`、`PC`、`SCAN`、`URGENT`、`SHIP`、`MAINT`，各自獨立 IIFE，互不干擾。
 新增工具只需：新增 `nav-item` + `panel-xxx div` + 對應 IIFE namespace。
 
 外部套件（CDN）：
@@ -188,6 +189,39 @@ Apps Script 端回的是 `getDisplayValues()`，也就是儲存格上看到的�
 拿到規格後在 `COLS` 旁另加一個對應表即可。
 
 **相依**：無外部套件。CSS 前綴 `sh-`。件數 0 是合法值，統計與顯示都不可當成空值略過。
+
+---
+
+## Tool I：設備維修排程（MAINT）
+
+**功能**：設備工程師（生產設備／事務設備／消防／水電初步檢修）的一週排程表。
+同事線上報修、只有工程師能排程、工程師一鍵寄故障／恢復通知給全公司群組信箱、工程師與主管看稼動率。
+
+**後端**：Google Apps Script 網頁應用程式＋試算表，部署在使用者的公司 Workspace 帳號（執行身分＝我、存取＝任何人）。
+- 程式原始碼 `~/Scripts/maint_appsscript.gs`，部署步驟見桌面「對話接續記錄／設備維修排程_部署說明.md」
+- 端點網址寫死在 `MAINT` 內的 `ENDPOINT`（同事免設定）；**改後端一律「管理部署作業 → 鉛筆 → 新版本」**，網址才不變
+- 試算表分頁：需求／排程／故障通報／行事曆／操作紀錄（欄位順序寫死，不可手動調整）
+- 密碼與設定全在 Script Properties：ACCESS_CODE（公司通行碼）、ENGINEER_PASSWORD、MANAGER_PASSWORD、NOTIFY_TO（群組信箱）、ENGINEER_NAME、ENGINEER_EMAIL（回信地址）、WORK_DAYS、WORK_HOURS
+- **本 repo 內不放任何密碼與排程資料**；網址公開，所以除 `ping` 外每個 action 都驗通行碼，權限一律後端判斷
+
+**身分**：同事＝通行碼（存 localStorage）；工程師／主管＝密碼換 token（存 sessionStorage，閒置 6 小時失效）。
+主管只能看稼動率。
+
+**畫面**：7 天排程格（今天第一列，09–23 每小時一格，CSS grid 跨格區塊）、待排程需求清單、報修表單（只能勾是否急件，不能選時間）、
+工程師排程視窗（時長只列連續空格）、一鍵全天／上午／下午假、故障通知（預覽→確認→寄出）、通報紀錄（寄恢復通知）、稼動率、行事曆。
+
+**稼動率**：完成維修工時 ÷（工作日 × 8 − 休假）。休假只算 09–12、13–18 內的格數（午休不扣）；外出不扣分母、另列；
+週末／夜間完成的維修照算，可能 >100%。前後端演算法（`calcStats`）必須一致，改一邊要同步改另一邊。
+
+**行事曆**：內建人事行政總處 115、116 年國定假日（`TW_HOLIDAYS`，前後端各一份需同步），setup() 自動匯入、網頁可補匯；
+每年 6–7 月公布次年辦公日曆表後要補上。
+
+**防重複**：報修與故障通知帶 nonce；同設備 10 分鐘內同類通知擋下、每日上限 20 封；
+一次性連線錯誤（Google 偶發 404）對可重送的動作自動重試一次，排程類寫入不重送、改為重新載入。
+
+**模擬模式**：網址加 `?mock=1` 用瀏覽器內建假後端（通行碼 demo／工程師 eng123／主管 mgr123），種子資料全為假名。
+
+**相依**：無外部套件。CSS 前綴 `mt-`。「今天」以後端回傳為準，前端用 `Intl` 取台北日期，禁用 `toISOString()`。
 
 ---
 
