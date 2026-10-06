@@ -5107,6 +5107,8 @@ const MAINT = (() => {
     }
   }
 
+  const RETRY_SAFE = ['ping', 'bootstrap', 'whoami', 'auth', 'logout', 'stats', 'listBlocks', 'listFaults',
+                      'submitRequest', 'sendFault', 'saveCalendar', 'importHolidays'];
   async function call(action, params) {
     S.loading++; paintStatus();
     try {
@@ -5114,7 +5116,19 @@ const MAINT = (() => {
         const body = Object.assign({ action: action, code: ls.get(K_CODE) || '' }, params || {});
         const tk = ss.get(K_TOKEN);
         if (tk && body.token === undefined) body.token = tk;
-        const res = await rawCall(body);
+        let res = await rawCall(body);
+        /* Google 偶爾在寫入後回傳回應時給一次性 404／斷線（實測重整後即正常）。
+           重送安全的動作自動重試一次：報修與故障通知帶 nonce，後端成功過就回原結果，不會重複建立或重複寄信。
+           排程類寫入不盲目重送（可能已成功，重送會變成重疊或衝突），改為重新載入讓使用者確認。 */
+        if (res && res.errCode === 'NET') {
+          if (RETRY_SAFE.indexOf(action) >= 0) {
+            await new Promise(r => setTimeout(r, 1200));
+            res = await rawCall(body);
+          } else {
+            setTimeout(() => load(true), 300);
+            res = Object.assign({}, res, { error: res.error + '。可能已經存檔成功，畫面已重新載入，請確認後再操作' });
+          }
+        }
         if (res && res.ok === false && res.errCode === 'CODE') {
           const c = await askCode(res.error);
           if (c === null) return res;
