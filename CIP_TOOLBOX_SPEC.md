@@ -219,6 +219,12 @@ Apps Script 端回的是 `getDisplayValues()`，也就是儲存格上看到的�
 **防重複**：報修與故障通知帶 nonce；同設備 10 分鐘內同類通知擋下、每日上限 20 封；
 一次性連線錯誤（Google 偶發 404）對可重送的動作自動重試一次，排程類寫入不重送、改為重新載入。
 
+**報修照片（後端 1.2.0）**：每筆最多 3 張，前端壓縮至長邊 1600px、≤900KB；只有工程師與主管看得到（`getPhotos`），同事只看到張數，回應中**絕不含檔案 id**。
+存在部署者雲端硬碟「設備維修排程_報修照片」（id 自動寫入 Script Properties `PHOTO_FOLDER_ID`，勿刪勿搬）。
+權限刻意不用 DriveApp（需整個雲端硬碟權限），改 Drive REST v3＋`drive.file`＋`script.external_request`；
+**專案必須在編輯器「服務」加入 Drive API v3**，否則 REST 回 403「Drive API has not been used in project」。
+排查用 `照片診斷.gs` 的 `diagPhotoUpload()`（桌面「對話接續記錄」內），在編輯器執行逐步顯示 ✅／❌。
+
 **模擬模式**：網址加 `?mock=1` 用瀏覽器內建假後端（通行碼 demo／工程師 eng123／主管 mgr123），種子資料全為假名。
 
 **相依**：無外部套件。CSS 前綴 `mt-`。「今天」以後端回傳為準，前端用 `Intl` 取台北日期，禁用 `toISOString()`。
