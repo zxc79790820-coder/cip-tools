@@ -1347,6 +1347,8 @@ body { background: #f4f1ec; }
 .mt-card-n{font-size:26px;font-weight:700;color:var(--cip-text);line-height:1.3}
 .mt-card-n small{font-size:12px;font-weight:500;color:var(--cip-text3)}
 .mt-card-s{font-size:11px;color:var(--cip-text3);line-height:1.5}
+.mt-rq.mt-flash{box-shadow:0 0 0 3px var(--cip-orange);animation:mtFlash 1s ease-in-out 3}
+@keyframes mtFlash{50%{box-shadow:0 0 0 6px rgba(223,146,0,.35)}}
 .mt-bar{height:8px;background:#efe4d0;border-radius:4px;overflow:hidden;margin:4px 0 5px}
 .mt-bar i{display:block;height:100%;background:var(--cip-orange);border-radius:4px;transition:width .3s}
 .mt-bar.over i{background:#b87e00}
@@ -5286,7 +5288,35 @@ const MAINT = (() => {
       if (w && w.ok) { S.role = w.role; ss.set(K_ROLE, w.role); }
       else if (w && w.errCode === 'AUTH') clearAuth();
     }
-    await load();
+    if (await load()) handleDeepLink();
+  }
+
+  /* ════════ 報修通知信的連結：?req=R-xxxx#maint → 直接進入「排入時段」 ════════ */
+  function handleDeepLink() {
+    const id = deepReq; if (!id) return;
+    deepReq = '';
+    try {   // 用過就從網址拿掉，重新整理不會再觸發
+      const u = new URL(location.href); u.searchParams.delete('req');
+      history.replaceState(null, '', u.pathname + u.search + u.hash);
+    } catch (e) { }
+    const go = () => {
+      const r = S.openRequests.find(x => x.id === id);
+      if (!r) { toast('這筆報修已完成或已取消，不在待排程清單中', 'err'); return; }
+      if (r.status === '待排程') { startPick(id); toast('請點選要排入的時段'); }
+      else toast('這筆報修已排程；如需追加時段，請按卡片上的〔排入〕');
+      flashCard(id);   // 放在 startPick 之後：startPick 會重繪清單，先加的高亮會被洗掉
+    };
+    if (S.role === 'engineer') { go(); return; }
+    loginModal({
+      hint: '要安排這筆報修，請先輸入工程師密碼' + (S.role === 'manager' ? '（目前是主管身分，無法排程）' : '') + '。',
+      onSuccess: role => { if (role === 'engineer') go(); else toast('需用工程師密碼登入才能排程', 'err'); }
+    });
+  }
+  function flashCard(id) {
+    const el = document.querySelector('#panel-maint .mt-rq[data-rid="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
+    if (!el) return;
+    el.classList.add('mt-flash');
+    setTimeout(() => el.classList.remove('mt-flash'), 6000);
   }
 
   function onShow() {
@@ -5474,7 +5504,7 @@ const MAINT = (() => {
     list.forEach(r => {
       const long = String(r.description || '').length > 60 || String(r.description || '').indexOf('\n') >= 0;
       const open = !!S.expanded[r.id];
-      h += '<div class="mt-rq' + (r.urgent ? ' urgent' : '') + '">' +
+      h += '<div class="mt-rq' + (r.urgent ? ' urgent' : '') + '" data-rid="' + esc(r.id) + '">' +
         '<div class="mt-rq-h">' + (r.urgent ? '<span class="mt-chip red">🔴 急件</span>' : '') +
         '<span class="mt-chip">' + esc(r.category) + '</span><b class="mt-rq-eq">' + esc(r.equipment) + '</b>' +
         '<span class="mt-chip st-' + (r.status === '已排程' ? 'sch' : 'wait') + '">' + esc(r.status) + '</span>' + photoBadge(r) + '</div>' +
@@ -5552,10 +5582,11 @@ const MAINT = (() => {
   }
 
   /* ════════ 登入／登出 ════════ */
-  function loginModal() {
+  function loginModal(opts) {
+    opts = (opts && opts.onSuccess) ? opts : {};
     const m = openModal({
       title: '登入', backdrop: false,
-      html: '<div class="mt-form"><div class="mt-f"><label>密碼</label><input class="mt-in" id="lg-pw" type="password" autocomplete="off"></div>' +
+      html: '<div class="mt-form">' + (opts.hint ? '<div class="mt-hint">' + esc(opts.hint) + '</div>' : '') + '<div class="mt-f"><label>密碼</label><input class="mt-in" id="lg-pw" type="password" autocomplete="off"></div>' +
         '<div class="mt-err" id="lg-err"></div>' +
         '<div class="mt-mf"><button class="btn btn-ghost" type="button" data-mclose>取消</button><button class="btn btn-primary" type="button" id="lg-ok">登入</button></div></div>'
     });
@@ -5569,6 +5600,7 @@ const MAINT = (() => {
         ss.set(K_TOKEN, res.token); ss.set(K_ROLE, res.role); S.role = res.role;
         m.close(); toast('已登入：' + (res.role === 'engineer' ? '工程師模式' : '主管模式'));
         render();
+        if (opts.onSuccess) opts.onSuccess(res.role);
       } else if (res && res.errCode !== 'CODE') {
         const er = m.q('#lg-err'); er.textContent = errText(res); er.style.display = 'block';
         m.q('#lg-pw').select();
@@ -6276,6 +6308,7 @@ const MAINT = (() => {
   }
 
   /* ════════ 初始化 ════════ */
+  let deepReq = '';
   function init() {
     const p = $('panel-maint');
     p.addEventListener('click', onClick);
@@ -6285,7 +6318,9 @@ const MAINT = (() => {
     const sw = window.switchTool;
     window.switchTool = function (id) { const r = sw.apply(this, arguments); if (id === 'maint') onShow(); return r; };
     render();
-    if (location.hash === '#maint') window.switchTool('maint');
+    const q = new URLSearchParams(location.search).get('req') || '';
+    if (/^R-?[A-Za-z0-9]{1,24}$/.test(q)) deepReq = q;    // 只接受需求編號格式，其他一律忽略
+    if (location.hash === '#maint' || deepReq) window.switchTool('maint');
   }
 
   init();
