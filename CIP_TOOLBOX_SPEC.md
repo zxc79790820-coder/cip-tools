@@ -30,6 +30,17 @@ cip_toolbox.html（單一檔案）
 JS 命名空間：`LAMP`、`WO`、`POSM`、`TC`、`PC`、`SCAN`、`URGENT`、`SHIP`、`MAINT`，各自獨立 IIFE，互不干擾。
 新增工具只需：新增 `nav-item` + `panel-xxx div` + 對應 IIFE namespace。
 
+**側邊欄分類**（2026-10-08 使用者定版；`nav-item` 放進對應的 `<div class="nav-group">`）：
+| 分類 | 工具 |
+|---|---|
+| 印前工具 | A 主燈彙整、B 工單分析 |
+| 輸出工具 | （暫無，顯示「暫無工具」；手機版自動隱藏） |
+| 後製工具 | F 貼紙掃碼清點、H 出件明細 |
+| 業務工具 | C POSM 包裝清單 |
+| 會計工具 | D 天成快遞對帳 |
+| 管理工具 | E 插條產能統計、G 急件追蹤、I 設備維修排程 |
+手機版（≤820px）側欄變橫向工具列，分類標題隱藏、以細分隔線區分。
+
 外部套件（CDN）：
 - `xlsx.full.min.js`（SheetJS 0.18.5）— 讀取上傳的 XLS/XLSX
 - `jszip.min.js`（JSZip 3.10.1）— Tool B 的 ZIP 匯出

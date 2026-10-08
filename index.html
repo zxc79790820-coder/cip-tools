@@ -1450,6 +1450,19 @@ button.mt-chip.ph:hover{background:#cfe5f8}
 .mt-pv-ph{display:flex;align-items:center;justify-content:center;min-height:120px;padding:14px;text-align:center;font-size:13px;color:var(--cip-text2);background:#ececec;border:1px dashed #b5b5b5;border-radius:6px;word-break:break-word}
 /* ── /Tool I CSS ── */
 
+
+/* ── 側欄分類（印前／輸出／後製／業務／會計／管理） ── */
+.nav-group { padding: 4px 0 6px; }
+.nav-group-title {
+  font-size: 11px; font-weight: 700; letter-spacing: .12em; color: #a3906e;
+  padding: 10px 20px 4px;
+}
+.nav-group-empty { font-size: 11px; color: #c4baa9; padding: 4px 20px 6px 22px; font-style: italic; }
+@media (max-width: 820px) {
+  .nav-group { display: flex; gap: 3px; padding: 0 0 0 5px; margin-left: 2px; border-left: 1px solid #e8e2d8; flex-shrink: 0; }
+  .nav-group-title, .nav-group-empty { display: none; }
+  .nav-group:has(.nav-group-empty) { display: none; }
+}
 </style>
 </head>
 <body>
@@ -1462,57 +1475,75 @@ button.mt-chip.ph:hover{background:#cfe5f8}
   </div>
 
   <div class="nav-section">
-    <div class="nav-section-title">工具列表</div>
     <div class="nav-item" id="nav-home" onclick="switchTool('home')">
       <span class="nav-icon">🏠</span>
       <span class="nav-label">首頁</span>
     </div>
     <div class="nav-divider"></div>
-    <div class="nav-item active" id="nav-lamp" onclick="switchTool('lamp')">
-      <span class="nav-icon">🔆</span>
-      <span class="nav-label">主燈彙整</span>
-      <span class="nav-tag">A</span>
+    <div class="nav-group">
+      <div class="nav-group-title">印前工具</div>
+      <div class="nav-item active" id="nav-lamp" onclick="switchTool('lamp')">
+        <span class="nav-icon">🔆</span>
+        <span class="nav-label">主燈彙整</span>
+        <span class="nav-tag">A</span>
+      </div>
+      <div class="nav-item" id="nav-wo" onclick="switchTool('wo')">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">工單分析</span>
+        <span class="nav-tag">B</span>
+      </div>
     </div>
-    <div class="nav-item" id="nav-wo" onclick="switchTool('wo')">
-      <span class="nav-icon">📋</span>
-      <span class="nav-label">工單分析</span>
-      <span class="nav-tag">B</span>
+    <div class="nav-group">
+      <div class="nav-group-title">輸出工具</div>
+      <div class="nav-group-empty">暫無工具</div>
     </div>
-    <div class="nav-item" id="nav-posm" onclick="switchTool('posm')">
-      <span class="nav-icon">📦</span>
-      <span class="nav-label">POSM 包裝清單</span>
-      <span class="nav-tag">C</span>
+    <div class="nav-group">
+      <div class="nav-group-title">後製工具</div>
+      <div class="nav-item" id="nav-scan" onclick="switchTool('scan')">
+        <span class="nav-icon">🏷️</span>
+        <span class="nav-label">貼紙掃碼清點</span>
+        <span class="nav-tag">F</span>
+      </div>
+      <div class="nav-item" id="nav-ship" onclick="switchTool('ship')">
+        <span class="nav-icon">📦</span>
+        <span class="nav-label">出件明細</span>
+        <span class="nav-tag">H</span>
+      </div>
     </div>
-    <div class="nav-item" id="nav-tc" onclick="switchTool('tc')">
-      <span class="nav-icon">🚚</span>
-      <span class="nav-label">天成快遞對帳</span>
-      <span class="nav-tag">D</span>
+    <div class="nav-group">
+      <div class="nav-group-title">業務工具</div>
+      <div class="nav-item" id="nav-posm" onclick="switchTool('posm')">
+        <span class="nav-icon">📦</span>
+        <span class="nav-label">POSM 包裝清單</span>
+        <span class="nav-tag">C</span>
+      </div>
     </div>
-    <div class="nav-item" id="nav-pc" onclick="switchTool('pc')">
-      <span class="nav-icon">📊</span>
-      <span class="nav-label">插條產能統計</span>
-      <span class="nav-tag">E</span>
+    <div class="nav-group">
+      <div class="nav-group-title">會計工具</div>
+      <div class="nav-item" id="nav-tc" onclick="switchTool('tc')">
+        <span class="nav-icon">🚚</span>
+        <span class="nav-label">天成快遞對帳</span>
+        <span class="nav-tag">D</span>
+      </div>
     </div>
-    <div class="nav-item" id="nav-scan" onclick="switchTool('scan')">
-      <span class="nav-icon">🏷️</span>
-      <span class="nav-label">貼紙掃碼清點</span>
-      <span class="nav-tag">F</span>
-    </div>
-    <div class="nav-item" id="nav-urgent" onclick="switchTool('urgent')">
-      <span class="nav-icon">🚨</span>
-      <span class="nav-label">急件追蹤</span>
-      <span class="nav-tag">G</span>
-      <span class="nav-badge" id="ug-badge"></span>
-    </div>
-    <div class="nav-item" id="nav-ship" onclick="switchTool('ship')">
-      <span class="nav-icon">📦</span>
-      <span class="nav-label">出件明細</span>
-      <span class="nav-tag">H</span>
-    </div>
-    <div class="nav-item" id="nav-maint" onclick="switchTool('maint')">
-      <span class="nav-icon">🛠️</span>
-      <span class="nav-label">設備維修排程</span>
-      <span class="nav-tag">I</span>
+    <div class="nav-group">
+      <div class="nav-group-title">管理工具</div>
+      <div class="nav-item" id="nav-pc" onclick="switchTool('pc')">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">插條產能統計</span>
+        <span class="nav-tag">E</span>
+      </div>
+      <div class="nav-item" id="nav-urgent" onclick="switchTool('urgent')">
+        <span class="nav-icon">🚨</span>
+        <span class="nav-label">急件追蹤</span>
+        <span class="nav-tag">G</span>
+        <span class="nav-badge" id="ug-badge"></span>
+      </div>
+      <div class="nav-item" id="nav-maint" onclick="switchTool('maint')">
+        <span class="nav-icon">🛠️</span>
+        <span class="nav-label">設備維修排程</span>
+        <span class="nav-tag">I</span>
+      </div>
     </div>
     <!-- 新工具在此新增 nav-item -->
   </div>
