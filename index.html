@@ -1462,6 +1462,61 @@ button.mt-chip.ph:hover{background:#cfe5f8}
   #nav-cats { display: contents; }
   .nav-group-title { display: none; }
 }
+
+/* ═══ 分機表（EXT）═══ */
+.ex-homebtn{display:flex;align-items:center;gap:14px;width:100%;margin:0 0 20px;padding:16px 20px;background:var(--cip-orange-bg);border:1.5px solid var(--cip-orange);border-radius:8px;cursor:pointer;text-align:left;font-family:inherit;color:var(--cip-text);transition:box-shadow .2s,transform .15s}
+.ex-homebtn:hover{box-shadow:0 4px 14px rgba(223,146,0,.25);transform:translateY(-1px)}
+.ex-homebtn-ic{font-size:28px;flex-shrink:0;line-height:1}
+.ex-homebtn-tx{flex:1;min-width:0}
+.ex-homebtn-tx b{display:block;font-size:16px;font-weight:700}
+.ex-homebtn-tx small{display:block;font-size:12px;color:var(--cip-text2);line-height:1.6;margin-top:2px}
+.ex-homebtn-go{font-size:24px;color:var(--cip-orange);flex-shrink:0}
+.ex-back{margin:0 0 14px;font-size:12px}
+.ex-back a{color:var(--cip-orange);text-decoration:none;cursor:pointer;font-weight:600}
+.ex-back a:hover{text-decoration:underline}
+.ex-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.ex-bar .btn{padding:8px 14px}
+.ex-sp{flex:1;min-width:0}
+.ex-meta{font-size:12px;color:var(--cip-text3)}
+.ex-dirty{font-size:12px;font-weight:700;color:#b83015;background:#fff1ec;border:1px solid #f0b8a8;border-radius:10px;padding:2px 10px}
+.ex-warn{font-size:12px;color:#b83015;line-height:1.5}
+.ex-hint{font-size:12px;color:var(--cip-text2)}
+.ex-msg{margin-bottom:12px;padding:10px 14px;border-radius:6px;font-size:13px;line-height:1.6;background:#f4f1ec;color:var(--cip-text2)}
+.ex-msg.err{background:#fdecea;color:#b71c1c;border:1px solid #f1b9b3}
+.ex-msg a{color:inherit;font-weight:700;cursor:pointer;text-decoration:underline;margin-left:8px}
+.ex-wrap{overflow-x:auto;overflow-y:hidden;max-width:100%;border:1px solid var(--cip-border);border-radius:8px;background:#fff;-webkit-overflow-scrolling:touch}
+.ex-sizer{position:relative;min-height:60px}
+.ex-board{display:grid;gap:5px;padding:8px;background:#fff;box-sizing:content-box;font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;color:#111;line-height:1.2;position:absolute;left:0;top:0;transform-origin:0 0}
+.ex-board.ex-flat{position:static;width:max-content}
+.ex-board.ex-pvb{display:block;padding:0;width:auto}
+.ex-c{box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 6px;min-width:0;overflow-wrap:anywhere;gap:1px}
+.ex-c.tall{justify-content:space-evenly}
+.ex-c.ex-h{font-size:26px;font-weight:500;color:#222}
+.ex-c.ex-h.sp{letter-spacing:.25em;padding-left:calc(6px + .25em)}
+.ex-c.ex-nt{font-size:16px;color:#555;justify-content:flex-end;padding-bottom:6px}
+.ex-ext{font-size:30px;font-weight:700;color:#F07F2B;line-height:1.2}
+.ex-dept{font-size:28px;color:#1A73C8;line-height:1.2}
+.ex-ttl{font-size:28px;color:#111;line-height:1.2}
+.ex-logo{display:block;max-width:92%;height:auto;margin:2px 0}
+.ex-logo-1921{width:130px}
+.ex-logo-printbar{width:250px}
+.ex-ppl{display:flex;flex-direction:column;align-items:center}
+.ex-pl{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;column-gap:10px}
+.ex-nm{display:inline-flex;flex-direction:column;align-items:center;max-width:100%}
+.ex-n{font-size:28px;line-height:34px;color:#111}
+.ex-nk{font-size:17px;line-height:1.1;color:#2E7D4F;white-space:nowrap}
+.ex-nk.solo{line-height:34px}
+.ex-mk{font-size:18px;line-height:34px;color:#666}
+.ex-board.editing{outline:3px solid rgba(223,146,0,.35);outline-offset:-3px}
+.ex-board.editing .ex-c{cursor:pointer}
+.ex-board.editing .ex-c:hover,.ex-board.editing .ex-c:focus-visible{outline:5px dashed var(--cip-orange);outline-offset:-5px}
+.ex-offscreen{position:fixed;left:-30000px;top:0;background:#fff;width:max-content;z-index:-1}
+.ex-pdfhead{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding:16px 14px 6px;font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;font-size:36px;font-weight:700;color:#222}
+.ex-pdfhead span:last-child{font-size:22px;font-weight:400;color:#555}
+.ex-pvwrap{border:1px solid var(--cip-border);border-radius:6px;background:#fff;padding:6px;overflow:hidden;margin-bottom:4px}
+.ex-pv{transform-origin:0 0}
+.ex-fhint{font-size:12px;color:var(--cip-text3);line-height:1.7}
+@media(max-width:820px){.ex-homebtn{padding:14px 14px}.ex-bar .btn{padding:8px 11px}}
 </style>
 </head>
 <body>
@@ -1520,8 +1575,23 @@ button.mt-chip.ph:hover{background:#cfe5f8}
             <p>西北影像內部生產作業工具。請先選擇分類，再選擇要使用的工具。<br>上傳檔案類的工具只在本機瀏覽器處理，檔案不會上傳到伺服器。</p>
           </div>
         </div>
+        <button type="button" class="ex-homebtn" onclick="switchTool('ext')">
+          <span class="ex-homebtn-ic">📞</span>
+          <span class="ex-homebtn-tx"><b>分機表</b><small>各樓層分機與人員位置，所有人都能查詢與匯出 PDF</small></span>
+          <span class="ex-homebtn-go">›</span>
+        </button>
         <div class="welcome-cards" id="home-cards"><!-- 由 TOOL_CATS 產生 --></div>
       </div>
+    </div>
+
+    <!-- ══ 分機表（不在側欄、不在分類，由首頁按鈕進入）══ -->
+    <div class="tool-panel" id="panel-ext">
+      <div class="ex-back"><a href="javascript:void(0)" onclick="switchTool('home')">← 回首頁</a></div>
+      <div class="page-head"><div class="page-head-icon">📞</div><div>
+        <div class="page-head-title">分機表</div><div class="page-head-sub">各樓層分機與人員位置・所有人可匯出 PDF，主管可編輯</div></div></div>
+      <div class="ex-bar" id="ex-bar"></div>
+      <div class="ex-msg" id="ex-msg" hidden></div>
+      <div class="ex-wrap" id="ex-wrap"><div class="ex-sizer" id="ex-sizer"></div></div>
     </div>
 
     <!-- ══════════════════════════════
@@ -2203,6 +2273,7 @@ const TOOL_META = {
   urgent: { title: '急件追蹤', sub: 'ERP 每 15 分鐘自動更新 → 急件開立／進度／站別負載' },
   ship: { title: '出件明細', sub: '包裝掃碼登錄的資料 → 依施工地點彙整 → 供出件登打／匯出' },
   maint: { title: '設備維修排程', sub: '同事報修 → 工程師排程 → 故障通知 → 稼動率' },
+  ext:  { title: '分機表', sub: '各樓層分機與人員位置' },
 };
 
 /* ── 工具分類（唯一正本：側欄、首頁、分類頁都由這裡產生）──
@@ -2280,7 +2351,8 @@ function switchTool(id) {
   // 側欄：工具本身沒有側欄項目時，亮它所屬的分類
   const cat = catOf(id);
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const nav = document.getElementById('nav-' + id) || (cat && document.getElementById('nav-cat-' + cat.key));
+  const nav = document.getElementById('nav-' + id) || (cat && document.getElementById('nav-cat-' + cat.key)) ||
+    (id === 'ext' ? document.getElementById('nav-home') : null);   // 分機表不在側欄：亮「首頁」
   if (nav) {
     nav.classList.add('active');
     // 手機版側欄是橫向捲動的工具列，把目前項目捲進視野（桌機不觸發）
@@ -4904,6 +4976,50 @@ const MAINT = (() => {
     if (!left) { r.status = '待排程'; r.updatedAt = nowS; }
   }
 
+  /* 分機表模擬資料：全是虛構的假資料（假名、假分機），只供 ?mock=1 試玩；真實內容只存在後端試算表 */
+  function mockDirSeed() {
+    const G = '#E2EED9', Y = '#FDF0D0', B = '#DCE9F4', C = (id, k, c, r, cs, rs, bg, o) =>
+      Object.assign({ id: id, kind: k, c: c, r: r, cs: cs, rs: rs, bg: bg, text: '', ext: '', dept: '', title: '', people: '', logo: '' }, o);
+    return {
+      title: '分機表（模擬資料）', cols: 5, rows: 5, colWidths: [170, 170, 300, 260, 170],
+      cells: [
+        C('m01', 'header', 1, 0, 2, 1, G, { text: '三樓' }),
+        C('m02', 'header', 3, 0, 1, 1, Y, { text: '二樓' }),
+        C('m03', 'header', 4, 0, 2, 1, B, { text: '一樓' }),
+        C('m04', 'cell', 1, 1, 1, 2, G, { ext: '881', title: '會議室', people: '王小明（阿明）' }),
+        C('m05', 'cell', 2, 1, 1, 2, G, { ext: '882', dept: '業務部', people: '陳美玲（美玲）' }),
+        C('m06', 'cell', 1, 3, 1, 2, G, { ext: '883', title: '影印區' }),
+        C('m07', 'cell', 2, 3, 1, 2, G, { ext: '884', people: '林大華' }),
+        C('m08', 'cell', 3, 1, 1, 2, Y, { ext: '861', dept: '加工組', people: '(早) 王小明（小明） 林大華\n(晚) 陳美玲（美玲） 林大華' }),
+        C('m09', 'cell', 3, 3, 1, 2, Y, { ext: '862', dept: '品管組', people: '(早) 王小明（小明） / (晚) 陳美玲（美玲）' }),
+        C('m10', 'cell', 4, 1, 1, 1, B, { ext: '871', title: '櫃台' }),
+        C('m11', 'cell', 4, 2, 1, 3, B, { ext: '872', title: '洽談區', logo: '1921', people: '（Tom）' }),
+        C('m12', 'cell', 5, 1, 1, 4, B, { ext: '873', dept: '收發區', people: '陳美玲（美玲）\n林大華' }),
+        C('m13', 'cell', 1, 5, 2, 1, G, { ext: '899', title: '儲物間' }),
+        C('m14', 'note', 3, 5, 3, 1, '#EEEEEE', { text: '模擬資料・請勿當真' })
+      ]
+    };
+  }
+  function mockDirectory(st) {
+    if (!st.directory) st.directory = { version: 0, savedAt: '', savedBy: '', doc: mockDirSeed() };
+    return st.directory;
+  }
+  function mockDirInvalid(d) {
+    if (!d || typeof d !== 'object' || !Array.isArray(d.cells)) return '資料格式錯誤';
+    if (d.cells.length > 300) return '格子數不可超過 300';
+    if (JSON.stringify(d).length > 45000) return '內容過長';
+    const used = {};
+    for (let i = 0; i < d.cells.length; i++) {
+      const c = d.cells[i], n = '第 ' + (i + 1) + ' 格';
+      if (!/^#[0-9A-Fa-f]{6}$/.test(String(c.bg))) return n + ' bg 格式錯誤';
+      for (const k of ['text', 'ext', 'dept', 'title']) if (String(c[k] || '').length > 60) return n + ' ' + k + ' 不可超過 60 字';
+      if (String(c.people || '').length > 300) return n + ' people 不可超過 300 字';
+      if (c.c < 1 || c.c + c.cs - 1 > d.cols || c.r < 0 || c.r + c.rs - 1 > d.rows) return n + ' 超出版面';
+      for (let x = c.c; x < c.c + c.cs; x++) for (let y = c.r; y < c.r + c.rs; y++) { if (used[x + ',' + y]) return n + ' 與其他格重疊'; used[x + ',' + y] = 1; }
+    }
+    return '';
+  }
+
   function mockDispatch(st, b) {
     const A = b.action, now = Date.now();
     const E = (error, errCode, extra) => Object.assign({ ok: false, error: error, errCode: errCode }, extra || {});
@@ -5096,6 +5212,19 @@ const MAINT = (() => {
         });
         return { ok: true, added: added, skipped: skipped, years: HOL_YEARS.split('、') };
       }
+      case 'getDirectory': {
+        const D = mockDirectory(st);
+        return { ok: true, version: D.version, savedAt: D.savedAt, savedBy: D.savedBy, doc: D.doc };
+      }
+      case 'saveDirectory': {
+        if (!role) return E('請先登入', 'AUTH');
+        if (role !== 'manager') return E('只有主管可以編輯分機表', 'AUTH');
+        const D = mockDirectory(st);
+        if ((b.baseVersion | 0) !== D.version) return E('分機表已被其他人更新', 'CONFLICT', { current: { version: D.version, savedAt: D.savedAt } });
+        const bad = mockDirInvalid(b.doc); if (bad) return E(bad, 'INVALID');
+        D.version++; D.savedAt = nowS; D.savedBy = '主管'; D.doc = b.doc;
+        return { ok: true, version: D.version, savedAt: D.savedAt };
+      }
       default: return E('未知的 action：' + A, 'INVALID');
     }
   }
@@ -5162,7 +5291,7 @@ const MAINT = (() => {
   }
 
   const RETRY_SAFE = ['ping', 'bootstrap', 'whoami', 'auth', 'logout', 'stats', 'listBlocks', 'listFaults',
-                      'submitRequest', 'sendFault', 'saveCalendar', 'importHolidays', 'getPhotos'];
+                      'submitRequest', 'sendFault', 'saveCalendar', 'importHolidays', 'getPhotos', 'getDirectory'];   // saveDirectory 不重試
   async function call(action, params) {
     S.loading++; paintStatus();
     try {
@@ -6331,10 +6460,350 @@ const MAINT = (() => {
   }
 
   init();
-  return { init, load, __test: { calcStats: calcStats } };
+  /* 提供給分機表等新模組重用登入／通行碼／modal，不要各自複製一份 */
+  const api = { call, loginModal, role: () => S.role || ss.get(K_ROLE) || '', openModal, toast, errText, esc };
+  return { init, load, api, __test: { calcStats: calcStats } };
 })();
 
 /* ── /TOOL I ── */
+
+/* ════════════════════════════════════════════════
+   分機表  (namespace: EXT)
+   資料（人名、版面）一律由後端 getDirectory 提供；本檔只有渲染、編輯、匯出邏輯，不含任何真實資料。
+   重用 MAINT.api 的登入／通行碼／modal，不複製一份。
+════════════════════════════════════════════════ */
+const EXT = (() => {
+  const api = MAINT.api, esc = api.esc;
+  const $ = id => document.getElementById(id);
+  const H_HEAD = 40, H_ROW = 68, GAP = 5, PAD = 8;           // 設計尺寸（px）
+  const CDN_H2C = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+  const CDN_PDF = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  const MAX_JSON = 45000;
+  /* 公開品牌標誌（cell.logo 為 '1921' 或 'printbar' 時顯示） */
+  const LOGOS = {
+    '1921': 'data:image/jpeg;base64,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',
+    'printbar': 'data:image/jpeg;base64,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'
+  };
+  const LOGO_ALT = { '1921': '1921 標誌', 'printbar': '印刷吧 標誌' };
+
+  const S = {
+    doc: null, base: '', version: 0, savedAt: '', savedBy: '',
+    editing: false, loading: false, saving: false, pdfBusy: false,
+    err: '', pdfErr: '', active: false, loaded: false
+  };
+
+  /* ── 純函式：資料解析與渲染 ── */
+  const ni = (v, d, min, max) => { v = Math.floor(+v); return isFinite(v) ? Math.min(max, Math.max(min, v)) : d; };
+  const colorOk = c => /^#[0-9a-fA-F]{6}$/.test(String(c || '')) ? c : '#ffffff';
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const dirty = () => !!S.doc && JSON.stringify(S.doc) !== S.base;
+
+  /* people：照合約 token 正則切；名字（暱稱）／（暱稱）／(早)(晚)／ 斜線；其餘一律當人名 */
+  const TOKEN_RE = /[^\s（]+（[^）]*）|（[^）]*）|\S+/g;
+  const MARK_RE = /^(?:\([^)\s]{1,4}\)|[\/|])$/;
+  function parsePeople(s) {
+    return String(s || '').split(/\r?\n/).map(ln => {
+      const items = [];
+      (ln.match(TOKEN_RE) || []).forEach(t => {
+        let m;
+        if ((m = /^([^\s（]+)（([^）]*)）$/.exec(t))) items.push({ k: 'nm', name: m[1], nick: m[2].trim() });
+        else if ((m = /^（([^）]*)）$/.exec(t))) { if (m[1].trim()) items.push({ k: 'nk', nick: m[1].trim() }); }
+        else if (MARK_RE.test(t)) items.push({ k: 'mk', text: t });
+        else items.push({ k: 'nm', name: t, nick: '' });
+      });
+      return items;
+    }).filter(a => a.length);
+  }
+  function peopleHtml(s) {
+    const lines = parsePeople(s);
+    if (!lines.length) return '';
+    return '<div class="ex-ppl">' + lines.map(items => '<div class="ex-pl">' + items.map(it =>
+      it.k === 'nm' ? '<span class="ex-nm"><span class="ex-n">' + esc(it.name) + '</span>' + (it.nick ? '<span class="ex-nk">（' + esc(it.nick) + '）</span>' : '') + '</span>'
+        : it.k === 'nk' ? '<span class="ex-nk solo">（' + esc(it.nick) + '）</span>'
+          : '<span class="ex-mk">' + esc(it.text) + '</span>').join('') + '</div>').join('') + '</div>';
+  }
+
+  function cellHtml(c, o) {
+    o = o || {};
+    const cs = ni(c.cs, 1, 1, 20), rs = ni(c.rs, 1, 1, 40), col = ni(c.c, 1, 1, 20), row = ni(c.r, 0, 0, 40);
+    let cls = 'ex-c', inner = '';
+    if (c.kind === 'header') {
+      cls += ' ex-h' + (String(c.text || '').replace(/\s/g, '').length <= 3 ? ' sp' : '');
+      inner = esc(c.text);
+    } else if (c.kind === 'note') {
+      cls += ' ex-nt'; inner = esc(c.text);
+    } else {
+      if (rs >= 3) cls += ' tall';
+      if (c.ext) inner += '<div class="ex-ext">' + esc(c.ext) + '</div>';
+      if (c.dept) inner += '<div class="ex-dept">' + esc(c.dept) + '</div>';
+      if (c.title) inner += '<div class="ex-ttl">' + esc(c.title) + '</div>';
+      if (LOGOS[c.logo]) inner += '<img class="ex-logo ex-logo-' + esc(c.logo) + '" src="' + LOGOS[c.logo] + '" alt="' + esc(LOGO_ALT[c.logo]) + '">';
+      inner += peopleHtml(c.people);
+    }
+    let st = 'grid-column:' + col + ' / span ' + cs + ';grid-row:' + (row + 1) + ' / span ' + rs + ';background:' + colorOk(c.bg);
+    if (o.minH) st += ';min-height:' + o.minH + 'px';
+    return '<div class="' + cls + '" data-id="' + esc(c.id) + '" style="' + st + '"' +
+      (o.edit ? ' tabindex="0" role="button" aria-label="編輯此格"' : '') + '>' + inner + '</div>';
+  }
+
+  function colWidthsOf(doc) {
+    const n = ni(doc.cols, 1, 1, 20), w = Array.isArray(doc.colWidths) ? doc.colWidths : [];
+    const out = []; for (let i = 0; i < n; i++) out.push(ni(w[i], 150, 40, 1200));
+    return out;
+  }
+  function boardHtml(doc, o) {
+    o = o || {};
+    const cols = colWidthsOf(doc), rows = ni(doc.rows, 1, 1, 40);
+    return '<div class="ex-board' + (o.flat ? ' ex-flat' : '') + (o.edit ? ' editing' : '') + '" style="grid-template-columns:' +
+      cols.map(w => w + 'px').join(' ') + ';grid-template-rows:' + H_HEAD + 'px repeat(' + rows + ',minmax(' + H_ROW + 'px,auto))">' +
+      (doc.cells || []).map(c => cellHtml(c, { edit: o.edit })).join('') + '</div>';
+  }
+  function validDoc(d) {
+    return !!d && typeof d === 'object' && Array.isArray(d.cells) && Array.isArray(d.colWidths) && +d.cols >= 1 && +d.rows >= 1;
+  }
+
+  /* ── 畫面：版面、縮放 ── */
+  function paint() {
+    const sz = $('ex-sizer'); if (!sz) return;
+    sz.innerHTML = S.doc ? boardHtml(S.doc, { edit: S.editing }) : '';
+    fit();
+  }
+  function fit() {
+    const wrap = $('ex-wrap'), sz = $('ex-sizer'), b = sz && sz.querySelector('.ex-board');
+    if (!b) { if (sz) sz.style.height = ''; return; }
+    const avail = wrap.clientWidth; if (!avail) return;     // 分頁隱藏時量不到，切過來時 onShow 會再算
+    const W = b.offsetWidth, H = b.offsetHeight;
+    const s = Math.min(1, Math.max(0.45, avail / W));
+    b.style.transform = 'scale(' + s + ')';
+    sz.style.width = Math.ceil(W * s) + 'px'; sz.style.height = Math.ceil(H * s) + 'px';
+  }
+  function paintMsg() {
+    const el = $('ex-msg'); if (!el) return;
+    const e = S.err || S.pdfErr;
+    if (e) { el.hidden = false; el.className = 'ex-msg err'; el.innerHTML = esc(e) + (S.err ? '<a data-a="reload">重試</a>' : ''); }
+    else if (S.loading && !S.doc) { el.hidden = false; el.className = 'ex-msg'; el.textContent = '載入分機表中…'; }
+    else el.hidden = true;
+  }
+  function paintBar() {
+    const el = $('ex-bar'); if (!el) return;
+    const role = api.role(), mgr = role === 'manager';
+    let h = '<button type="button" class="btn btn-ghost" data-a="pdf"' + (S.pdfBusy || !S.doc ? ' disabled' : '') + '>' + (S.pdfBusy ? '產生中…' : '🖨 匯出 PDF') + '</button>' +
+      '<button type="button" class="btn btn-ghost" data-a="reload"' + (S.loading || S.saving ? ' disabled' : '') + '>↻ 重新載入</button>';
+    if (S.editing) {
+      h += '<button type="button" class="btn btn-primary" data-a="save"' + (S.saving ? ' disabled' : '') + '>' + (S.saving ? '儲存中…' : '💾 儲存') + '</button>' +
+        '<button type="button" class="btn btn-ghost" data-a="cancel"' + (S.saving ? ' disabled' : '') + '>取消</button>' +
+        (dirty() ? '<span class="ex-dirty">未儲存</span>' : '<span class="ex-hint">編輯中：點選格子修改內容</span>');
+    } else if (mgr) {
+      h += '<button type="button" class="btn btn-ghost" data-a="edit"' + (S.doc ? '' : ' disabled') + '>✏️ 編輯</button>';
+    } else {
+      h += '<button type="button" class="btn btn-ghost" data-a="login">🔑 主管登入以編輯</button>' +
+        (role === 'engineer' ? '<span class="ex-warn">目前是工程師身分，只有主管可以編輯分機表</span>' : '');
+    }
+    h += '<span class="ex-sp"></span><span class="ex-meta">' +
+      (S.doc ? (S.savedAt ? '最後更新：' + esc(S.savedAt) : '內建初始資料') : '') + '</span>';
+    el.innerHTML = h;
+  }
+  function paintAll() { paint(); paintBar(); paintMsg(); }
+
+  /* ── 載入／儲存 ── */
+  async function load() {
+    if (S.loading) return false;
+    S.loading = true; S.err = ''; paintBar(); paintMsg();
+    const res = await api.call('getDirectory');
+    S.loading = false;
+    if (!res || !res.ok) { S.err = '分機表載入失敗：' + api.errText(res); paintBar(); paintMsg(); return false; }
+    if (!validDoc(res.doc)) { S.err = '分機表載入失敗：資料格式不正確'; paintBar(); paintMsg(); return false; }
+    S.version = res.version | 0; S.savedAt = res.savedAt || ''; S.savedBy = res.savedBy || '';
+    S.base = JSON.stringify(res.doc); S.doc = JSON.parse(S.base);
+    S.editing = false; S.loaded = true;
+    paintAll();
+    return true;
+  }
+
+  async function save() {
+    if (S.saving) return;
+    if (!dirty()) { S.editing = false; paintAll(); api.toast('沒有變更，已離開編輯模式'); return; }
+    const json = JSON.stringify(S.doc);
+    if (json.length > MAX_JSON) { api.toast('內容太長（' + json.length + ' 字元，上限 ' + MAX_JSON + '），請精簡後再儲存', 'err'); return; }
+    S.saving = true; paintBar();
+    const res = await api.call('saveDirectory', { baseVersion: S.version, doc: S.doc });
+    S.saving = false;
+    if (res && res.ok) {
+      S.version = res.version | 0; S.savedAt = res.savedAt || ''; S.base = json; S.editing = false;
+      paintAll(); api.toast('分機表已儲存');
+      return;
+    }
+    if (res && res.errCode === 'CONFLICT') conflictModal(res);
+    else if (res && res.errCode === 'AUTH') {
+      api.toast(api.errText(res), 'err');
+      api.loginModal({
+        hint: '主管登入已失效或身分不符，請以主管密碼重新登入後再按〔儲存〕（編輯內容仍保留）。',
+        onSuccess: role => { if (role !== 'manager') api.toast('只有主管可以編輯分機表', 'err'); paintBar(); }
+      });
+    } else api.toast('儲存失敗：' + api.errText(res), 'err');
+    paintBar();
+  }
+
+  function conflictModal(res) {
+    const cur = res && res.current || {};
+    const m = api.openModal({
+      title: '分機表已被其他人更新', backdrop: false,
+      html: '<div class="mt-form"><p class="mt-hint">你載入之後，分機表已有新版本' + (cur.savedAt ? '（' + esc(cur.savedAt) + '）' : '') +
+        '。你的修改<b>尚未存入</b>，直接儲存會蓋掉對方的更新。<br>可以先「繼續編輯」把內容抄下來，或重新載入最新版再改一次。</p>' +
+        '<div class="mt-mf"><button class="btn btn-ghost" type="button" data-mclose>繼續編輯</button>' +
+        '<button class="btn btn-primary" type="button" id="ex-cf-reload">重新載入（放棄我的修改）</button></div></div>'
+    });
+    m.q('#ex-cf-reload').onclick = () => { m.close(); load(); };
+  }
+
+  /* ── 編輯單一格 ── */
+  function editCell(id) {
+    const c = S.doc && S.doc.cells.find(x => x.id === id); if (!c) return;
+    const t = Object.assign({}, c), isCell = c.kind === 'cell';
+    const inp = (lab, key, max) => '<div class="mt-f"><label>' + lab + '</label><input class="mt-in" data-k="' + key + '" maxlength="' + max + '" value="' + esc(t[key] || '') + '"></div>';
+    const form = isCell
+      ? inp('分機號碼', 'ext', 60) + inp('部門／區域（藍字）', 'dept', 60) + inp('地點名稱（黑字）', 'title', 60) +
+      '<div class="mt-f"><label>人員</label><textarea class="mt-in" data-k="people" rows="4" maxlength="300">' + esc(t.people || '') + '</textarea>' +
+      '<div class="ex-fhint">每行一列；名字後面用全形括號加暱稱，如 王小明（阿明）；同一列多人用空白分隔；可加 (早)(晚)、/</div></div>'
+      : inp('文字', 'text', 60);
+    const m = api.openModal({
+      title: c.kind === 'header' ? '編輯樓層標頭' : c.kind === 'note' ? '編輯備註' : '編輯分機格',
+      html: '<div class="mt-form"><div class="ex-pvwrap" id="ex-pvw"></div>' + form +
+        '<div class="mt-mf">' + (isCell ? '<button class="btn btn-ghost mt-del" type="button" id="ex-clear">清空此格</button>' : '') +
+        '<button class="btn btn-ghost" type="button" data-mclose>取消</button><button class="btn btn-primary" type="button" id="ex-apply">套用</button></div></div>'
+    });
+    const cols = colWidthsOf(S.doc), c0 = ni(c.c, 1, 1, 20) - 1, cs = ni(c.cs, 1, 1, 20), rs = ni(c.rs, 1, 1, 40);
+    let cw = (cs - 1) * GAP; for (let i = 0; i < cs; i++) cw += cols[c0 + i] || 150;
+    const minH = (c.kind === 'header' ? H_HEAD : rs * H_ROW + (rs - 1) * GAP);
+    const pvw = m.q('#ex-pvw');
+    const pv = () => {
+      pvw.innerHTML = '<div class="ex-pv" style="width:' + cw + 'px"><div class="ex-board ex-flat ex-pvb">' + cellHtml(t, { minH: minH }) + '</div></div>';
+      const el = pvw.firstChild, k = Math.min(0.75, Math.max(0.2, (pvw.clientWidth - 12) / cw));
+      el.style.transform = 'scale(' + k + ')';
+      pvw.style.height = Math.ceil(el.offsetHeight * k + 14) + 'px';
+    };
+    m.qa('[data-k]').forEach(e => e.addEventListener('input', () => { t[e.getAttribute('data-k')] = e.value; pv(); }));
+    const clr = m.q('#ex-clear');
+    if (clr) clr.onclick = () => {
+      ['ext', 'dept', 'title', 'people', 'logo'].forEach(k => { t[k] = ''; });
+      m.qa('[data-k]').forEach(e => { e.value = ''; }); pv();
+    };
+    m.q('#ex-apply').onclick = () => {
+      ['text', 'ext', 'dept', 'title', 'people', 'logo'].forEach(k => { if (t[k] !== undefined) c[k] = String(t[k]); });
+      m.close(); paint(); paintBar();
+    };
+    pv();
+  }
+
+  /* ── 匯出 PDF ── */
+  const _sc = {};
+  function loadScript(url) {
+    return _sc[url] || (_sc[url] = new Promise((res, rej) => {
+      const s = document.createElement('script');
+      const fail = msg => { delete _sc[url]; s.remove(); rej(new Error(msg)); };
+      const to = setTimeout(() => fail('載入逾時：' + url.split('/').pop()), 30000);
+      s.onload = () => { clearTimeout(to); res(); };
+      s.onerror = () => { clearTimeout(to); fail('無法載入 ' + url.split('/').pop() + '（請檢查網路，或廣告攔截外掛是否擋住 cdnjs）'); };
+      s.src = url; document.head.appendChild(s);
+    }));
+  }
+  const rocDate = () => {
+    const p = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' }).split('-');
+    return { roc: (+p[0] - 1911) + '年' + (+p[1]) + '月' + (+p[2]) + '日', ymd: p.join('') };
+  };
+  async function exportPdf() {
+    if (S.pdfBusy || !S.doc) return;
+    S.pdfBusy = true; S.pdfErr = ''; paintBar(); paintMsg();
+    let host = null;
+    try {
+      await Promise.all([loadScript(CDN_H2C), loadScript(CDN_PDF)]);
+      if (!window.html2canvas || !window.jspdf) throw new Error('PDF 元件載入後無法使用');
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      const d = rocDate();
+      host = document.createElement('div');
+      host.className = 'ex-offscreen';
+      host.innerHTML = '<div class="ex-pdfhead"><span>' + esc(S.doc.title || '分機表') + '</span><span>匯出日期：' + d.roc + '</span></div>' +
+        boardHtml(S.doc, { flat: true });
+      document.body.appendChild(host);
+      /* 標誌圖要先載入完（不用 img.decode()：離屏元素的 decode 在部分瀏覽器永遠不 resolve） */
+      await Promise.all(Array.prototype.map.call(host.querySelectorAll('img'), i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; })));
+      const canvas = await window.html2canvas(host, {
+        scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false,
+        onclone: (doc, el) => { el.style.left = '0px'; }
+      });
+      if (!canvas || !canvas.width || !canvas.height) throw new Error('截圖結果是空的');
+      const pdf = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
+      const PW = 297, PH = 210, M = 8, r = Math.min((PW - 2 * M) / canvas.width, (PH - 2 * M) / canvas.height);
+      const w = canvas.width * r, h = canvas.height * r;
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', (PW - w) / 2, (PH - h) / 2, w, h);
+      pdf.save('分機表_' + d.ymd + '.pdf');
+      api.toast('已產生 PDF：分機表_' + d.ymd + '.pdf');
+    } catch (e) {
+      S.pdfErr = '匯出 PDF 失敗：' + (e && e.message || e);
+      api.toast(S.pdfErr, 'err');
+    } finally {
+      if (host) host.remove();
+      S.pdfBusy = false; paintBar(); paintMsg();
+    }
+  }
+
+  /* ── 事件 ── */
+  function act(a) {
+    if (a === 'pdf') exportPdf();
+    else if (a === 'reload') {
+      if (S.editing && dirty() && !confirm('有尚未儲存的修改，重新載入會放棄這些修改。確定重新載入？')) return;
+      load();
+    } else if (a === 'edit') { S.editing = true; paintAll(); }
+    else if (a === 'cancel') {
+      if (dirty() && !confirm('有尚未儲存的修改，取消會放棄這些修改。確定取消？')) return;
+      S.doc = JSON.parse(S.base); S.editing = false; paintAll();
+    } else if (a === 'save') save();
+    else if (a === 'login') {
+      api.loginModal({
+        hint: '請輸入主管密碼。只有主管可以編輯分機表。',
+        onSuccess: role => { if (role !== 'manager') api.toast('只有主管可以編輯分機表', 'err'); paintBar(); }
+      });
+    }
+  }
+  function onShow() {
+    if (S.editing) { fit(); paintBar(); return; }
+    paintBar(); fit();
+    load();
+  }
+
+  function init() {
+    const p = $('panel-ext');
+    p.addEventListener('click', e => {
+      const b = e.target.closest('[data-a]'); if (b && p.contains(b)) { act(b.getAttribute('data-a')); return; }
+      if (!S.editing) return;
+      const c = e.target.closest('.ex-c'); if (c && $('ex-sizer').contains(c)) editCell(c.getAttribute('data-id'));
+    });
+    p.addEventListener('keydown', e => {
+      if (!S.editing || (e.key !== 'Enter' && e.key !== ' ')) return;
+      const c = e.target.closest && e.target.closest('.ex-c'); if (c && $('ex-sizer').contains(c)) { e.preventDefault(); editCell(c.getAttribute('data-id')); }
+    });
+    if (window.ResizeObserver) new ResizeObserver(() => fit()).observe($('ex-wrap'));
+    window.addEventListener('resize', () => fit());
+    window.addEventListener('beforeunload', e => { if (dirty()) { e.preventDefault(); e.returnValue = ''; return ''; } });
+    /* 不改 switchTool 本體：外面包一層，切到分機表時才載入；編輯中離開先確認 */
+    const sw = window.switchTool;
+    window.switchTool = function (id) {
+      if (S.active && id !== 'ext' && dirty() && !confirm('分機表有尚未儲存的修改。要先離開嗎？（修改會暫存在本頁，重新整理後消失）')) return;
+      const r = sw.apply(this, arguments);
+      S.active = (id === 'ext');
+      if (S.active) onShow();
+      return r;
+    };
+    paintAll();
+  }
+
+  init();
+  /* _debug：測試用，只在記憶體渲染傳入的文件，不呼叫後端、不存檔 */
+  return { init, load, _debug: doc => { S.doc = doc; S.base = JSON.stringify(doc); S.editing = false; S.err = ''; paintAll(); } };
+})();
+
+/* ── /分機表 ── */
+
 
 (function initialRoute() {
   const h = location.hash.replace(/^#/, '');
