@@ -251,6 +251,22 @@ Apps Script 端回的是 `getDisplayValues()`，也就是儲存格上看到的�
 
 ---
 
+## 分機表（EXT，首頁按鈕，非分類工具）
+
+**功能**：首頁〔📞 分機表〕→ `panel-ext`，依樓層位置圖顯示全公司分機；有通行碼即可看與匯出 PDF；**只有主管（manager）可編輯**（2026-10-08 使用者定版）。
+
+**資料**：含員工個資，**repo 內不得出現任何真實人名或真實版面**。資料存設備維修排程後端的「分機表」分頁（每次儲存新增一列＝歷史版本，取最大 version）；初始資料 `DEFAULT_DIRECTORY` 只嵌在 `~/Scripts/maint_appsscript.gs`（後端 1.4.0）。
+action：`getDirectory`（通行碼）、`saveDirectory`（manager，帶 `baseVersion`，不符回 CONFLICT）。
+
+**文件形狀**：`{title, cols, rows, colWidths[], cells:[{id, kind:header|cell|note, c, r, cs, rs, bg, text, ext, dept, title, people, logo:''|'1921'|'printbar'}]}`；r=0 為樓層標頭列。
+`people` 每行一列、空白分隔；`名字（暱稱）` 用**全形括號**，暱稱顯示在名字下方；`(早)` `(晚)` `/` `|` 為灰色標記。
+
+**前端**：`const EXT`（重用 `MAINT.api` 的 call／loginModal／openModal，不另寫登入與通行碼）；CSS 前綴 `ex-`；設計尺寸渲染後依寬度等比縮放。
+匯出 PDF 於按下時才從 cdnjs 載入 html2canvas 1.4.1 與 jsPDF 2.5.1，A4 橫式，檔名 `分機表_YYYYMMDD.pdf`。
+模擬模式 `?mock=1` 使用假名小版面。
+
+---
+
 ## XlsxBuilder（共用模組）
 
 純 JS xlsx 產生器，不依賴任何外部套件。
