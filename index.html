@@ -1451,17 +1451,16 @@ button.mt-chip.ph:hover{background:#cfe5f8}
 /* ── /Tool I CSS ── */
 
 
-/* ── 側欄分類（印前／輸出／後製／業務／會計／管理） ── */
-.nav-group { padding: 4px 0 6px; }
-.nav-group-title {
-  font-size: 11px; font-weight: 700; letter-spacing: .12em; color: #a3906e;
-  padding: 10px 20px 4px;
-}
-.nav-group-empty { font-size: 11px; color: #c4baa9; padding: 4px 20px 6px 22px; font-style: italic; }
+/* ── 側欄分類／分類頁 ── */
+.nav-group-title { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: #a3906e; padding: 4px 20px 6px; }
+.cat-empty { background: #fff; border: 1px dashed var(--cip-border2); border-radius: 10px; padding: 36px 20px; text-align: center; color: var(--cip-text3); font-size: 13px; }
+.cat-back { margin-top: 18px; font-size: 12px; }
+.cat-back a, .topbar-cat { color: var(--cip-orange); text-decoration: none; cursor: pointer; }
+.cat-back a:hover, .topbar-cat:hover { text-decoration: underline; }
+.topbar-cat { font-size: 12px; font-weight: 600; }
 @media (max-width: 820px) {
-  .nav-group { display: flex; gap: 3px; padding: 0 0 0 5px; margin-left: 2px; border-left: 1px solid #e8e2d8; flex-shrink: 0; }
-  .nav-group-title, .nav-group-empty { display: none; }
-  .nav-group:has(.nav-group-empty) { display: none; }
+  #nav-cats { display: contents; }
+  .nav-group-title { display: none; }
 }
 </style>
 </head>
@@ -1480,72 +1479,15 @@ button.mt-chip.ph:hover{background:#cfe5f8}
       <span class="nav-label">首頁</span>
     </div>
     <div class="nav-divider"></div>
-    <div class="nav-group">
-      <div class="nav-group-title">印前工具</div>
-      <div class="nav-item active" id="nav-lamp" onclick="switchTool('lamp')">
-        <span class="nav-icon">🔆</span>
-        <span class="nav-label">主燈彙整</span>
-        <span class="nav-tag">A</span>
-      </div>
-      <div class="nav-item" id="nav-wo" onclick="switchTool('wo')">
-        <span class="nav-icon">📋</span>
-        <span class="nav-label">工單分析</span>
-        <span class="nav-tag">B</span>
-      </div>
+    <div class="nav-group-title">工具分類</div>
+    <div id="nav-cats"><!-- 由 TOOL_CATS 產生 --></div>
+    <div class="nav-divider"></div>
+    <div class="nav-item" id="nav-maint" onclick="switchTool('maint')">
+      <span class="nav-icon">🛠️</span>
+      <span class="nav-label">設備維修排程</span>
+      <span class="nav-tag">I</span>
     </div>
-    <div class="nav-group">
-      <div class="nav-group-title">輸出工具</div>
-      <div class="nav-group-empty">暫無工具</div>
-    </div>
-    <div class="nav-group">
-      <div class="nav-group-title">後製工具</div>
-      <div class="nav-item" id="nav-scan" onclick="switchTool('scan')">
-        <span class="nav-icon">🏷️</span>
-        <span class="nav-label">貼紙掃碼清點</span>
-        <span class="nav-tag">F</span>
-      </div>
-      <div class="nav-item" id="nav-ship" onclick="switchTool('ship')">
-        <span class="nav-icon">📦</span>
-        <span class="nav-label">出件明細</span>
-        <span class="nav-tag">H</span>
-      </div>
-    </div>
-    <div class="nav-group">
-      <div class="nav-group-title">業務工具</div>
-      <div class="nav-item" id="nav-posm" onclick="switchTool('posm')">
-        <span class="nav-icon">📦</span>
-        <span class="nav-label">POSM 包裝清單</span>
-        <span class="nav-tag">C</span>
-      </div>
-    </div>
-    <div class="nav-group">
-      <div class="nav-group-title">會計工具</div>
-      <div class="nav-item" id="nav-tc" onclick="switchTool('tc')">
-        <span class="nav-icon">🚚</span>
-        <span class="nav-label">天成快遞對帳</span>
-        <span class="nav-tag">D</span>
-      </div>
-    </div>
-    <div class="nav-group">
-      <div class="nav-group-title">管理工具</div>
-      <div class="nav-item" id="nav-pc" onclick="switchTool('pc')">
-        <span class="nav-icon">📊</span>
-        <span class="nav-label">插條產能統計</span>
-        <span class="nav-tag">E</span>
-      </div>
-      <div class="nav-item" id="nav-urgent" onclick="switchTool('urgent')">
-        <span class="nav-icon">🚨</span>
-        <span class="nav-label">急件追蹤</span>
-        <span class="nav-tag">G</span>
-        <span class="nav-badge" id="ug-badge"></span>
-      </div>
-      <div class="nav-item" id="nav-maint" onclick="switchTool('maint')">
-        <span class="nav-icon">🛠️</span>
-        <span class="nav-label">設備維修排程</span>
-        <span class="nav-tag">I</span>
-      </div>
-    </div>
-    <!-- 新工具在此新增 nav-item -->
+    <!-- 新工具：在 TOOL_CATS 加入所屬分類即可，不必在這裡加 nav-item -->
   </div>
 
   <div class="sidebar-footer">
@@ -1560,7 +1502,9 @@ button.mt-chip.ph:hover{background:#cfe5f8}
   <div class="topbar">
     <span class="topbar-breadcrumb">西北影像</span>
     <span class="topbar-sep">›</span>
-    <span id="topbar-title" class="topbar-title">主燈彙整</span>
+    <a id="topbar-cat" class="topbar-cat" href="javascript:void(0)" hidden></a>
+    <span id="topbar-cat-sep" class="topbar-sep" hidden>›</span>
+    <span id="topbar-title" class="topbar-title">首頁</span>
     <span class="topbar-desc" id="topbar-sub">上傳 XLS/XLSX → 篩選關鍵字 → 下載報表</span>
     <div class="topbar-file-tag" id="topbar-tag"></div>
   </div>
@@ -1568,65 +1512,22 @@ button.mt-chip.ph:hover{background:#cfe5f8}
   <div class="content">
 
     <!-- ── 首頁 ── -->
-    <div class="tool-panel" id="panel-home">
+    <div class="tool-panel active" id="panel-home">
       <div class="welcome fade-up">
         <div class="welcome-header">
           <div class="welcome-header-text">
             <h2>生產管理工具箱</h2>
-            <p>西北影像內部生產作業工具。選擇左側工具開始使用。<br>所有運算於本機執行，資料不會上傳至任何伺服器。</p>
+            <p>西北影像內部生產作業工具。請先選擇分類，再選擇要使用的工具。<br>上傳檔案類的工具只在本機瀏覽器處理，檔案不會上傳到伺服器。</p>
           </div>
         </div>
-        <div class="welcome-cards">
-          <div class="welcome-card" onclick="switchTool('lamp')">
-            <span class="welcome-card-icon">🔆</span>
-            <div class="welcome-card-label">Tool A</div>
-            <div class="welcome-card-title">主燈彙整</div>
-            <div class="welcome-card-desc">從多分頁工單中篩選含指定關鍵字的資料列，清洗換行與欄號格式，匯出 XLSX / TXT 報表。</div>
-          </div>
-          <div class="welcome-card" onclick="switchTool('wo')">
-            <span class="welcome-card-icon">📋</span>
-            <div class="welcome-card-label">Tool B</div>
-            <div class="welcome-card-title">工單分析</div>
-            <div class="welcome-card-desc">讀取工單，依備註欄分類，合併材質後匯出各分類的 Excel 報表 / ZIP TXT 壓縮包。</div>
-          </div>
-          <div class="welcome-card" onclick="switchTool('posm')">
-            <span class="welcome-card-icon">📦</span>
-            <div class="welcome-card-label">Tool C</div>
-            <div class="welcome-card-title">POSM 包裝清單</div>
-            <div class="welcome-card-desc">下載標準範本填寫門市、項次、數量，上傳後自動產出包裝人員專用清單 Excel。</div>
-          </div>
-          <div class="welcome-card" onclick="switchTool('tc')">
-            <span class="welcome-card-icon">🚚</span>
-            <div class="welcome-card-label">Tool D</div>
-            <div class="welcome-card-title">天成快遞對帳</div>
-            <div class="welcome-card-desc">上傳天成對帳明細與 ERP 貨運單，自動比對單號金額，產出落差分析表供查詢使用。</div>
-          </div>
-          <div class="welcome-card" onclick="switchTool('pc')">
-            <span class="welcome-card-icon">📊</span>
-            <div class="welcome-card-label">Tool E</div>
-            <div class="welcome-card-title">插條產能統計</div>
-            <div class="welcome-card-desc">上傳人員產能報表，篩選客戶與出件日期，統計各單位在各日期完成的才數與數量。</div>
-          </div>
-          <div class="welcome-card" onclick="switchTool('scan')">
-            <span class="welcome-card-icon">🏷️</span>
-            <div class="welcome-card-label">Tool F</div>
-            <div class="welcome-card-title">貼紙掃碼清點</div>
-            <div class="welcome-card-desc">上傳含條碼的統單貼紙檔，用條碼機逐張掃描核對，缺件即時顯示，掃滿才可封箱。</div>
-          </div>
-          <div class="welcome-card" onclick="switchTool('maint')">
-            <span class="welcome-card-icon">🛠️</span>
-            <div class="welcome-card-label">Tool I</div>
-            <div class="welcome-card-title">設備維修排程</div>
-            <div class="welcome-card-desc">同事線上報修，設備工程師排程維修、休假與外出，可寄故障／恢復通知給全公司，並統計稼動率。</div>
-          </div>
-        </div>
+        <div class="welcome-cards" id="home-cards"><!-- 由 TOOL_CATS 產生 --></div>
       </div>
     </div>
 
     <!-- ══════════════════════════════
          TOOL A: 主燈彙整
     ══════════════════════════════ -->
-    <div class="tool-panel active" id="panel-lamp">
+    <div class="tool-panel" id="panel-lamp">
       <div class="page-head">
         <div class="page-head-icon">🔆</div>
         <div>
@@ -2292,7 +2193,7 @@ button.mt-chip.ph:hover{background:#cfe5f8}
    SIDEBAR NAVIGATION
 ════════════════════════════════════════════════ */
 const TOOL_META = {
-  home: { title: '首頁', sub: '選擇左側工具開始使用' },
+  home: { title: '首頁', sub: '選擇分類 → 選擇工具' },
   lamp: { title: '主燈彙整', sub: '上傳 XLS/XLSX → 篩選關鍵字 → 下載報表' },
   wo:   { title: '工單分析', sub: '上傳工單 → 分類確認 → 分析匯出' },
   posm: { title: 'POSM 包裝清單', sub: '下載範本填表 → 上傳 → 產出包裝清單 Excel' },
@@ -2304,13 +2205,85 @@ const TOOL_META = {
   maint: { title: '設備維修排程', sub: '同事報修 → 工程師排程 → 故障通知 → 稼動率' },
 };
 
+/* ── 工具分類（唯一正本：側欄、首頁、分類頁都由這裡產生）──
+   新增工具：把 id 加進所屬分類的 tools，並在 TOOL_INFO 補一筆卡片資料。 */
+const TOOL_CATS = [
+  { key: 'prepress', name: '印前工具', icon: '🎨', desc: '工單資料篩選、分類與整理',       tools: ['lamp', 'wo'] },
+  { key: 'output',   name: '輸出工具', icon: '🖨️', desc: '輸出相關工具',                   tools: [] },
+  { key: 'post',     name: '後製工具', icon: '✂️', desc: '後製清點、包裝與出件',           tools: ['scan', 'ship'] },
+  { key: 'sales',    name: '業務工具', icon: '💼', desc: '業務專案與客戶需求',             tools: ['posm'] },
+  { key: 'acct',     name: '會計工具', icon: '🧾', desc: '帳務核對',                       tools: ['tc'] },
+  { key: 'mgmt',     name: '管理工具', icon: '📈', desc: '產能統計與急件追蹤',             tools: ['pc', 'urgent'], badge: 'ug-badge' },
+];
+const TOOL_INFO = {
+  lamp:   { icon: '🔆', tag: 'A', desc: '從多分頁工單中篩選含指定關鍵字的資料列，清洗換行與欄號格式，匯出 XLSX / TXT 報表。' },
+  wo:     { icon: '📋', tag: 'B', desc: '讀取工單，依備註欄分類，合併材質後匯出各分類的 Excel 報表 / ZIP TXT 壓縮包。' },
+  posm:   { icon: '📦', tag: 'C', desc: '下載標準範本填寫門市、項次、數量，上傳後自動產出包裝人員專用清單 Excel。' },
+  tc:     { icon: '🚚', tag: 'D', desc: '上傳天成對帳明細與 ERP 貨運單，自動比對單號金額，產出落差分析表供查詢使用。' },
+  pc:     { icon: '📊', tag: 'E', desc: '上傳人員產能報表，篩選客戶與出件日期，統計各單位在各日期完成的才數與數量。' },
+  scan:   { icon: '🏷️', tag: 'F', desc: '上傳含條碼的統單貼紙檔，用條碼機逐張掃描核對，缺件即時顯示，掃滿才可封箱。' },
+  urgent: { icon: '🚨', tag: 'G', desc: 'ERP 每 15 分鐘自動更新，追蹤急件開立、生產進度與各站別負載。' },
+  ship:   { icon: '📦', tag: 'H', desc: '包裝掃碼登錄的資料依施工地點彙整，供出件人員登打貨運或匯出。' },
+  maint:  { icon: '🛠️', tag: 'I', desc: '同事線上報修，設備工程師排程維修、休假與外出，可寄故障／恢復通知給全公司，並統計稼動率。' },
+};
+const catOf = id => TOOL_CATS.find(c => c.tools.indexOf(id) >= 0) || null;
+
+function toolCardHtml(id) {
+  const t = TOOL_INFO[id] || {}, m = TOOL_META[id] || { title: id };
+  return '<div class="welcome-card" onclick="switchTool(\'' + id + '\')">' +
+    '<span class="welcome-card-icon">' + (t.icon || '🔧') + '</span>' +
+    '<div class="welcome-card-label">Tool ' + (t.tag || '') + '</div>' +
+    '<div class="welcome-card-title">' + m.title + '</div>' +
+    '<div class="welcome-card-desc">' + (t.desc || m.sub || '') + '</div></div>';
+}
+
+(function buildCategoryNav() {
+  // 側欄分類（ug-badge 掛在管理工具上，Tool G 的未讀數照常顯示）
+  document.getElementById('nav-cats').innerHTML = TOOL_CATS.map(c =>
+    '<div class="nav-item" id="nav-cat-' + c.key + '" onclick="switchTool(\'cat-' + c.key + '\')">' +
+      '<span class="nav-icon">' + c.icon + '</span><span class="nav-label">' + c.name + '</span>' +
+      '<span class="nav-tag">' + (c.tools.length || '—') + '</span>' +
+      (c.badge ? '<span class="nav-badge" id="' + c.badge + '"></span>' : '') +
+    '</div>').join('');
+
+  // 分類頁：每個分類一個 panel，沿用 switchTool 的切換機制
+  const anchor = document.getElementById('panel-home');
+  TOOL_CATS.slice().reverse().forEach(c => {
+    TOOL_META['cat-' + c.key] = { title: c.name, sub: c.desc };
+    const el = document.createElement('div');
+    el.className = 'tool-panel'; el.id = 'panel-cat-' + c.key;
+    el.innerHTML =
+      '<div class="page-head"><div class="page-head-icon">' + c.icon + '</div><div>' +
+        '<div class="page-head-title">' + c.name + '</div><div class="page-head-sub">' + c.desc + '・請選擇要使用的工具</div></div></div>' +
+      (c.tools.length
+        ? '<div class="welcome-cards">' + c.tools.map(toolCardHtml).join('') + '</div>'
+        : '<div class="cat-empty">這個分類目前還沒有工具。</div>') +
+      '<div class="cat-back"><a href="javascript:void(0)" onclick="switchTool(\'home\')">← 回首頁看所有分類</a></div>';
+    anchor.parentNode.insertBefore(el, anchor.nextSibling);
+  });
+
+  // 首頁：分類卡片＋設備維修排程
+  document.getElementById('home-cards').innerHTML = TOOL_CATS.map(c =>
+    '<div class="welcome-card" onclick="switchTool(\'cat-' + c.key + '\')">' +
+      '<span class="welcome-card-icon">' + c.icon + '</span>' +
+      '<div class="welcome-card-label">' + (c.tools.length ? c.tools.length + ' 項工具' : '暫無工具') + '</div>' +
+      '<div class="welcome-card-title">' + c.name + '</div>' +
+      '<div class="welcome-card-desc">' + (c.tools.length ? c.tools.map(id => (TOOL_META[id] || {}).title).join('、') : c.desc) + '</div></div>'
+  ).join('') + toolCardHtml('maint');
+
+  document.getElementById('topbar-cat').addEventListener('click', e => {
+    const k = e.currentTarget.dataset.cat; if (k) switchTool('cat-' + k);
+  });
+})();
+
 function switchTool(id) {
-  // nav highlight
+  // 側欄：工具本身沒有側欄項目時，亮它所屬的分類
+  const cat = catOf(id);
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const nav = document.getElementById('nav-' + id);
+  const nav = document.getElementById('nav-' + id) || (cat && document.getElementById('nav-cat-' + cat.key));
   if (nav) {
     nav.classList.add('active');
-    // 手機版側欄是橫向捲動的工具列，把目前工具捲進視野（桌機不觸發）
+    // 手機版側欄是橫向捲動的工具列，把目前項目捲進視野（桌機不觸發）
     if (window.innerWidth <= 820 && nav.scrollIntoView)
       nav.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
   }
@@ -2318,10 +2291,13 @@ function switchTool(id) {
   document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
   const panel = document.getElementById('panel-' + id);
   if (panel) { panel.classList.add('active'); panel.classList.add('fade-up'); setTimeout(() => panel.classList.remove('fade-up'), 400); }
-  // topbar
+  // topbar：西北影像 › 分類 › 工具（分類可點回分類頁）
   const meta = TOOL_META[id] || { title: id, sub: '' };
   document.getElementById('topbar-title').textContent = meta.title;
   document.getElementById('topbar-sub').textContent = meta.sub;
+  const tc = document.getElementById('topbar-cat'), ts = document.getElementById('topbar-cat-sep');
+  if (cat) { tc.textContent = cat.name; tc.dataset.cat = cat.key; tc.hidden = false; ts.hidden = false; }
+  else { tc.hidden = true; ts.hidden = true; tc.dataset.cat = ''; }
 }
 
 /* ════════════════════════════════════════════════
@@ -6359,6 +6335,12 @@ const MAINT = (() => {
 })();
 
 /* ── /TOOL I ── */
+
+(function initialRoute() {
+  const h = location.hash.replace(/^#/, '');
+  if (h === 'maint' || new URLSearchParams(location.search).get('req')) return;
+  switchTool(TOOL_META[h] ? h : 'home');
+})();
 
 </script>
 </body>
