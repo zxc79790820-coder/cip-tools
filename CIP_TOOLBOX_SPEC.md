@@ -213,7 +213,7 @@ Apps Script 端回的是 `getDisplayValues()`，也就是儲存格上看到的�
 同事線上報修、只有工程師能排程、工程師一鍵寄故障／恢復通知給全公司群組信箱、工程師與主管看稼動率。
 
 **後端**：Google Apps Script 網頁應用程式＋試算表，部署在使用者的公司 Workspace 帳號（執行身分＝我、存取＝任何人）。
-- 程式原始碼 `~/Scripts/maint_appsscript.gs`，部署步驟見桌面「對話接續記錄／設備維修排程_部署說明.md」
+- 程式原始碼 `~/Scripts/maint_appsscript.gs`，部署步驟見 `~/Desktop/工作/對話接續記錄/設備維修排程_部署說明.md`
 - 端點網址寫死在 `MAINT` 內的 `ENDPOINT`（同事免設定）；**改後端一律「管理部署作業 → 鉛筆 → 新版本」**，網址才不變
 - 試算表分頁：需求／排程／故障通報／行事曆／操作紀錄（欄位順序寫死，不可手動調整）
 - 密碼與設定全在 Script Properties：ACCESS_CODE（公司通行碼）、ENGINEER_PASSWORD、MANAGER_PASSWORD、NOTIFY_TO（群組信箱）、ENGINEER_NAME、ENGINEER_EMAIL（回信地址）、WORK_DAYS、WORK_HOURS
@@ -238,7 +238,7 @@ Apps Script 端回的是 `getDisplayValues()`，也就是儲存格上看到的�
 存在部署者雲端硬碟「設備維修排程_報修照片」（id 自動寫入 Script Properties `PHOTO_FOLDER_ID`，勿刪勿搬）。
 權限刻意不用 DriveApp（需整個雲端硬碟權限），改 Drive REST v3＋`drive.file`＋`script.external_request`；
 **專案必須在編輯器「服務」加入 Drive API v3**，否則 REST 回 403「Drive API has not been used in project」。
-排查用 `照片診斷.gs` 的 `diagPhotoUpload()`（桌面「對話接續記錄」內），在編輯器執行逐步顯示 ✅／❌。
+排查用 `照片診斷.gs` 的 `diagPhotoUpload()`（`~/Desktop/工作/對話接續記錄/` 內），在編輯器執行逐步顯示 ✅／❌。
 
 **報修通知信（後端 1.3.0）**：同事送出報修 → 寄信到 `ENGINEER_EMAIL`（留空不寄；主旨「【報修】／【急件報修】設備（位置）－報修人」）。
 寄信在寫入鎖之外、寫列之後；nonce 重送不重寄；寄送失敗不影響報修，原因寫入「操作紀錄」（動作「報修通知未寄出」）。
