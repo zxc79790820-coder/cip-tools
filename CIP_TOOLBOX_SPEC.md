@@ -245,6 +245,10 @@ Apps Script 端回的是 `getDisplayValues()`，也就是儲存格上看到的�
 信中〔開啟並安排排程〕連結＝`工具箱網址?req=需求編號#maint`（`TOOLBOX_URL` 指令碼屬性可覆蓋，選填）。
 前端讀到 `req` → 未登入先跳工程師登入 → 待排程則進入排入模式並高亮卡片；已排程／已結案給提示；用過即從網址移除，只接受 `R-?英數` 格式。
 
+**已完成維修明細（後端 1.5.0）**：稼動率「類別分布」每列可展開，逐次列出已完成維修（每個已完成維修區塊一列）；`doneItems(from,to)`（engineer、manager）。
+篩選與 `calcStats.byCategory` 共用同一組函式（前端 PURE 區塊 `doneInfo`／`calcDoneItems`，後端 `isDoneRepair` 等），明細加總必等於類別工時。
+〔⬇ 匯出明細 Excel（含照片）〕：按下才載入 ExcelJS 4.4.0；總表＋每類一個工作表，照片經 `getPhotos` 取回後縮成長邊 400px JPEG 嵌入「照片1–3」欄；檔名 `已完成維修明細_YYYYMMDD-YYYYMMDD.xlsx`。
+
 **模擬模式**：網址加 `?mock=1` 用瀏覽器內建假後端（通行碼 demo／工程師 eng123／主管 mgr123），種子資料全為假名。
 
 **相依**：無外部套件。CSS 前綴 `mt-`。「今天」以後端回傳為準，前端用 `Intl` 取台北日期，禁用 `toISOString()`。
