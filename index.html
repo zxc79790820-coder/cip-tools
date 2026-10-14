@@ -1358,6 +1358,22 @@ body { background: #f4f1ec; }
 .mt-tbwrap{overflow-x:auto;max-width:100%;border:1px solid var(--cip-border);border-radius:8px;background:#fff;margin-top:8px}
 .mt-tbwrap.narrow{max-width:360px}
 .mt-tbwrap.cal{max-height:240px;overflow-y:auto}
+.mt-tb tr.mt-cat{cursor:pointer}
+.mt-tb tr.mt-cat:hover td{background:#faf7f1}
+.mt-tb tr.mt-cat.open td{background:#fdf6e8}
+.mt-cat-b{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-align:left}
+.mt-caret{display:inline-block;width:14px;color:var(--cip-orange);font-size:12px}
+.mt-tb tr.mt-dtr>td{padding:0;background:#fcfaf6;border-bottom:1px solid var(--cip-border)}
+.mt-dbox{padding:8px 10px 12px 24px}
+.mt-dwrap{overflow-x:auto;max-width:100%;border:1px solid var(--cip-border);border-radius:6px;background:#fff;margin-top:6px}
+.mt-dtb td.dd{min-width:200px;max-width:340px}
+.mt-dsub{font-size:11px;color:var(--cip-text3);line-height:1.4}
+.mt-dd{font-size:12px;line-height:1.55;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mt-dd.long{cursor:pointer}
+.mt-dd.long::after{content:"…展開";color:var(--cip-orange);font-size:11px}
+.mt-dd.open{display:block;-webkit-line-clamp:unset;overflow:visible}
+.mt-exprow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 4px}
+.mt-expmsg{font-size:12px;color:var(--cip-text2)}
 .mt-tb{width:100%;border-collapse:collapse;font-size:13px}
 .mt-tb th{background:#f4f1ec;color:var(--cip-text2);font-weight:600;font-size:12px;padding:7px 10px;text-align:left;border-bottom:1px solid var(--cip-border);white-space:nowrap}
 .mt-tb td{padding:7px 10px;border-bottom:1px solid #f0ece4;vertical-align:top}
@@ -4787,6 +4803,14 @@ const MAINT = (() => {
     return a;
   }
 
+  /* 已完成維修的判定與口徑（calcStats 與 calcDoneItems 共用，兩邊才不會各算各的）：
+     回傳 null＝不計；否則 { v: 工時（actualHours 為正數用 actualHours，否則 hours）, c: 類別（沒連結或找不到需求→其他） } */
+  function doneInfo(b, reqCat) {
+    if (!b || b.deleted || b.type !== '維修' || b.status !== '已完成') return null;
+    const a = Number(b.actualHours);
+    return { v: a > 0 ? a : b.hours, c: (b.requestId && reqCat[b.requestId]) || '其他' };
+  }
+
   /* 稼動率：前後端演算法必須相同（見合約「稼動率 stats」） */
   function calcStats(o) {
     const blocks = (o.blocks || []).filter(b => b && !b.deleted);
@@ -4819,10 +4843,10 @@ const MAINT = (() => {
         if (b.type === '休假') {
           for (let h = b.startHour; h < b.startHour + b.hours; h++) if (cells.indexOf(h) >= 0) leaveSet[h] = 1;
         } else if (b.type === '維修' && b.status === '已完成') {
-          const a = Number(b.actualHours);
-          const v = a > 0 ? a : b.hours;
+          const di = doneInfo(b, reqCat);
+          const v = di.v;
           done += v;
-          const c = (b.requestId && reqCat[b.requestId]) || '其他';
+          const c = di.c;
           cat[c] = cat[c] || { category: c, hours: 0, count: 0 };
           cat[c].hours += v;
           cat[c].count += 1;
@@ -4842,6 +4866,33 @@ const MAINT = (() => {
     out.rate = out.availHours > 0 ? out.doneHours / out.availHours : null;
     out.byCategory = Object.keys(cat).map(k => cat[k]).sort((a, b) => b.hours - a.hours);
     return out;
+  }
+
+  /* 已完成維修明細（v1.5.0 doneItems）：篩選靠 doneInfo，日期區間與類別順序直接取自 calcStats，
+     所以各類 workHours 加總與件數必然等於同區間 stats.byCategory 的 hours／count */
+  function calcDoneItems(o) {
+    const st = calcStats(o);
+    const reqById = {}, reqCat = {};
+    (o.requests || []).forEach(r => { reqById[r.id] = r; reqCat[r.id] = r.category; });
+    const rank = {};
+    st.byCategory.forEach((c, i) => { rank[c.category] = i; });
+    const items = [];
+    if (st.effectiveTo >= st.from) {
+      (o.blocks || []).forEach(b => {
+        if (!b || b.date < st.from || b.date > st.effectiveTo) return;
+        const di = doneInfo(b, reqCat);
+        if (!di) return;
+        const r = (b.requestId && reqById[b.requestId]) || null;
+        items.push({
+          blockId: b.id, date: b.date, startHour: b.startHour, hours: b.hours, actualHours: (Number(b.actualHours) > 0 ? Number(b.actualHours) : null),
+          workHours: di.v, title: b.title || '', location: b.location || '', note: b.note || '', category: di.c, requestId: b.requestId || '',
+          photoCount: r ? (r.photoCount | 0) : 0,
+          request: r ? { createdAt: r.createdAt || '', requester: r.requester || '', dept: r.dept || '', equipment: r.equipment || '', location: r.location || '', description: r.description || '', urgent: !!r.urgent, engineerNote: r.engineerNote || '', status: r.status || '' } : null
+        });
+      });
+    }
+    items.sort((a, b) => (rank[a.category] - rank[b.category]) || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0) || (a.startHour - b.startHour) || (a.blockId < b.blockId ? -1 : a.blockId > b.blockId ? 1 : 0));
+    return { from: st.from, to: st.to, effectiveTo: st.effectiveTo, items: items };
   }
   /*PURE-END*/
 
@@ -5183,6 +5234,13 @@ const MAINT = (() => {
         const s = calcStats({ blocks: st.blocks.filter(x => !x.deleted), calendar: st.calendar, requests: st.requests, from: b.from, to: b.to, today: today, workDays: WORK_DAYS, workHours: WORK_HOURS });
         return Object.assign({ ok: true }, s);
       }
+      case 'doneItems': {
+        if ((d = need(['engineer', 'manager']))) return d;
+        if (!isYmd(b.from) || !isYmd(b.to) || b.from > b.to) return E('日期區間不正確', 'INVALID');
+        if (ymdParse(b.to) - ymdParse(b.from) > 400 * 86400000) return E('區間不可超過 400 天', 'INVALID');
+        const r = calcDoneItems({ blocks: st.blocks.filter(x => !x.deleted), calendar: st.calendar, requests: st.requests, from: b.from, to: b.to, today: today, workDays: WORK_DAYS, workHours: WORK_HOURS });
+        return Object.assign({ ok: true }, r);
+      }
       case 'listBlocks': {
         if ((d = need(['engineer', 'manager']))) return d;
         if (!isYmd(b.from) || !isYmd(b.to) || b.from > b.to) return E('日期區間不正確', 'INVALID');
@@ -5268,7 +5326,8 @@ const MAINT = (() => {
     days: [], blocks: [], openRequests: [], calendar: [],
     cfg: { engineerName: '', workDays: WORK_DAYS, workHours: WORK_HOURS },
     role: '', pickReq: null, expanded: {}, error: '', lastLoad: '',
-    statsOpen: false, statsKey: 'week', statsFrom: '', statsTo: '', stats: null, statsErr: '', statsBusy: false
+    statsOpen: false, statsKey: 'week', statsFrom: '', statsTo: '', stats: null, statsErr: '', statsBusy: false,
+    done: null, doneErr: '', doneBusy: false, doneOpen: {}, doneExp: {}, exportBusy: false, exportMsg: '', exportErr: ''
   };
   let booted = false;
   let codePrompt = null;
@@ -5290,7 +5349,7 @@ const MAINT = (() => {
     }
   }
 
-  const RETRY_SAFE = ['ping', 'bootstrap', 'whoami', 'auth', 'logout', 'stats', 'listBlocks', 'listFaults',
+  const RETRY_SAFE = ['ping', 'bootstrap', 'whoami', 'auth', 'logout', 'stats', 'doneItems', 'listBlocks', 'listFaults',
                       'submitRequest', 'sendFault', 'saveCalendar', 'importHolidays', 'getPhotos', 'getDirectory'];   // saveDirectory 不重試
   async function call(action, params) {
     S.loading++; paintStatus();
@@ -5683,6 +5742,10 @@ const MAINT = (() => {
       case 'photos': return showPhotos(id);
       case 'range': return setRange(t.getAttribute('data-k'));
       case 'rangego': return rangeGo();
+      case 'cat': return toggleCat(t.getAttribute('data-c'));
+      case 'doneretry': return loadDone();
+      case 'dexp': S.doneExp[id] = !S.doneExp[id]; return t.classList.toggle('open', !!S.doneExp[id]);
+      case 'export': return exportDone();
     }
   }
 
@@ -6309,6 +6372,7 @@ const MAINT = (() => {
   function toggleStats() {
     S.statsOpen = !S.statsOpen;
     if (S.statsOpen) {
+      S.done = null; S.doneErr = ''; S.doneOpen = {}; S.exportErr = '';
       if (!S.statsFrom) { const r = rangeFor('week', S.today); S.statsFrom = r[0]; S.statsTo = r[1]; S.statsKey = 'week'; }
       render(); loadStats();
       const el = $('mt-stats'); if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
@@ -6331,9 +6395,11 @@ const MAINT = (() => {
     const res = await call('stats', { from: S.statsFrom, to: S.statsTo });
     if (seq !== statsSeq) return;
     S.statsBusy = false;
+    doneSeq++; S.done = null; S.doneErr = ''; S.doneBusy = false;   // 區間切換／重新載入：明細快取一律作廢，有展開的類別重抓
     if (res && res.ok) { S.stats = res; S.statsErr = ''; }
     else { S.stats = null; S.statsErr = errText(res); }
     paintStats();
+    if (S.stats && S.stats.byCategory && S.stats.byCategory.some(c => S.doneOpen[c.category])) loadDone();
   }
   function paintStats() { const el = $('mt-stats'); if (el) el.innerHTML = statsHtml(); }
 
@@ -6370,10 +6436,268 @@ const MAINT = (() => {
         '</tbody></table></div>';
     }
     if (st.byCategory && st.byCategory.length) {
-      h += '<div class="mt-sec sm">類別分布（已完成維修）</div><div class="mt-tbwrap narrow"><table class="mt-tb"><thead><tr><th>類別</th><th class="num">工時</th><th class="num">占比</th><th class="num">件數</th></tr></thead><tbody>' +
-        st.byCategory.slice().sort((a, b) => b.hours - a.hours).map(c => '<tr><td>' + esc(c.category) + '</td><td class="num">' + fmtH(c.hours) + '</td><td class="num">' + pct(st.doneHours > 0 ? c.hours / st.doneHours : null) + '</td><td class="num">' + esc(c.count) + '</td></tr>').join('') + '</tbody></table></div>';
+      const cats = st.byCategory.slice().sort((a, b) => b.hours - a.hours);
+      const anyOpen = cats.some(c => S.doneOpen[c.category]);
+      h += '<div class="mt-sec sm">類別分布（已完成維修）</div>' +
+        '<div class="mt-exprow"><button type="button" class="btn btn-primary mt-sm" data-act="export"' + (S.exportBusy ? ' disabled' : '') + '>⬇ 匯出明細 Excel（含照片）</button>' +
+        '<span class="mt-expmsg" id="mt-expmsg">' + esc(S.exportBusy ? S.exportMsg : '') + '</span></div>' +
+        '<div class="mt-err" id="mt-experr" style="display:' + (S.exportErr ? 'block' : 'none') + '">' + esc(S.exportErr) + '</div>' +
+        '<div class="mt-hint">點類別可展開每一次維修明細；匯出為目前區間（' + esc(st.from) + ' ～ ' + esc(st.to) + '）全部類別，照片會縮圖嵌入儲存格。</div>' +
+        '<div class="mt-tbwrap' + (anyOpen ? '' : ' narrow') + '"><table class="mt-tb"><thead><tr><th>類別</th><th class="num">工時</th><th class="num">占比</th><th class="num">件數</th></tr></thead><tbody>' +
+        cats.map(c => {
+          const op = !!S.doneOpen[c.category];
+          return '<tr class="mt-cat' + (op ? ' open' : '') + '" data-act="cat" data-c="' + esc(c.category) + '"><td><button type="button" class="mt-cat-b" aria-expanded="' + op + '"><span class="mt-caret">' + (op ? '▾' : '▸') + '</span>' + esc(c.category) + '</button></td><td class="num">' + fmtH(c.hours) + '</td><td class="num">' + pct(st.doneHours > 0 ? c.hours / st.doneHours : null) + '</td><td class="num">' + esc(c.count) + '</td></tr>' +
+            (op ? '<tr class="mt-dtr"><td colspan="4">' + doneDetailHtml(c) + '</td></tr>' : '');
+        }).join('') + '</tbody></table></div>';
     }
     return h;
+  }
+
+  /* ════════ 已完成維修明細（展開）與匯出 Excel ════════ */
+  let doneSeq = 0;
+  async function loadDone() {
+    const st = S.stats; if (!st) return;
+    const seq = ++doneSeq;
+    S.doneBusy = true; S.doneErr = ''; paintStats();
+    const res = await call('doneItems', { from: st.from, to: st.to });
+    if (seq !== doneSeq) return;
+    S.doneBusy = false;
+    if (res && res.ok && Array.isArray(res.items)) { S.done = { from: st.from, to: st.to, items: res.items }; S.doneErr = ''; }
+    else { S.done = null; S.doneErr = (res && res.ok) ? '明細資料格式錯誤' : errText(res); }
+    paintStats();
+  }
+  function toggleCat(c) {
+    S.doneOpen[c] = !S.doneOpen[c];
+    if (S.doneOpen[c] && !S.done && !S.doneBusy) loadDone(); else paintStats();
+  }
+  const dateWd = d => d + '（' + WEEKDAY_ZH[weekdayOf(d)] + '）';
+  function doneDetailHtml(c) {
+    if (S.doneBusy && !S.done) return '<div class="mt-dbox"><div class="mt-none"><span class="mt-spin"></span> 明細載入中…</div></div>';
+    if (S.doneErr) return '<div class="mt-dbox"><div class="mt-err" style="display:block">明細載入失敗：' + esc(S.doneErr) + '　<button type="button" class="btn btn-ghost mt-sm" data-act="doneretry">重試</button></div></div>';
+    if (!S.done) return '<div class="mt-dbox"><div class="mt-none"><span class="mt-spin"></span> 明細載入中…</div></div>';
+    const rows = S.done.items.filter(x => x.category === c.category);
+    if (!rows.length) return '<div class="mt-dbox"><div class="mt-none">這個類別在此區間沒有明細</div></div>';
+    const sumH = rows.reduce((a, x) => a + (+x.workHours || 0), 0);
+    const mismatch = rows.length !== c.count || Math.abs(sumH - c.hours) > 0.005;
+    const ph = canSeePhotos();
+    return '<div class="mt-dbox"><div class="mt-hint">共 ' + rows.length + ' 筆、' + fmtH(sumH) + ' 小時（同一筆報修分多次維修會分列）' +
+      (mismatch ? '　<b style="color:#b83015">⚠ 與上方統計（' + esc(c.count) + ' 件、' + fmtH(c.hours) + ' 小時）不一致，資料可能剛被更新，請重新查詢</b>' : '') + '</div>' +
+      '<div class="mt-dwrap"><table class="mt-tb mt-dtb"><thead><tr><th>日期</th><th>時段</th><th class="num">工時</th><th>設備／標題</th><th>位置</th><th>報修人</th><th>問題描述</th><th>照片</th></tr></thead><tbody>' +
+      rows.map(x => {
+        const r = x.request;
+        const eq = r && r.equipment ? '<b>' + esc(r.equipment) + '</b>' + (r.urgent ? ' <span class="mt-chip red">急件</span>' : '') + (x.title && x.title !== r.equipment ? '<div class="mt-dsub">' + esc(x.title) + '</div>' : '') : esc(x.title);
+        const hrs = fmtH(x.workHours) + (x.actualHours && x.actualHours !== x.hours ? '<div class="mt-dsub">排定 ' + fmtH(x.hours) + '</div>' : '');
+        const who = r && r.requester ? esc(r.requester) + (r.dept ? '<div class="mt-dsub">' + esc(r.dept) + '</div>' : '') : '—';
+        const desc = r && r.description ? String(r.description) : '';
+        const long = desc.length > 40 || desc.indexOf('\n') >= 0;
+        const dd = desc ? '<div class="mt-dd' + (S.doneExp[x.blockId] ? ' open' : '') + (long ? ' long' : '') + '"' + (long ? ' data-act="dexp" data-id="' + esc(x.blockId) + '" title="點擊展開／收合"' : '') + '>' + nl2br(desc) + '</div>' : '<span class="mt-hint">' + (r ? '—' : '（無連結報修單）') + '</span>';
+        const pc = x.photoCount | 0;
+        const phc = pc > 0 ? (ph && x.requestId ? '<button type="button" class="mt-chip ph" data-act="photos" data-id="' + esc(x.requestId) + '" title="點擊查看照片">📷 ' + pc + '</button>' : '<span class="mt-chip ph off">📷 ' + pc + '</span>') : '';
+        return '<tr><td class="nw">' + esc(dateWd(x.date)) + '</td><td class="nw">' + timeRange(x.startHour, x.hours) + '</td><td class="num">' + hrs + '</td><td>' + eq + '</td><td>' + esc(x.location || (r && r.location) || '') + '</td><td class="nw">' + who + '</td><td class="dd">' + dd + '</td><td class="nw">' + phc + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+  }
+
+  /* ── 匯出 Excel（ExcelJS 動態載入；照片先縮成長邊 400px JPEG 0.8 再嵌入） ── */
+  const EXCELJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+  const EXP_THUMB = 400, EXP_Q = 0.8, EXP_CONC = 3, EXP_PH_FAIL = '（照片讀取失敗）';
+  const _sc = {};
+  function loadScript(url) {
+    return _sc[url] || (_sc[url] = new Promise((res, rej) => {
+      const el = document.createElement('script');
+      const fail = msg => { delete _sc[url]; el.remove(); rej(new Error(msg)); };
+      const to = setTimeout(() => fail('載入逾時：' + url.split('/').pop()), 30000);
+      el.onload = () => { clearTimeout(to); res(); };
+      el.onerror = () => { clearTimeout(to); fail('無法載入 ' + url.split('/').pop() + '（請檢查網路，或廣告攔截外掛是否擋住 cdnjs）'); };
+      el.src = url; document.head.appendChild(el);
+    }));
+  }
+  function setExpMsg(t) {
+    S.exportMsg = t;
+    const el = $('mt-expmsg'); if (el) el.textContent = t;
+  }
+  function setExpErr(t) {
+    S.exportErr = t;
+    const el = $('mt-experr'); if (el) { el.textContent = t; el.style.display = t ? 'block' : 'none'; }
+  }
+  /* Excel 工作表名稱：≤31 字、不得含 : \ / ? * [ ]、不得以單引號開頭或結尾、不可空白、不可重複（不分大小寫） */
+  function sheetName(raw, used) {
+    let n = String(raw == null ? '' : raw).replace(/[:\\\/?*\[\]]/g, '_').replace(/^'+|'+$/g, '').trim();
+    if (!n) n = '未分類';
+    n = n.slice(0, 31);
+    let k = 1, base = n;
+    while (used[n.toLowerCase()]) { k++; const suf = '_' + k; n = base.slice(0, 31 - suf.length) + suf; }
+    used[n.toLowerCase()] = 1;
+    return n;
+  }
+  /* 縮圖：base64 → Blob → 解碼 → canvas 縮成長邊 ≤400px（不放大）→ JPEG 0.8；回傳 { b64, w, h } */
+  async function expThumb(p) {
+    if (!phSrc(p)) throw new Error('不支援的圖片');
+    const bin = atob(p.data), u8 = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    const im = await phLoad(new Blob([u8], { type: p.type }));
+    try {
+      if (!(im.w > 0 && im.h > 0)) throw new Error('size');
+      const sc = Math.min(1, EXP_THUMB / Math.max(im.w, im.h));
+      const w = Math.max(1, Math.round(im.w * sc)), h = Math.max(1, Math.round(im.h * sc));
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h); cx.drawImage(im.src, 0, 0, w, h);
+      const blob = await phBlob(cv, EXP_Q);
+      cv.width = cv.height = 0;
+      if (!blob) throw new Error('encode');
+      return { b64: await phB64(blob), w: w, h: h };
+    } finally { im.done(); }
+  }
+  /* 文字欄的列高估算：中日韓字元算 2 個寬度單位 */
+  function expLines(text, colW) {
+    const cap = Math.max(1, colW - 1);
+    return String(text == null ? '' : text).split(/\r?\n/).reduce((a, ln) => {
+      let wsum = 0; for (const ch of ln) wsum += ch.charCodeAt(0) > 255 ? 2 : 1;
+      return a + Math.max(1, Math.ceil(wsum / cap));
+    }, 0);
+  }
+
+  async function exportDone() {
+    if (S.exportBusy) return;
+    if (!canSeePhotos()) { toast('只有工程師與主管可以匯出', 'err'); return; }
+    const st0 = S.stats;
+    if (!st0) { toast('請先查詢稼動率', 'err'); return; }
+    const from = st0.from, to = st0.to;
+    S.exportBusy = true; setExpErr(''); setExpMsg('載入 Excel 元件…'); paintStats();
+    try {
+      await loadScript(EXCELJS_URL);
+      if (!window.ExcelJS || !window.ExcelJS.Workbook) throw new Error('Excel 元件載入後無法使用');
+      setExpMsg('取得明細…');
+      /* 總表與明細同一時間取，兩邊口徑才一致 */
+      const [rs, rd] = await Promise.all([call('stats', { from: from, to: to }), call('doneItems', { from: from, to: to })]);
+      if (!rs || !rs.ok) throw new Error('取得統計失敗：' + errText(rs));
+      if (!rd || !rd.ok || !Array.isArray(rd.items)) throw new Error('取得明細失敗：' + ((rd && rd.ok) ? '資料格式錯誤' : errText(rd)));
+      const items = rd.items;
+      if (!items.length) throw new Error('這個區間沒有已完成維修，沒有可匯出的明細');
+      const cats = (rs.byCategory || []).slice().sort((a, b) => b.hours - a.hours);
+      items.forEach(x => { if (!cats.some(c => c.category === x.category)) throw new Error('明細與統計的類別不一致（' + x.category + '），請重新查詢後再匯出'); });
+
+      /* 照片：不重複 requestId，同時最多 3 個 */
+      const rids = []; items.forEach(x => { if ((x.photoCount | 0) > 0 && x.requestId && rids.indexOf(x.requestId) < 0) rids.push(x.requestId); });
+      const thumbs = {};   // requestId → [ {b64,w,h} | null ]（null＝失敗）；整筆失敗 → 全 null
+      let nDone = 0;
+      if (rids.length) setExpMsg('下載照片 0／' + rids.length);
+      let qi = 0;
+      const worker = async () => {
+        while (qi < rids.length) {
+          const rid = rids[qi++];
+          const want = Math.min(PH_MAX, Math.max.apply(null, items.filter(x => x.requestId === rid).map(x => x.photoCount | 0)));
+          let arr = [];
+          try {
+            const r = await call('getPhotos', { requestId: rid });
+            if (r && r.ok && Array.isArray(r.photos)) {
+              for (let i = 0; i < want; i++) {
+                try { arr.push(r.photos[i] ? await expThumb(r.photos[i]) : null); } catch (e) { arr.push(null); }
+              }
+            }
+          } catch (e) { arr = []; }
+          while (arr.length < want) arr.push(null);
+          thumbs[rid] = arr;
+          nDone++; setExpMsg('下載照片 ' + nDone + '／' + rids.length);
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(EXP_CONC, rids.length) }, worker));
+
+      setExpMsg('產生 Excel…');
+      const XJ = window.ExcelJS, wb = new XJ.Workbook();
+      wb.creator = '設備維修排程'; wb.created = new Date();
+      const thin = { style: 'thin', color: { argb: 'FFBFBFBF' } }, bd = { top: thin, left: thin, bottom: thin, right: thin };
+      const hdrStyle = c => { c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3D3D3D' } }; c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true }; c.border = bd; };
+      const used = {};
+      const pctN = v => (v == null || !isFinite(v)) ? null : v;
+
+      /* 總表 */
+      const ws0 = wb.addWorksheet(sheetName('總表', used));
+      ws0.columns = [{ width: 18 }, { width: 14 }, { width: 12 }, { width: 10 }];
+      ws0.mergeCells('A1:D1');
+      const t1 = ws0.getCell('A1'); t1.value = '已完成維修明細　總表'; t1.font = { bold: true, size: 14 }; t1.alignment = { vertical: 'middle' };
+      ws0.getRow(1).height = 26;
+      const meta = [['統計區間', from + ' ～ ' + to], ['統計截至', rs.effectiveTo], ['匯出時間', tpeStamp()]];
+      meta.forEach((m, i) => { const r = ws0.getRow(2 + i); r.getCell(1).value = m[0]; r.getCell(1).font = { bold: true }; r.getCell(2).value = m[1]; ws0.mergeCells(2 + i, 2, 2 + i, 4); r.getCell(2).alignment = { horizontal: 'left' }; });
+      const kp = [['稼動率', pctN(rs.rate), '0.0%'], ['完成維修工時', rs.doneHours, '0.0#'], ['可用工時', rs.availHours, '0.0#']];
+      kp.forEach((m, i) => { const r = ws0.getRow(5 + i); r.getCell(1).value = m[0]; r.getCell(1).font = { bold: true }; const c = r.getCell(2); c.value = m[1] == null ? '—' : m[1]; if (m[1] != null) c.numFmt = m[2]; c.alignment = { horizontal: 'left' }; });
+      ws0.getCell('C7').value = '基準 ' + fmtH(rs.baseHours) + ' − 休假 ' + fmtH(rs.leaveHours); ws0.getCell('C7').font = { color: { argb: 'FF7A7A7A' }, size: 10 };
+      const hr = 9, hrow = ws0.getRow(hr);
+      ['類別', '工時', '占比', '件數'].forEach((t, i) => { hrow.getCell(i + 1).value = t; hdrStyle(hrow.getCell(i + 1)); });
+      let rr = hr;
+      cats.forEach(c => {
+        rr++; const r = ws0.getRow(rr);
+        r.getCell(1).value = c.category;
+        r.getCell(2).value = c.hours; r.getCell(2).numFmt = '0.0#';
+        r.getCell(3).value = rs.doneHours > 0 ? c.hours / rs.doneHours : null; r.getCell(3).numFmt = '0.0%';
+        r.getCell(4).value = c.count;
+        for (let i = 1; i <= 4; i++) r.getCell(i).border = bd;
+      });
+      rr++; const tr = ws0.getRow(rr);
+      tr.getCell(1).value = '合計'; tr.getCell(2).value = cats.reduce((a, c) => a + c.hours, 0); tr.getCell(2).numFmt = '0.0#';
+      tr.getCell(3).value = rs.doneHours > 0 ? 1 : null; tr.getCell(3).numFmt = '0.0%'; tr.getCell(4).value = cats.reduce((a, c) => a + c.count, 0);
+      for (let i = 1; i <= 4; i++) { const c = tr.getCell(i); c.font = { bold: true }; c.border = bd; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFDF1D6' } }; }
+
+      /* 每類一個工作表 */
+      const COLS = [['日期', 12], ['星期', 6], ['時段', 9], ['工時', 7], ['設備', 20], ['標題', 26], ['位置', 16], ['報修人', 10], ['部門', 10], ['報修時間', 17], ['急件', 6], ['問題描述', 40], ['工程師備註', 28], ['排程說明', 28], ['照片1', 18], ['照片2', 18], ['照片3', 18]];
+      const WRAP_IDX = [4, 5, 6, 11, 12, 13];   // 會換行的文字欄（0 起算）
+      const imgIds = {};   // requestId|index → ExcelJS imageId（同一筆報修的照片只存一份）
+      let nImg = 0, nFail = 0;
+      cats.forEach(c => {
+        const rows = items.filter(x => x.category === c.category);
+        const ws = wb.addWorksheet(sheetName(c.category, used));
+        ws.columns = COLS.map(k => ({ width: k[1] }));
+        ws.views = [{ state: 'frozen', ySplit: 1 }];
+        const h = ws.getRow(1); h.height = 24;
+        COLS.forEach((k, i) => { h.getCell(i + 1).value = k[0]; hdrStyle(h.getCell(i + 1)); });
+        rows.forEach((x, ri) => {
+          const rn = ri + 2, r = ws.getRow(rn), q = x.request;
+          const vals = [x.date, '週' + WEEKDAY_ZH[weekdayOf(x.date)], timeRange(x.startHour, x.hours), x.workHours,
+            q ? q.equipment : '', x.title, x.location || (q ? q.location : ''), q ? q.requester : '', q ? q.dept : '', q ? q.createdAt : '', q && q.urgent ? '是' : '',
+            q ? q.description : '（無連結報修單）', q ? q.engineerNote : '', x.note || ''];
+          vals.forEach((v, i) => { r.getCell(i + 1).value = v; });
+          r.getCell(4).numFmt = '0.0#';
+          const pc = Math.min(PH_MAX, x.photoCount | 0), hasPh = pc > 0 && !!x.requestId;
+          let lines = 1; WRAP_IDX.forEach(i => { lines = Math.max(lines, expLines(vals[i], COLS[i][1])); });
+          const hpt = Math.min(409, Math.max(hasPh ? 90 : 20, lines * 15 + 5));
+          r.height = hpt;
+          for (let i = 1; i <= COLS.length; i++) {
+            const cell = r.getCell(i); cell.border = bd;
+            cell.alignment = { vertical: 'top', horizontal: i === 4 || i === 2 || i === 11 ? 'center' : 'left', wrapText: true };
+          }
+          if (hasPh) {
+            const tb = thumbs[x.requestId] || [];
+            for (let k = 0; k < pc; k++) {
+              const t = tb[k], cell = r.getCell(15 + k);
+              if (!t) { cell.value = EXP_PH_FAIL; cell.font = { color: { argb: 'FFB83015' }, size: 10 }; nFail++; continue; }
+              const key = x.requestId + '|' + k;
+              if (imgIds[key] === undefined) imgIds[key] = wb.addImage({ base64: t.b64, extension: 'jpeg' });
+              const colPx = COLS[14 + k][1] * 7 + 5, rowPx = hpt * 96 / 72, boxW = colPx - 8, boxH = Math.min(rowPx - 8, 112);
+              const sc = Math.min(boxW / t.w, boxH / t.h), dw = Math.max(1, Math.floor(t.w * sc)), dh = Math.max(1, Math.floor(t.h * sc));
+              ws.addImage(imgIds[key], { tl: { col: 14 + k + (colPx - dw) / 2 / colPx, row: (rn - 1) + 4 / rowPx }, ext: { width: dw, height: dh }, editAs: 'oneCell' });
+              nImg++;
+            }
+          }
+        });
+        ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: rows.length + 1, column: COLS.length } };
+        const tot = ws.getRow(rows.length + 2);
+        tot.getCell(1).value = '合計（' + rows.length + ' 筆）'; tot.getCell(4).value = rows.reduce((a, x) => a + (+x.workHours || 0), 0); tot.getCell(4).numFmt = '0.0#';
+        for (let i = 1; i <= COLS.length; i++) { const cc = tot.getCell(i); cc.font = { bold: true }; cc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFDF1D6' } }; cc.border = bd; }
+        tot.getCell(4).alignment = { horizontal: 'center' };
+      });
+
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const fname = '已完成維修明細_' + from.replace(/-/g, '') + '-' + to.replace(/-/g, '') + '.xlsx';
+      const url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      toast('已匯出：' + fname + '（' + items.length + ' 筆、嵌入 ' + nImg + ' 張照片' + (nFail ? '，' + nFail + ' 張讀取失敗' : '') + '）');
+    } catch (e) {
+      const msg = '匯出失敗：' + ((e && e.message) || e);
+      setExpErr(msg); toast(msg, 'err');
+    } finally {
+      S.exportBusy = false; setExpMsg(''); paintStats();
+    }
   }
 
   /* ════════ 行事曆（假日／補班） ════════ */
@@ -6461,8 +6785,8 @@ const MAINT = (() => {
 
   init();
   /* 提供給分機表等新模組重用登入／通行碼／modal，不要各自複製一份 */
-  const api = { call, loginModal, role: () => S.role || ss.get(K_ROLE) || '', openModal, toast, errText, esc };
-  return { init, load, api, __test: { calcStats: calcStats } };
+  const api = { call, loginModal, role: () => S.role || ss.get(K_ROLE) || '', openModal, toast, errText, esc, loadScript };
+  return { init, load, api, __test: { calcStats: calcStats, calcDoneItems: calcDoneItems } };
 })();
 
 /* ── /TOOL I ── */
@@ -6696,17 +7020,7 @@ const EXT = (() => {
   }
 
   /* ── 匯出 PDF ── */
-  const _sc = {};
-  function loadScript(url) {
-    return _sc[url] || (_sc[url] = new Promise((res, rej) => {
-      const s = document.createElement('script');
-      const fail = msg => { delete _sc[url]; s.remove(); rej(new Error(msg)); };
-      const to = setTimeout(() => fail('載入逾時：' + url.split('/').pop()), 30000);
-      s.onload = () => { clearTimeout(to); res(); };
-      s.onerror = () => { clearTimeout(to); fail('無法載入 ' + url.split('/').pop() + '（請檢查網路，或廣告攔截外掛是否擋住 cdnjs）'); };
-      s.src = url; document.head.appendChild(s);
-    }));
-  }
+  const loadScript = url => api.loadScript(url);   // 與稼動率匯出共用 MAINT 內的載入器（同網址只載一次）
   const rocDate = () => {
     const p = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' }).split('-');
     return { roc: (+p[0] - 1911) + '年' + (+p[1]) + '月' + (+p[2]) + '日', ymd: p.join('') };
