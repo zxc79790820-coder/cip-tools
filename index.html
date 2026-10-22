@@ -1551,6 +1551,16 @@ button.mt-chip.ph:hover{background:#cfe5f8}
 .ic-mc{background:#fff;border:1px solid var(--cip-border);border-radius:10px;margin-bottom:14px;overflow:hidden;min-width:0}
 .ic-mh{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 14px;background:var(--cip-offwhite);border-bottom:1px solid var(--cip-border)}
 .ic-mn{font-size:15px;font-weight:700;word-break:break-word}
+.ic-fold{border:0;background:transparent;font-size:16px;line-height:1;width:26px;height:26px;border-radius:6px;cursor:pointer;color:var(--cip-text2);flex-shrink:0}
+.ic-fold:hover{background:#ece6db}
+.ic-mhead{cursor:pointer;min-width:0;flex:1 1 200px}
+.ic-msum{display:none;font-size:12px;color:var(--cip-text2);margin-top:3px;gap:6px;align-items:center;flex-wrap:wrap}
+.ic-mc.folded .ic-msum{display:flex}
+.ic-mc.folded .ic-mh{border-bottom:0}
+.ic-mc.folded .ic-tw,.ic-mc.folded .ic-pempty{display:none}
+.ic-mv{min-width:30px;padding-left:6px;padding-right:6px}
+.ic-mv:disabled{opacity:.35;cursor:default}
+.ic-saving{color:var(--cip-orange)}
 .ic-mnote{font-size:12px;color:var(--cip-text2);word-break:break-word}
 .ic-mact{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
 .ic-tw{overflow-x:auto}
@@ -7372,7 +7382,7 @@ const EXT = (() => {
 const ICC = (() => {
   const api = MAINT.api, esc = api.esc;
   const $ = id => document.getElementById(id);
-  const K_OP = 'cipIcc:operator', K_SNZ = 'cipIcc:snooze', K_CODE = 'cipMaint:code';
+  const K_OP = 'cipIcc:operator', K_SNZ = 'cipIcc:snooze', K_CODE = 'cipMaint:code', K_FOLD = 'cipIcc:collapsed';
   const EXCELJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
   const PERIODS = [1, 2, 3, 4, 6, 12];
   const store = kind => ({
@@ -7380,7 +7390,10 @@ const ICC = (() => {
     set(k, v) { try { window[kind].setItem(k, v); } catch (e) { } }
   });
   const ls = store('localStorage'), ss = store('sessionStorage');
-  const S = { machines: [], profiles: [], today: '', loaded: false, loading: false, err: '', active: false, expBusy: false };
+  const S = { machines: [], profiles: [], today: '', loaded: false, loading: false, err: '', active: false, expBusy: false, moving: false };
+  /* 收折狀態只記在這台電腦（機台 id 清單） */
+  const folded = new Set((() => { try { return JSON.parse(ls.get(K_FOLD) || '[]'); } catch (e) { return []; } })());
+  const saveFold = () => ls.set(K_FOLD, JSON.stringify([...folded]));
   let alertM = null;
 
   /* ── 純函式 ── */
@@ -7433,7 +7446,8 @@ const ICC = (() => {
       '<button type="button" class="btn btn-ghost" data-a="logAll">📜 全部日誌</button>' +
       '<button type="button" class="btn btn-ghost" data-a="exp"' + (S.expBusy ? ' disabled' : '') + '>' + (S.expBusy ? '匯出中…' : '⬇ 匯出 Excel') + '</button>' +
       '<button type="button" class="btn btn-ghost" data-a="reload"' + (S.loading ? ' disabled' : '') + '>↻ 重新載入</button>' +
-      '<span class="ic-meta">' + (S.today ? '資料日期：' + esc(S.today) : '') + '</span>';
+      (S.machines.length > 1 ? '<button type="button" class="btn btn-ghost" data-a="foldAll">全部收合</button><button type="button" class="btn btn-ghost" data-a="unfoldAll">全部展開</button>' : '') +
+      '<span class="ic-meta">' + (S.moving ? '<b class="ic-saving">排序儲存中…</b>' : (S.today ? '資料日期：' + esc(S.today) : '')) + '</span>';
   }
   function paintMsg() {
     const el = $('ic-msg'); if (!el) return;
@@ -7459,11 +7473,20 @@ const ICC = (() => {
         '<button type="button" class="ic-b ic-b-d" data-a="delP" data-id="' + id + '">刪除</button>' +
       '</td></tr>';
   }
-  function machineHtml(m) {
-    const ps = S.profiles.filter(p => p.machineId === m.id), id = esc(m.id);
-    return '<section class="ic-mc" data-mid="' + id + '">' +
-      '<div class="ic-mh"><div><div class="ic-mn">🖨️ ' + esc(m.name) + '</div>' + (m.note ? '<div class="ic-mnote">' + esc(m.note) + '</div>' : '') + '</div>' +
-      '<div class="ic-mact"><button type="button" class="ic-b ic-b-p" data-a="addP" data-id="' + id + '">＋ 新增 ICC</button>' +
+  function machineHtml(m, i, all) {
+    const ps = S.profiles.filter(p => p.machineId === m.id), id = esc(m.id), fold = folded.has(m.id);
+    const c = count(ps);
+    const sumTxt = ps.length + ' 筆 ICC' +
+      (c.od ? '<span class="ic-tag ic-tag-overdue">已過期 ' + c.od + '</span>' : '') +
+      (c.so ? '<span class="ic-tag ic-tag-soon">快到期 ' + c.so + '</span>' : '');
+    const mv = (dir, dis, lbl) => '<button type="button" class="ic-b ic-mv" data-a="mv' + dir + '" data-id="' + id + '" title="' + lbl + '" aria-label="' + lbl + '"' + (dis || S.moving ? ' disabled' : '') + '>' + (dir === 'Up' ? '▲' : '▼') + '</button>';
+    return '<section class="ic-mc' + (fold ? ' folded' : '') + '" data-mid="' + id + '">' +
+      '<div class="ic-mh">' +
+      '<button type="button" class="ic-fold" data-a="fold" data-id="' + id + '" aria-expanded="' + !fold + '" title="' + (fold ? '展開' : '收合') + '">' + (fold ? '▸' : '▾') + '</button>' +
+      '<div class="ic-mhead" data-a="fold" data-id="' + id + '"><div class="ic-mn">🖨️ ' + esc(m.name) + '</div>' + (m.note ? '<div class="ic-mnote">' + esc(m.note) + '</div>' : '') +
+        '<div class="ic-msum">' + sumTxt + '</div></div>' +
+      '<div class="ic-mact">' + mv('Up', i === 0, '往上移') + mv('Down', i === all.length - 1, '往下移') +
+      '<button type="button" class="ic-b ic-b-p" data-a="addP" data-id="' + id + '">＋ 新增 ICC</button>' +
       '<button type="button" class="ic-b" data-a="editM" data-id="' + id + '">編輯</button>' +
       '<button type="button" class="ic-b ic-b-d" data-a="delM" data-id="' + id + '">刪除</button></div></div>' +
       (ps.length
@@ -7476,7 +7499,7 @@ const ICC = (() => {
     const el = $('ic-body'); if (!el) return;
     if (!S.loaded) { el.innerHTML = ''; return; }
     el.innerHTML = S.machines.length
-      ? S.machines.map(machineHtml).join('')
+      ? S.machines.map((m, i, all) => machineHtml(m, i, all)).join('')
       : '<div class="ic-empty">尚未建立任何輸出機台。<br>按上方〔＋ 新增機台〕開始，再替每台機台加入各材質／模式的 ICC。</div>';
   }
   function paintAll() { paintSum(); paintBar(); paintMsg(); paintBody(); paintBadge(badgeN(S.profiles)); }
@@ -7502,6 +7525,29 @@ const ICC = (() => {
   }
   async function write(action, params) {
     return api.call(action, params, { onNet: () => { afterWrite(); } });
+  }
+
+  /* ── 機台排序：與相鄰機台交換 sort；sort 有重複時改為依目前順序重新編號 ── */
+  async function moveMachine(id, dir) {
+    if (S.moving) return;
+    const ms = S.machines.slice(), i = ms.findIndex(m => m.id === id), j = i + dir;
+    if (i < 0 || j < 0 || j >= ms.length) return;
+    const vals = ms.map(m => +m.sort || 0);
+    const distinct = new Set(vals).size === vals.length;
+    const order = ms.slice(); [order[i], order[j]] = [order[j], order[i]];
+    const target = distinct ? vals.slice().sort((a, b) => a - b) : order.map((_, k) => k + 1);
+    const changes = order.map((m, k) => ({ m, sort: target[k] })).filter(x => (+x.m.sort || 0) !== x.sort);
+    // 先在畫面上換好位置，送出期間鎖住上下鍵
+    S.machines = order.map((m, k) => Object.assign({}, m, { sort: target[k] }));
+    S.moving = true; paintBody(); paintBar();
+    let failed = '';
+    for (const x of changes) {
+      const res = await write('iccSaveMachine', { operator: ls.get(K_OP) || '', machine: { id: x.m.id, name: x.m.name, note: x.m.note, sort: x.sort, updatedAt: x.m.updatedAt } });
+      if (!res || !res.ok) { failed = res && res.errCode === 'CONFLICT' ? '資料已被其他人更新' : api.errText(res); break; }
+    }
+    S.moving = false; paintBar();
+    if (failed) api.toast('調整順序失敗：' + failed + '，已重新載入', 'err');
+    await afterWrite();
   }
 
   /* ── 通用小視窗 ── */
@@ -7820,6 +7866,11 @@ const ICC = (() => {
       case 'ver': { const p = pOf(id); if (p) verifyForm(p); break; }
       case 'hist': { const p = pOf(id); if (p) showLog(p); break; }
       case 'logAll': showLog(null); break;
+      case 'fold': { if (folded.has(id)) folded.delete(id); else folded.add(id); saveFold(); paintBody(); break; }
+      case 'foldAll': S.machines.forEach(m => folded.add(m.id)); saveFold(); paintBody(); break;
+      case 'unfoldAll': folded.clear(); saveFold(); paintBody(); break;
+      case 'mvUp': moveMachine(id, -1); break;
+      case 'mvDown': moveMachine(id, 1); break;
       case 'exp': exportXlsx(); break;
       case 'reload': { const first = !S.loaded; load().then(ok => { if (ok && first) maybeAlert(); }); break; }   // 第一次載入失敗後重試成功，也要跳警示
     }
